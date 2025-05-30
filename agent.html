@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoRent - Espace Agent</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Bienvenue Agent de Location</h1>
+    <p>Profitez de nos offres exclusives pour booster votre activité</p>
+
+    <!-- Section des abonnements -->
+    <h2>Choisissez votre abonnement</h2>
+    <table class="pricing-table">
+      <thead>
+        <tr>
+          <th>Pack</th>
+          <th>Voitures incluses</th>
+          <th>Alertes</th>
+          <th>Support</th>
+          <th>Statistiques</th>
+          <th>Réduction pub</th>
+          <th>Prix/mois</th>
+          <th></th>
+        </tr>
+      </thead>
+     <tbody>
+  <tr>
+    <td>Basic</td>
+    <td>7</td>
+    <td>✅</td>
+    <td>Email</td>
+    <td>❌</td>
+    <td>❌</td>
+    <td>19€</td>
+    <td><a href="confirmation-basic.html" class="subscribe-btn">S’abonner</a></td>
+  </tr>
+  <tr>
+    <td>Pro</td>
+    <td>25</td>
+    <td>✅</td>
+    <td>Email + Chat</td>
+    <td>✅</td>
+    <td>10%</td>
+    <td>39€</td>
+    <td><a href="confirmation-pro.html" class="subscribe-btn">S’abonner</a></td>
+  </tr>
+  <tr>
+    <td>Elite</td>
+    <td>Illimité</td>
+    <td>✅</td>
+    <td>Premium 24h</td>
+    <td>✅</td>
+    <td>25%</td>
+    <td>79€</td>
+    <td><a href="confirmation-elite.html" class="subscribe-btn">S’abonner</a></td>
+  </tr>
+</tbody>
+    </table>
+
+    <!-- Gestion des voitures -->
+    <div class="voiture">
+      <h2>Ajouter une voiture</h2>
+      <form id="carForm">
+        <input type="text" placeholder="Nom de la voiture" required /><br/>
+        <input type="text" placeholder="Modèle" required /><br/>
+        <input type="text" placeholder="Prix/jour (€)" required /><br/>
+        <button type="submit">Ajouter</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
+
