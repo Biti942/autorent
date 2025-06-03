@@ -1,37 +1,104 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirmation BASIC - AutoRent</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Confirmation - Pack Start</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #1e88e5;
+    }
+
+    p {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .price {
+      font-size: 22px;
+      font-weight: bold;
+      margin: 10px 0;
+      color: #4caf50;
+    }
+
+    button, .whatsapp-btn {
+      background-color: #1e88e5;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      margin-top: 15px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    button:hover {
+      background-color: #1565c0;
+    }
+
+    .whatsapp-btn {
+      background-color: #25D366;
+    }
+
+    .whatsapp-btn:hover {
+      background-color: #1ebe5d;
+    }
+
+    .notice {
+      margin-top: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    input[type="file"] {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>🎉 Abonnement BASIC confirmé !</h1>
-    <p>Vous avez choisi un abonnement <strong>BASIC</strong> AutoRent.</p>
-    <p>✅ Vous aurez l’accès pour publier jusqu’à <strong>7 voitures</strong>.</p>
-    <p>Préparez-vous à recevoir vos premières réservations très bientôt !</p>
-    <a href="dashboard-agent.html" class="subscribe-btn">Accéder à mon espace</a>
+    <h1>Pack Start Confirmé</h1>
+    <p>Vous avez choisi le pack <strong>Start</strong> – 1 à 6 voitures à publier.</p>
+    <p class="price">199 MAD / mois</p>
+
+    <p>Veuillez effectuer le virement sur notre compte bancaire. Ensuite, envoyez une capture d’écran de votre preuve de paiement ci-dessous :</p>
+
+    <input type="file" accept="image/*" />
+    <br />
+    <button>Envoyer la preuve de virement</button>
+
+    <a class="whatsapp-btn" href="https://wa.me/212710876201" target="_blank">📩 Envoyer via WhatsApp</a>
+
+    <p class="notice">Votre demande sera traitée sous 15 minutes. Vous recevrez un accès pour publier vos véhicules.</p>
   </div>
 </body>
-<div style="margin-top: 40px; padding: 20px; background-color: #f9f9f9; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-  <h2>Choisissez votre mode de paiement</h2>
-  <p style="margin-bottom: 20px;">Actuellement, seul le virement bancaire est disponible :</p>
-
-  <div style="background-color: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-    <strong>Détails bancaires :</strong><br>
-    Banque : Attijariwafa Bank<br>
-    Titulaire : AutoRent SARL<br>
-    RIB : 123 456 789 000 123456789 98<br>
-  </div>
-
-  <label for="screenshot">Merci de poster une capture d'écran du virement :</label><br><br>
-  <input type="file" id="screenshot" name="screenshot" accept="image/*"><br><br>
-
-  <button style="background-color: #00bfa5; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer;">Envoyer</button>
-
-  <p style="margin-top: 20px; font-style: italic; color: #555;">Votre demande sera traitée dans les 15 minutes pour vous donner accès à la publication de vos voitures.</p>
-</div>
 </html>
+
 

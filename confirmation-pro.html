@@ -44,7 +44,7 @@
       color: #4caf50;
     }
 
-    button {
+    button, .whatsapp-btn {
       background-color: #1e88e5;
       color: white;
       padding: 12px 24px;
@@ -54,10 +54,20 @@
       cursor: pointer;
       transition: background 0.3s;
       margin-top: 15px;
+      display: inline-block;
+      text-decoration: none;
     }
 
     button:hover {
       background-color: #1565c0;
+    }
+
+    .whatsapp-btn {
+      background-color: #25D366;
+    }
+
+    .whatsapp-btn:hover {
+      background-color: #1ebe5d;
     }
 
     .notice {
@@ -89,6 +99,9 @@
     <input type="file" accept="image/*" />
     <br />
     <button>Envoyer la preuve de virement</button>
+
+    <!-- 🔽 Nouveau bouton WhatsApp ajouté ici -->
+    <a class="whatsapp-btn" href="https://wa.me/212710876201" target="_blank">📩 Envoyer via WhatsApp</a>
 
     <p class="notice">Votre demande sera traitée sous 15 minutes. Vous recevrez un accès pour publier vos véhicules.</p>
   </div>
