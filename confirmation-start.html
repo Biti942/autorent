@@ -1,104 +1,70 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Confirmation - Pack Start</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .container {
-      background-color: #ffffff;
-      padding: 30px;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-      border-radius: 12px;
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
       text-align: center;
+      padding: 50px;
     }
-
+    .container {
+      background-color: white;
+      max-width: 500px;
+      margin: auto;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
     h1 {
-      color: #1e88e5;
+      color: #1a73e8;
     }
-
     p {
-      font-size: 16px;
+      font-size: 18px;
       color: #333;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
-
-    .price {
-      font-size: 22px;
-      font-weight: bold;
-      margin: 10px 0;
-      color: #4caf50;
-    }
-
-    button, .whatsapp-btn {
-      background-color: #1e88e5;
-      color: white;
-      padding: 12px 24px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-      margin-top: 15px;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    button:hover {
-      background-color: #1565c0;
-    }
-
-    .whatsapp-btn {
-      background-color: #25D366;
-    }
-
-    .whatsapp-btn:hover {
-      background-color: #1ebe5d;
-    }
-
-    .notice {
-      margin-top: 20px;
-      color: #666;
-      font-size: 14px;
-    }
-
-    input[type="file"] {
-      margin-top: 15px;
-      font-size: 14px;
+    .paypal-button-container {
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Pack Start Confirmé</h1>
-    <p>Vous avez choisi le pack <strong>Start</strong> – 1 à 7 voitures à publier.</p>
-    <p class="price">199 MAD / mois</p>
+    <h1>🎉 Félicitations !</h1>
+    <p>Vous avez choisi le <strong>Pack Start</strong>.<br>
+    Vous pouvez poster jusqu’à <strong>7 voitures</strong> pour seulement <strong>199 DH/mois</strong>.</p>
+    <p>Pour activer votre compte, veuillez procéder au paiement sécurisé :</p>
 
-    <p>Veuillez effectuer le virement sur notre compte bancaire. Ensuite, envoyez une capture d’écran de votre preuve de paiement ci-dessous :</p>
-
-    <input type="file" accept="image/*" />
-    <br />
-    <button>Envoyer la preuve de virement</button>
-
-    <a class="whatsapp-btn" href="https://wa.me/212710876201" target="_blank">📩 Envoyer via WhatsApp</a>
-
-    <p class="notice">Votre demande sera traitée sous 15 minutes. Vous recevrez un accès pour publier vos véhicules.</p>
+    <div class="paypal-button-container">
+      <div id="paypal-button-container"></div>
+    </div>
   </div>
+
+  <!-- PayPal SDK -->
+  <script src="https://www.paypal.com/sdk/js?client-id=Ab2KI4w1DAPtzHWEO-BUXVQMHIQHzxmP6rDZfKT8FNqp8JWwgvYjUTNsbBXYcGKCmnYmd46UW2WHUtRE&currency=EUR"></script>
+
+  <script>
+    paypal.Buttons({
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{
+            amount: {
+              value: '18.50' // équivalent 199 DH
+            }
+          }]
+        });
+      },
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          // Rediriger vers le dashboard après paiement
+          window.location.href = "dashboard-start.html";
+        });
+      }
+    }).render('#paypal-button-container');
+  </script>
 </body>
 </html>
-
-
