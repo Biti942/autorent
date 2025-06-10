@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin AutoRent</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { color: #1a73e8; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Admin - Liste des utilisateurs</h1>
+  <div id="userList">Chargement...</div>
+
+  <script>
+    const adminEmail = "admin@autorent.com"; // Modifie cet email
+
+    auth.onAuthStateChanged(user => {
+      if (user && user.email === adminEmail) {
+        db.collection("abonnements").get().then(snapshot => {
+          let html = "<table><tr><th>Email</th><th>Pack</th><th>Max voitures</th><th>Date paiement</th></tr>";
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            html += `<tr>
+              <td>${doc.id}</td>
+              <td>${data.pack}</td>
+              <td>${data.voituresMax}</td>
+              <td>${new Date(data.datePaiement.toDate()).toLocaleDateString()}</td>
+            </tr>`;
+          });
+          html += "</table>";
+          document.getElementById("userList").innerHTML = html;
+        });
+      } else {
+        document.body.innerHTML = "<h2>Accès refusé</h2>";
+      }
+    });
+  </script>
+</body>
+</html>
