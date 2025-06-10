@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AutoRent | Accueil</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+  <script src="js/firebase.js"></script>
+
   <style>
     * {
       margin: 0;
@@ -13,12 +21,33 @@
       font-family: 'Poppins', sans-serif;
     }
 
-
     body {
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
       line-height: 1.6;
       padding: 20px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 10px 20px;
+    }
+
+    .topbar a {
+      color: #fff;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: bold;
+      background-color: #38bdf8;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+
+    .topbar a:hover {
+      background-color: #0ea5e9;
     }
 
     header {
@@ -109,6 +138,15 @@
     }
 
     @media (max-width: 600px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-end;
+      }
+
+      .topbar a {
+        margin: 5px 0;
+      }
+
       header h1 {
         font-size: 2rem;
       }
@@ -124,34 +162,19 @@
     }
   </style>
 </head>
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoRent | Accueil</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-
-  <!-- ✅ Firebase SDK (compatibilité) – À mettre AVANT ton fichier firebase.js -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-
-  <!-- ✅ Ton fichier de config personnalisé -->
-  <script src="js/firebase.js"></script>
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    /* Le reste de tes styles CSS ici... */
-  </style>
-</head>
 
 <body>
+
+  <!-- 🔐 Barre du haut avec Connexion / S'inscrire -->
+  <div class="topbar">
+    <a href="connexion.html">Connexion</a>
+    <a href="inscription.html">S'inscrire</a>
+  </div>
+
+  <header>
+    <h1>Bienvenue sur AutoRent</h1>
+    <p>La solution digitale des agences de location de voitures au Maroc</p>
+  </header>
 
   <div class="section">
     <h2>🚗 Une vision moderne pour les agences marocaines</h2>
