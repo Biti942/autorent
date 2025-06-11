@@ -8,7 +8,7 @@ firebase.auth().onAuthStateChanged((user) => {
 
     // UID du compte démo
     } else if (uid === "Ee4CN2XR0lZSLsFnSnipKo177oG2") {
-      window.location.href = "dashboard.html"; // accès direct
+      window.location.href = "dashboard-premium.html"; // accès direct
 
     } else {
       // Redirige les autres vers la page des packs
