@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AutoRent | Espace Agent</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="icon" href="favicon.png" type="image/png" />
   <style>
     * {
       margin: 0;
@@ -17,6 +18,10 @@
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
       padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     header {
@@ -48,6 +53,7 @@
       font-size: 1.8rem;
       margin-bottom: 20px;
       color: #38bdf8;
+      text-align: center;
     }
 
     .pricing {
@@ -62,6 +68,7 @@
       padding: 20px;
       border: 2px solid #334155;
       transition: 0.3s;
+      text-align: center;
     }
 
     .pack:hover {
@@ -117,6 +124,11 @@
       .card {
         padding: 20px;
       }
+
+      .pack a {
+        padding: 8px 14px;
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
@@ -125,33 +137,6 @@
     <h1>Bienvenue sur AutoRent</h1>
     <p>La solution SaaS pour les agences de location de voitures</p>
   </header>
-  <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoRent | Accueil</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-
-  <!-- ✅ Firebase SDK (compatibilité) – À mettre AVANT ton fichier firebase.js -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-
-  <!-- ✅ Ton fichier de config personnalisé -->
-  <script src="js/firebase.js"></script>
-
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    /* Le reste de tes styles CSS ici... */
-  </style>
-</head>
-
 
   <div class="card">
     <h2>Choisissez votre abonnement</h2>
@@ -180,7 +165,15 @@
   <footer>
     &copy; 2025 AutoRent. Tous droits réservés.
   </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+
+  <!-- Ton fichier firebase.js -->
+  <script src="firebase.js"></script>
 </body>
 </html>
-
 
