@@ -1,147 +1,28 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin AutoRent</title>
+  <meta charset="UTF-8" />
+  <title>Admin Access</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="firebase.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f9fafb;
-    }
-
-    h1, h2 {
-      color: #1a73e8;
-      margin-top: 40px;
-    }
-
-    .stats {
-      background-color: #e0f2fe;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 30px;
-    }
-
-    .stats div {
-      margin-bottom: 10px;
-      font-weight: bold;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background-color: white;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: left;
-    }
-
-    th {
-      background-color: #e5e7eb;
-    }
-  </style>
 </head>
 <body>
-  <h1>Dashboard Admin - AutoRent</h1>
-
-  <!-- Statistiques -->
-  <div class="stats" id="stats">Chargement des statistiques...</div>
-
-  <!-- Tableau des abonnements -->
-  <h2>Liste des abonnements</h2>
-  <div id="abonnementList">Chargement des abonnements...</div>
-
-  <!-- Tableau des utilisateurs -->
-  <h2>Utilisateurs inscrits</h2>
-  <div id="userList">Chargement des utilisateurs...</div>
+  <h2>Vérification en cours...</h2>
 
   <script>
     const adminEmail = "biti.hassan@icloud.com";
 
     auth.onAuthStateChanged(user => {
       if (user && user.email === adminEmail) {
-        // Récupérer les abonnements
-        db.collection("abonnements").get().then(snapshot => {
-          let html = "<table><tr><th>Email</th><th>Pack</th><th>Max voitures</th><th>Date paiement</th></tr>";
-          let totalAbonnes = 0;
-          let totalVoitures = 0;
-          let packCounts = { Starter: 0, Pro: 0, Premium: 0 };
-
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            totalAbonnes++;
-            totalVoitures += data.voituresMax || 0;
-            packCounts[data.pack] = (packCounts[data.pack] || 0) + 1;
-
-            html += `<tr>
-              <td>${doc.id}</td>
-              <td>${data.pack}</td>
-              <td>${data.voituresMax}</td>
-              <td>${new Date(data.datePaiement.toDate()).toLocaleDateString()}</td>
-            </tr>`;
-          });
-          html += "</table>";
-          document.getElementById("abonnementList").innerHTML = html;
-
-          // Ajout partiel aux stats
-          window.adminStats = { totalAbonnes, totalVoitures, packCounts };
-          updateStatsDisplay();
-        });
-
-        // Récupérer les utilisateurs
-        db.collection("users").get().then(snapshot => {
-          let html = "<table><tr><th>Nom</th><th>Prénom</th><th>Ville</th><th>Téléphone</th><th>Email</th><th>Code</th></tr>";
-          let totalUsers = 0;
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            totalUsers++;
-            html += `<tr>
-              <td>${data.nom || ''}</td>
-              <td>${data.prenom || ''}</td>
-              <td>${data.ville || ''}</td>
-              <td>${data.telephone || ''}</td>
-              <td>${data.email || ''}</td>
-              <td>${data.code || ''}</td>
-            </tr>`;
-          });
-          html += "</table>";
-          document.getElementById("userList").innerHTML = html;
-
-          // Ajouter aux stats
-          window.adminStats.totalUsers = totalUsers;
-          updateStatsDisplay();
-        });
-
-        // Fonction pour afficher les statistiques
-        function updateStatsDisplay() {
-          const stats = window.adminStats || {};
-          document.getElementById("stats").innerHTML = `
-            <div>👥 Utilisateurs inscrits : ${stats.totalUsers || 0}</div>
-            <div>📦 Abonnés : ${stats.totalAbonnes || 0}</div>
-            <div>🚗 Voitures totales disponibles (max) : ${stats.totalVoitures || 0}</div>
-            <div>📊 Packs :
-              Starter (${stats.packCounts?.Starter || 0}) |
-              Pro (${stats.packCounts?.Pro || 0}) |
-              Premium (${stats.packCounts?.Premium || 0})
-            </div>
-          `;
-        }
-
+        // Rediriger vers le vrai dashboard admin
+        window.location.href = "admin-dashboard.html";
       } else {
-        document.body.innerHTML = "<h2>Accès refusé</h2>";
+        document.body.innerHTML = "<h2>⛔ Accès refusé. Admin uniquement.</h2>";
       }
     });
   </script>
 </body>
 </html>
+
 
