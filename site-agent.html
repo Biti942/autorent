@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agence AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Orbitron', sans-serif;
+      background-color: #0a0a0a;
+      color: white;
+    }
+
+    .header {
+      background: radial-gradient(circle, #00ff88, #006633);
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 3rem;
+      color: black;
+      letter-spacing: 2px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 40px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .car-card {
+      background-color: #111;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .car-card:hover {
+      transform: scale(1.03);
+    }
+
+    .car-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+
+    .car-info {
+      padding: 20px;
+      text-align: center;
+    }
+
+    .car-info h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      color: #00ff88;
+    }
+
+    .car-info p {
+      margin: 8px 0 0;
+      font-size: 1.2rem;
+      color: #ccc;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9rem;
+      color: #777;
+      border-top: 1px solid #222;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>AGENCE AUTORENT</h1>
+  </div>
+
+  <div class="grid">
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1616787561729-75bcf2ec5b58" alt="Tesla Model">
+      <div class="car-info">
+        <h2>Tesla Model</h2>
+        <p>800 DH/jour</p>
+      </div>
+    </div>
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1606813902524-cb379bd67f7f" alt="Volkswagen Golf">
+      <div class="car-info">
+        <h2>Volkswagen Golf</h2>
+        <p>450 DH/jour</p>
+      </div>
+    </div>
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1615732041357-5a4c937ede4c" alt="BMW 3 Serie">
+      <div class="car-info">
+        <h2>BMW 3 Serie</h2>
+        <p>600 DH/jour</p>
+      </div>
+    </div>
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1608476709532-1b2d02a27c39" alt="Dacia Duster">
+      <div class="car-info">
+        <h2>Dacia Duster</h2>
+        <p>350 DH/jour</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    © 2025 Agence AutoRent - Tous droits réservés.
+  </div>
+</body>
+</html>
