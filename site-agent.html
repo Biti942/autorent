@@ -85,39 +85,49 @@
     <h1>AGENCE AUTORENT</h1>
   </div>
 
-  <div class="grid">
-    <div class="car-card">
-      <img src="https://images.unsplash.com/photo-1616787561729-75bcf2ec5b58" alt="Tesla Model">
-      <div class="car-info">
-        <h2>Tesla Model</h2>
-        <p>800 DH/jour</p>
-      </div>
-    </div>
-    <div class="car-card">
-      <img src="https://images.unsplash.com/photo-1606813902524-cb379bd67f7f" alt="Volkswagen Golf">
-      <div class="car-info">
-        <h2>Volkswagen Golf</h2>
-        <p>450 DH/jour</p>
-      </div>
-    </div>
-    <div class="car-card">
-      <img src="https://images.unsplash.com/photo-1615732041357-5a4c937ede4c" alt="BMW 3 Serie">
-      <div class="car-info">
-        <h2>BMW 3 Serie</h2>
-        <p>600 DH/jour</p>
-      </div>
-    </div>
-    <div class="car-card">
-      <img src="https://images.unsplash.com/photo-1608476709532-1b2d02a27c39" alt="Dacia Duster">
-      <div class="car-info">
-        <h2>Dacia Duster</h2>
-        <p>350 DH/jour</p>
-      </div>
-    </div>
+  <div class="grid" id="car-grid">
+    <!-- Les voitures s'afficheront ici dynamiquement -->
   </div>
 
   <div class="footer">
     © 2025 Agence AutoRent - Tous droits réservés.
   </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+  <!-- Ton fichier de config Firebase -->
+  <script src="firebase.js"></script>
+
+  <script>
+    const db = firebase.firestore();
+
+    function afficherVoitures() {
+      const grid = document.getElementById('car-grid');
+      grid.innerHTML = '';
+
+      db.collection("cars").where("disponible", "==", true).get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          const voiture = doc.data();
+          const carHTML = `
+            <div class="car-card">
+              <img src="${voiture.imageUrl}" alt="${voiture.nom}">
+              <div class="car-info">
+                <h2>${voiture.nom}</h2>
+                <p>${voiture.prix} DH/jour</p>
+              </div>
+            </div>
+          `;
+          grid.innerHTML += carHTML;
+        });
+      }).catch((error) => {
+        console.error("Erreur lors du chargement des voitures :", error);
+      });
+    }
+
+    afficherVoitures();
+  </script>
 </body>
 </html>
+
