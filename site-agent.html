@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Agence AutoRent</title>
+  <title>Site Agence</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
   <style>
     body {
@@ -15,16 +15,16 @@
     }
 
     .header {
-      background: radial-gradient(circle, #00ff88, #006633);
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       text-align: center;
       padding: 40px 20px;
     }
 
     .header h1 {
       margin: 0;
-      font-size: 3rem;
-      color: black;
-      letter-spacing: 2px;
+      font-size: 2.8rem;
+      color: #38bdf8;
+      letter-spacing: 1px;
     }
 
     .grid {
@@ -37,10 +37,10 @@
     }
 
     .car-card {
-      background-color: #111;
+      background-color: #111827;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
       transition: transform 0.3s ease;
     }
 
@@ -61,14 +61,14 @@
 
     .car-info h2 {
       margin: 0;
-      font-size: 1.4rem;
-      color: #00ff88;
+      font-size: 1.3rem;
+      color: #38bdf8;
     }
 
     .car-info p {
       margin: 8px 0 0;
-      font-size: 1.2rem;
-      color: #ccc;
+      font-size: 1.1rem;
+      color: #ddd;
     }
 
     .footer {
@@ -82,51 +82,64 @@
 </head>
 <body>
   <div class="header">
-    <h1>AGENCE AUTORENT</h1>
+    <h1 id="agency-name">Mon Agence</h1>
   </div>
 
   <div class="grid" id="car-grid">
-    <!-- Les voitures s'afficheront ici dynamiquement -->
+    <!-- Les voitures dynamiques -->
   </div>
 
   <div class="footer">
-    © 2025 Agence AutoRent - Tous droits réservés.
+    © 2025 AutoRent - Tous droits réservés.
   </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-
-  <!-- Ton fichier de config Firebase -->
   <script src="firebase.js"></script>
 
   <script>
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    function afficherVoitures() {
-      const grid = document.getElementById('car-grid');
-      grid.innerHTML = '';
+    auth.onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href = "connexion.html";
+      } else {
+        const uid = user.uid;
 
-      db.collection("cars").where("disponible", "==", true).get().then((querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          const voiture = doc.data();
-          const carHTML = `
-            <div class="car-card">
-              <img src="${voiture.imageUrl}" alt="${voiture.nom}">
-              <div class="car-info">
-                <h2>${voiture.nom}</h2>
-                <p>${voiture.prix} DH/jour</p>
-              </div>
-            </div>
-          `;
-          grid.innerHTML += carHTML;
+        // 🔵 1. Charger le nom d'agence
+        db.collection("settings").doc("agencyInfo-" + uid).get().then(doc => {
+          if (doc.exists) {
+            document.getElementById("agency-name").textContent = doc.data().nom || "Mon Agence";
+          }
         });
-      }).catch((error) => {
-        console.error("Erreur lors du chargement des voitures :", error);
-      });
-    }
 
-    afficherVoitures();
+        // 🚗 2. Afficher les voitures disponibles
+        db.collection("cars")
+          .where("uid", "==", uid)
+          .where("disponible", "==", true)
+          .get()
+          .then((querySnapshot) => {
+            const grid = document.getElementById('car-grid');
+            grid.innerHTML = '';
+
+            querySnapshot.forEach((doc) => {
+              const voiture = doc.data();
+              const carHTML = `
+                <div class="car-card">
+                  <img src="${voiture.imageUrl}" alt="${voiture.nom}">
+                  <div class="car-info">
+                    <h2>${voiture.nom}</h2>
+                    <p>${voiture.prix} DH / jour</p>
+                  </div>
+                </div>`;
+              grid.innerHTML += carHTML;
+            });
+          });
+      }
+    });
   </script>
 </body>
 </html>
