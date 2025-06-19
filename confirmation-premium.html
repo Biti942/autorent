@@ -69,23 +69,38 @@
     </div>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="firebase.js"></script>
+
+  <!-- Redirection si utilisateur non connecté -->
+  <script>
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        alert("🚫 Vous devez créer un compte ou vous connecter avant de continuer.");
+        window.location.href = "connexion.html"; // Remplace par login.html si nécessaire
+      }
+    });
+  </script>
+
   <!-- PayPal SDK -->
   <script src="https://www.paypal.com/sdk/js?client-id=Ab2KI4w1DAPtzHWEO-BUXVQMHIQHzxmP6rDZfKT8FNqp8JWwgvYjUTNsbBXYcGKCmnYmd46UW2WHUtRE&currency=EUR"></script>
 
+  <!-- Bouton PayPal -->
   <script>
     paypal.Buttons({
       createOrder: function (data, actions) {
         return actions.order.create({
           purchase_units: [{
             amount: {
-              value: '27.80' // 299 DH approx.
+              value: '27.80' // environ 299 DH
             }
           }]
         });
       },
       onApprove: function (data, actions) {
         return actions.order.capture().then(function (details) {
-          // Rediriger vers le dashboard premium après paiement
           window.location.href = "dashboard-premium.html";
         });
       }
