@@ -14,7 +14,12 @@ const firebaseConfig = {
 // Initialiser Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Services utiles (tu pourras les utiliser partout)
+// Initialisation des services Firebase
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
+
+// 📤 Rendre les services disponibles globalement
+window.auth = auth;
+window.db = db;
+window.storage = storage;
