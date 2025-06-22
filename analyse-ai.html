@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Analyse Intelligente - AutoRent</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #0f172a;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #38bdf8;
+    }
+    .stat-boxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+    .box {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      flex: 1 1 250px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .box h3 {
+      color: #facc15;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+    .box p {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin: 0;
+    }
+    .chart-container {
+      max-width: 1000px;
+      margin: 40px auto;
+      background-color: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    canvas {
+      width: 100% !important;
+      height: 400px !important;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📊 Analyse Intelligente des Performances</h1>
+
+<div class="stat-boxes">
+  <div class="box">
+    <h3>Chiffre d'affaires Total</h3>
+    <p id="caTotal">0 DH</p>
+  </div>
+  <div class="box">
+    <h3>Total Réservations</h3>
+    <p id="totalRes">0</p>
+  </div>
+  <div class="box">
+    <h3>Voiture la + rentable</h3>
+    <p id="bestCar">-</p>
+  </div>
+  <div class="box">
+    <h3>Disponibilité Moyenne</h3>
+    <p id="dispo">0%</p>
+  </div>
+</div>
+
+<div class="chart-container">
+  <h2>💰 Revenus vs Dépenses (6 derniers mois)</h2>
+  <canvas id="chartFinance"></canvas>
+</div>
+
+<div class="chart-container">
+  <h2>🚗 Performance par Voiture</h2>
+  <canvas id="chartVoitures"></canvas>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+
+<script>
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  auth.onAuthStateChanged(user => {
+    if (!user) return location.href = "connexion.html";
+
+    const uid = user.uid;
+    let totalCA = 0;
+    let totalRes = 0;
+    let voituresData = [];
+    let meilleureVoiture = { nom: '', ca: 0 };
+    let voituresDisponibles = 0;
+    let totalVoitures = 0;
+
+    db.collection("cars").where("uid", "==", uid).get().then(snapshot => {
+      snapshot.forEach(doc => {
+        const v = doc.data();
+        const ca = parseFloat(v.ca) || 0;
+        const dep = parseFloat(v.depenses) || 0;
+        const res = parseInt(v.reservations || "0");
+        const dispo = v.disponible ? 1 : 0;
+
+        totalCA += ca;
+        totalRes += res;
+        totalVoitures++;
+        voituresDisponibles += dispo;
+
+        voituresData.push({
+          nom: v.nom,
+          ca: ca,
+          dep: dep
+        });
+
+        if (ca > meilleureVoiture.ca) {
+          meilleureVoiture = { nom: v.nom, ca };
+        }
+      });
+
+      // Stats textuelles
+      document.getElementById("caTotal").textContent = `${totalCA.toFixed(2)} DH`;
+      document.getElementById("totalRes").textContent = totalRes;
+      document.getElementById("bestCar").textContent = meilleureVoiture.nom || "-";
+      document.getElementById("dispo").textContent = `${Math.round((voituresDisponibles / totalVoitures) * 100)}%`;
+
+      // Graphique 1
+      const mois = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
+      const revenusFictifs = [15000, 16000, 20000, 21000, 18000, totalCA]; // Simulation
+      const depensesFictives = [8000, 8500, 9500, 9700, 9200, voituresData.reduce((a, v) => a + v.dep, 0)];
+
+      new Chart(document.getElementById('chartFinance'), {
+        type: 'bar',
+        data: {
+          labels: mois,
+          datasets: [
+            {
+              label: 'Chiffre d\'Affaire',
+              data: revenusFictifs,
+              backgroundColor: '#4ade80'
+            },
+            {
+              label: 'Dépenses',
+              data: depensesFictives,
+              backgroundColor: '#f87171'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#fff' } }
+          },
+          scales: {
+            x: { ticks: { color: '#fff' } },
+            y: { ticks: { color: '#fff' }, beginAtZero: true }
+          }
+        }
+      });
+
+      // Graphique 2
+      new Chart(document.getElementById('chartVoitures'), {
+        type: 'bar',
+        data: {
+          labels: voituresData.map(v => v.nom),
+          datasets: [
+            {
+              label: 'CA',
+              data: voituresData.map(v => v.ca),
+              backgroundColor: '#22d3ee'
+            },
+            {
+              label: 'Dépenses',
+              data: voituresData.map(v => v.dep),
+              backgroundColor: '#eab308'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#fff' } }
+          },
+          scales: {
+            x: { ticks: { color: '#fff' } },
+            y: { ticks: { color: '#fff' }, beginAtZero: true }
+          }
+        }
+      });
+
+    });
+  });
+</script>
+
+</body>
+</html>
