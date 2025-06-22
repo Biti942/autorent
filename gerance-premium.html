@@ -1,74 +1,141 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Gérance - AutoRent</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gérance Premium - AutoRent</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
       background-color: #0f172a;
       color: #fff;
+      margin: 0;
       padding: 20px;
     }
+
     h1 {
       text-align: center;
       color: #38bdf8;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
+
+    .dashboard-section {
+      margin-bottom: 40px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       background-color: #1e293b;
       border-radius: 10px;
       overflow: hidden;
+      margin-top: 20px;
     }
+
     th, td {
-      padding: 12px;
+      padding: 10px;
       text-align: center;
       border-bottom: 1px solid #334155;
     }
+
     th {
       background-color: #334155;
       color: #facc15;
     }
+
     tr:hover {
       background-color: #273549;
+    }
+
+    canvas {
+      margin-top: 40px;
+      background-color: #1e293b;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .note {
+      text-align: center;
+      color: #888;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
-<h1>📘 Gérance de la flotte - Pack Premium</h1>
+  <h1>📘 Gérance Premium de votre Agence</h1>
 
-<table>
-  <thead>
-    <tr>
-      <th>Voiture</th>
-      <th>Date Vidange</th>
-      <th>Date Réservation</th>
-      <th>Date Retour</th>
-      <th>Kilométrage</th>
-      <th>Crédit à Mois</th>
-      <th>Dépenses</th>
-      <th>Chiffre d'Affaire</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Dacia Logan</td>
-      <td>01/06/2025</td>
-      <td>15/06/2025</td>
-      <td>20/06/2025</td>
-      <td>120 000</td>
-      <td>1200 DH</td>
-      <td>500 DH</td>
-      <td>2000 DH</td>
-    </tr>
-    <!-- Tu peux générer dynamiquement ici -->
-  </tbody>
-</table>
+  <div class="dashboard-section">
+    <table>
+      <thead>
+        <tr>
+          <th>Voiture</th>
+          <th>Date Vidange</th>
+          <th>Date Réservation</th>
+          <th>Date Retour</th>
+          <th>Kilométrage</th>
+          <th>💳 Crédit</th>
+          <th>🛠 Dépenses</th>
+          <th>💰 CA (Chiffre d'Affaire)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Dacia Logan</td>
+          <td>01/06/2025</td>
+          <td>15/06/2025</td>
+          <td>20/06/2025</td>
+          <td>120 000 km</td>
+          <td>1200 DH</td>
+          <td>⛽ 200 DH<br>🛞 300 DH<br>🔧 150 DH</td>
+          <td>3500 DH</td>
+        </tr>
+        <!-- Autres voitures dynamiquement -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 📊 Graphique (Chart.js) -->
+  <canvas id="financeChart" width="100%" height="50"></canvas>
+
+  <div class="note">Graphique basé sur vos chiffres actuels. Peut être enrichi via Firebase.</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('financeChart').getContext('2d');
+
+    const financeChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Dépenses', 'Crédit Mensuel', 'Chiffre d\'Affaire'],
+        datasets: [{
+          label: 'Dacia Logan',
+          data: [650, 1200, 3500],
+          backgroundColor: ['#ef4444', '#f59e0b', '#22c55e'],
+          borderRadius: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: { color: '#fff' }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#fff' }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#fff' }
+          }
+        }
+      }
+    });
+  </script>
 
 </body>
 </html>
+
