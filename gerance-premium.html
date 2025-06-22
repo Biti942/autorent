@@ -12,50 +12,11 @@
       color: #fff;
       padding: 20px;
     }
-    h1, h2 {
+    h1 {
       text-align: center;
       color: #38bdf8;
       margin-bottom: 20px;
     }
-
-    form {
-      background-color: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 900px;
-      margin: 0 auto 40px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-      margin-top: 15px;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      margin-bottom: 10px;
-    }
-
-    button {
-      background-color: #38bdf8;
-      color: #0f172a;
-      font-weight: bold;
-      padding: 12px 25px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    button:hover {
-      background-color: #0ea5e9;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -64,166 +25,143 @@
       overflow: hidden;
       margin-bottom: 40px;
     }
-
     th, td {
       padding: 12px;
       text-align: center;
       border-bottom: 1px solid #334155;
     }
-
     th {
       background-color: #334155;
       color: #facc15;
     }
-
     tr:hover {
       background-color: #273549;
     }
-
-    #chart-container {
-      background-color: #1e293b;
-      border-radius: 10px;
-      padding: 20px;
+    .chart-container {
       max-width: 900px;
       margin: auto;
+      background-color: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
     }
-
     canvas {
-      background-color: #fff;
-      border-radius: 10px;
+      width: 100% !important;
+      height: 400px !important;
     }
   </style>
 </head>
 <body>
 
-  <h1>📘 Gérance Premium - AutoRent</h1>
+<h1>📘 Gérance de la flotte - Pack Premium</h1>
 
-  <form id="form-voiture">
-    <h2>➕ Ajouter une voiture à gérer</h2>
+<table id="fleet-table">
+  <thead>
+    <tr>
+      <th>Voiture</th>
+      <th>Vidange</th>
+      <th>Réservation</th>
+      <th>Retour</th>
+      <th>Kilométrage</th>
+      <th>Crédit/Mois</th>
+      <th>Dépenses</th>
+      <th>CA</th>
+    </tr>
+  </thead>
+  <tbody id="fleet-body">
+    <!-- Contenu dynamique -->
+  </tbody>
+</table>
 
-    <label>Nom de la voiture</label>
-    <input type="text" id="nom" required>
+<div class="chart-container">
+  <h2 style="text-align:center; color:#4ade80;">📊 Résumé Financier Mensuel</h2>
+  <canvas id="financeChart"></canvas>
+</div>
 
-    <label>Date Vidange</label>
-    <input type="date" id="dateVidange">
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
 
-    <label>Date Réservation</label>
-    <input type="date" id="dateReservation">
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <label>Date Retour</label>
-    <input type="date" id="dateRetour">
+<script>
+  const db = firebase.firestore();
 
-    <label>Kilométrage</label>
-    <input type="number" id="kilometrage">
-
-    <label>Crédit Mensuel (en DH)</label>
-    <input type="number" id="creditMois">
-
-    <label>Total Dépenses (DH)</label>
-    <input type="number" id="depenses">
-
-    <label>Chiffre d’Affaire (DH)</label>
-    <input type="number" id="chiffreAffaire">
-
-    <button type="submit">✅ Ajouter</button>
-  </form>
-
-  <h2>📊 Suivi Global</h2>
-
-  <table id="gerance-table">
-    <thead>
-      <tr>
-        <th>Voiture</th>
-        <th>Vidange</th>
-        <th>Réservation</th>
-        <th>Retour</th>
-        <th>KM</th>
-        <th>Crédit</th>
-        <th>Dépenses</th>
-        <th>CA</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <div id="chart-container">
-    <h2 style="text-align:center; color:#4ade80;">📈 Chiffre d'Affaire par Voiture</h2>
-    <canvas id="revenuChart" height="250"></canvas>
-  </div>
-
-  <!-- Firebase & ChartJS -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="firebase.js"></script>
-
-  <script>
-    const db = firebase.firestore();
-    const form = document.getElementById('form-voiture');
-    const tableBody = document.querySelector("#gerance-table tbody");
-    const labels = [], revenus = [];
-
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-
-      const voiture = {
-        nom: document.getElementById("nom").value,
-        dateVidange: document.getElementById("dateVidange").value,
-        dateReservation: document.getElementById("dateReservation").value,
-        dateRetour: document.getElementById("dateRetour").value,
-        kilometrage: document.getElementById("kilometrage").value,
-        creditMois: parseFloat(document.getElementById("creditMois").value),
-        depenses: parseFloat(document.getElementById("depenses").value),
-        chiffreAffaire: parseFloat(document.getElementById("chiffreAffaire").value)
-      };
-
-      db.collection("cars").add(voiture).then(() => {
-        alert("Voiture ajoutée avec succès !");
-        form.reset();
-        window.location.reload(); // recharge les données
-      });
-    });
+  // Charger les données de la flotte
+  function chargerFleet() {
+    const tbody = document.getElementById("fleet-body");
+    tbody.innerHTML = "";
 
     db.collection("cars").get().then(snapshot => {
       snapshot.forEach(doc => {
-        const car = doc.data();
-        const row = `
+        const v = doc.data();
+        const ligne = `
           <tr>
-            <td>${car.nom}</td>
-            <td>${car.dateVidange || "—"}</td>
-            <td>${car.dateReservation || "—"}</td>
-            <td>${car.dateRetour || "—"}</td>
-            <td>${car.kilometrage || "—"}</td>
-            <td>${car.creditMois || 0} DH</td>
-            <td>${car.depenses || 0} DH</td>
-            <td>${car.chiffreAffaire || 0} DH</td>
+            <td>${v.nom || 'N/A'}</td>
+            <td>${v.vidange || '-'}</td>
+            <td>${v.reservation || '-'}</td>
+            <td>${v.retour || '-'}</td>
+            <td>${v.kilometrage || '-'}</td>
+            <td>${v.credit || '-'}</td>
+            <td>${v.depenses || '-'}</td>
+            <td>${v.ca || '-'}</td>
           </tr>
         `;
-        tableBody.innerHTML += row;
-        labels.push(car.nom);
-        revenus.push(car.chiffreAffaire || 0);
+        tbody.innerHTML += ligne;
       });
+    }).catch(err => {
+      console.error("Erreur chargement voitures:", err);
+    });
+  }
 
-      const ctx = document.getElementById('revenuChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Revenus (DH)',
-            data: revenus,
-            backgroundColor: '#38bdf8'
-          }]
+  // Graphe financier
+  function afficherGraphique() {
+    const ctx = document.getElementById('financeChart').getContext('2d');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+        datasets: [
+          {
+            label: 'Chiffre d\'Affaire',
+            data: [15000, 17000, 19000, 22000, 21000, 25000],
+            borderColor: '#4ade80',
+            backgroundColor: 'rgba(74, 222, 128, 0.2)',
+            tension: 0.4
+          },
+          {
+            label: 'Dépenses',
+            data: [7000, 7500, 8000, 8500, 9000, 9500],
+            borderColor: '#f87171',
+            backgroundColor: 'rgba(248, 113, 113, 0.2)',
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
         },
-        options: {
-          responsive: true,
-          scales: {
-            y: { beginAtZero: true }
+        plugins: {
+          legend: {
+            labels: {
+              color: "#fff"
+            }
           }
         }
-      });
+      }
     });
-  </script>
+  }
+
+  // Initialisation
+  chargerFleet();
+  afficherGraphique();
+</script>
+
 </body>
 </html>
 
