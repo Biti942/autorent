@@ -108,66 +108,72 @@
   <p>📊 Gérer l’état complet de vos voitures : <a href="gerance-premium.html">Aller vers Gérance Premium</a></p>
 </div>
 <div class="navigation" style="margin-top: 20px;">
-  <p>🧑‍💻 Gérer votre site vitrine : <a href="site-premium.html">Voir mon site</a></p>
+  <p>🧑‍💻 Gérer votre site vitrine : <a href="site-agent.html">Voir mon site</a></p>
 </div>
-<a href="site-premium.html" class="btn" style="margin-top: 15px; display:inline-block;">🌐 Voir mon site public</a>
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="firebase.js"></script>
 
 <script>
   const db = firebase.firestore();
-
+  const auth = firebase.auth();
   const form = document.querySelector("form");
   const imageInput = document.getElementById("image");
 
-  form.addEventListener("submit", async function(e) {
-    e.preventDefault();
+  auth.onAuthStateChanged(function(user) {
+    if (!user) {
+      window.location.href = "connexion.html";
+    } else {
+      const uid = user.uid;
 
-    const nom = document.getElementById("name").value.trim();
-    const prix = parseFloat(document.getElementById("price").value.trim());
-    const desc = document.getElementById("desc").value.trim();
-    const disponible = document.getElementById("available").checked;
+      form.addEventListener("submit", async function(e) {
+        e.preventDefault();
 
-    const file = imageInput.files[0];
-    if (!file || !nom || isNaN(prix)) {
-      alert("Remplis tous les champs et ajoute une image.");
-      return;
-    }
+        const nom = document.getElementById("name").value.trim();
+        const prix = parseFloat(document.getElementById("price").value.trim());
+        const desc = document.getElementById("desc").value.trim();
+        const disponible = document.getElementById("available").checked;
+        const file = imageInput.files[0];
 
-    // Convertir l’image en DataURL (pas optimal, mais simple si tu n’as pas de stockage Firebase)
-    const reader = new FileReader();
-    reader.onloadend = function() {
-      const imageUrl = reader.result;
+        if (!file || !nom || isNaN(prix)) {
+          alert("Remplis tous les champs et ajoute une image.");
+          return;
+        }
 
-      // Ajouter la voiture dans Firestore avec les données de gérance par défaut
-      db.collection("cars").add({
-        nom,
-        prix,
-        description: desc,
-        imageUrl,
-        disponible,
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          const imageUrl = reader.result;
 
-        // Champs pour la gérance
-        vidange: "-",
-        reservation: "-",
-        retour: "-",
-        kilometrage: "-",
-        credit: "-",
-        depenses: "-",
-        ca: "-"
-      }).then(() => {
-        alert("🚗 Voiture ajoutée avec succès !");
-        form.reset();
-      }).catch((err) => {
-        console.error("Erreur :", err);
-        alert("Erreur lors de l’ajout.");
+          db.collection("cars").add({
+            uid,
+            nom,
+            prix,
+            description: desc,
+            imageUrl,
+            disponible,
+            vidange: "-",
+            reservation: "-",
+            retour: "-",
+            kilometrage: "-",
+            credit: "-",
+            depenses: "-",
+            ca: "-"
+          }).then(() => {
+            alert("🚗 Voiture ajoutée avec succès !");
+            form.reset();
+          }).catch((err) => {
+            console.error("Erreur :", err);
+            alert("Erreur lors de l’ajout.");
+          });
+        };
+        reader.readAsDataURL(file);
       });
-    };
-
-    reader.readAsDataURL(file);
+    }
   });
 </script>
 </body>
 </html>
+

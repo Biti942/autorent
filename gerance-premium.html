@@ -79,6 +79,7 @@
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="firebase.js"></script>
 
@@ -87,35 +88,39 @@
 
 <script>
   const db = firebase.firestore();
+  const auth = firebase.auth();
 
-  // Charger les données de la flotte
-  function chargerFleet() {
-    const tbody = document.getElementById("fleet-body");
-    tbody.innerHTML = "";
+  auth.onAuthStateChanged(function(user) {
+    if (!user) {
+      window.location.href = "connexion.html";
+    } else {
+      const uid = user.uid;
+      const tbody = document.getElementById("fleet-body");
+      tbody.innerHTML = "";
 
-    db.collection("cars").get().then(snapshot => {
-      snapshot.forEach(doc => {
-        const v = doc.data();
-        const ligne = `
-          <tr>
-            <td>${v.nom || 'N/A'}</td>
-            <td>${v.vidange || '-'}</td>
-            <td>${v.reservation || '-'}</td>
-            <td>${v.retour || '-'}</td>
-            <td>${v.kilometrage || '-'}</td>
-            <td>${v.credit || '-'}</td>
-            <td>${v.depenses || '-'}</td>
-            <td>${v.ca || '-'}</td>
-          </tr>
-        `;
-        tbody.innerHTML += ligne;
+      db.collection("cars").where("uid", "==", uid).get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const v = doc.data();
+          const ligne = `
+            <tr>
+              <td>${v.nom || 'N/A'}</td>
+              <td>${v.vidange || '-'}</td>
+              <td>${v.reservation || '-'}</td>
+              <td>${v.retour || '-'}</td>
+              <td>${v.kilometrage || '-'}</td>
+              <td>${v.credit || '-'}</td>
+              <td>${v.depenses || '-'}</td>
+              <td>${v.ca || '-'}</td>
+            </tr>
+          `;
+          tbody.innerHTML += ligne;
+        });
+      }).catch(err => {
+        console.error("Erreur chargement voitures:", err);
       });
-    }).catch(err => {
-      console.error("Erreur chargement voitures:", err);
-    });
-  }
+    }
+  });
 
-  // Graphe financier
   function afficherGraphique() {
     const ctx = document.getElementById('financeChart').getContext('2d');
 
@@ -157,8 +162,6 @@
     });
   }
 
-  // Initialisation
-  chargerFleet();
   afficherGraphique();
 </script>
 
