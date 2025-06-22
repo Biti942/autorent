@@ -164,7 +164,71 @@
 
   afficherGraphique();
 </script>
+<div class="chart-container" style="margin-top: 40px;">
+  <h2 style="text-align:center; color:#facc15;">🤖 Analyse IA des Performances</h2>
+  <div id="ia-analysis" style="margin-top: 20px; font-size: 1rem; line-height: 1.8; background-color: #1e293b; padding: 20px; border-radius: 12px;">
+    <p>Chargement de l’analyse...</p>
+  </div>
+</div>
 
+<script>
+function lancerAnalyseIA(carsData) {
+  let totalCA = 0, totalDepenses = 0, creditMensuel = 0;
+  let bestCar = null;
+  let minCredit = Number.MAX_VALUE;
+
+  carsData.forEach(car => {
+    const ca = parseFloat(car.ca) || 0;
+    const dep = parseFloat(car.depenses) || 0;
+    const credit = parseFloat(car.credit) || 0;
+
+    totalCA += ca;
+    totalDepenses += dep;
+    creditMensuel += credit;
+
+    if (!bestCar || ca > parseFloat(bestCar.ca || 0)) {
+      bestCar = car;
+    }
+
+    if (credit < minCredit) minCredit = credit;
+  });
+
+  const benefice = totalCA - totalDepenses - creditMensuel;
+
+  const texte = `
+    📊 <strong>Total CA:</strong> ${totalCA.toFixed(2)} DH<br/>
+    💸 <strong>Dépenses totales:</strong> ${totalDepenses.toFixed(2)} DH<br/>
+    🏦 <strong>Crédit mensuel cumulé:</strong> ${creditMensuel.toFixed(2)} DH<br/>
+    📈 <strong>Bénéfice estimé:</strong> <span style="color:${benefice > 0 ? '#4ade80' : '#f87171'}">${benefice.toFixed(2)} DH</span><br/><br/>
+
+    🚗 <strong>Meilleure voiture:</strong> ${bestCar?.nom || "Aucune"} (${bestCar?.ca || 0} DH CA)<br/>
+    🔎 <strong>Voiture la plus économique:</strong> Crédit mensuel < ${minCredit} DH<br/><br/>
+
+    ✅ <strong>Conseils:</strong><br/>
+    - ${benefice > 0 ? "Continuez à maximiser la disponibilité des voitures performantes." : "Réduisez les dépenses ou augmentez les prix des véhicules peu rentables."}<br/>
+    - Vérifiez les voitures avec peu de réservations ou avec trop de dépenses.<br/>
+    - Pensez à investir dans des modèles similaires à la voiture avec le meilleur rendement.
+  `;
+
+  document.getElementById("ia-analysis").innerHTML = texte;
+}
+
+// Appel de l'analyse après chargement des voitures
+firebase.auth().onAuthStateChanged(function(user) {
+  if (!user) return;
+
+  const uid = user.uid;
+  const fleetData = [];
+
+  db.collection("cars").where("uid", "==", uid).get().then(snapshot => {
+    snapshot.forEach(doc => {
+      fleetData.push(doc.data());
+    });
+
+    lancerAnalyseIA(fleetData);
+  });
+});
+</script>
 </body>
 </html>
 
