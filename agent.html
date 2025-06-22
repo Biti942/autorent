@@ -149,7 +149,7 @@
         <li>🛡️ Support technique & mises à jour incluses</li>
       </ul>
       <span>299 MAD / mois</span>
-      <a href="confirmation-premium.html">Activer mon pack</a>
+      <a href="confirmation-premium.html" id="btn-paiement">Activer mon pack</a>
     </div>
   </div>
 
@@ -163,28 +163,36 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
   <script src="firebase.js"></script>
+
+  <!-- Script pour vérifier la connexion -->
   <script>
-  // Attente que la page soit chargée
-  window.onload = function () {
-    const lienPaiement = document.querySelector('.pack a');
+    window.addEventListener("DOMContentLoaded", () => {
+      const btnPaiement = document.getElementById("btn-paiement");
 
-    lienPaiement.addEventListener('click', function (e) {
-      e.preventDefault(); // Empêche le lien de fonctionner immédiatement
+      btnPaiement.addEventListener("click", function (e) {
+        e.preventDefault();
 
-      firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-          // L'utilisateur est connecté, on l'autorise
-          window.location.href = "confirmation-premium.html";
+        if (firebase && firebase.auth) {
+          const user = firebase.auth().currentUser;
+
+          if (user) {
+            window.location.href = "confirmation-premium.html";
+          } else {
+            firebase.auth().onAuthStateChanged(function(user) {
+              if (user) {
+                window.location.href = "confirmation-premium.html";
+              } else {
+                alert("Vous devez être connecté pour accéder au paiement.");
+                window.location.href = "connexion.html";
+              }
+            });
+          }
         } else {
-          // L'utilisateur n'est pas connecté, redirection
-          alert("Vous devez être connecté pour accéder au paiement.");
-          window.location.href = "connexion.html";
+          alert("Erreur Firebase : Authentification non disponible.");
         }
       });
     });
-  };
-</script>
-
+  </script>
 </body>
 </html>
 
