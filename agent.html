@@ -163,6 +163,28 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
   <script src="firebase.js"></script>
+  <script>
+  // Attente que la page soit chargée
+  window.onload = function () {
+    const lienPaiement = document.querySelector('.pack a');
+
+    lienPaiement.addEventListener('click', function (e) {
+      e.preventDefault(); // Empêche le lien de fonctionner immédiatement
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          // L'utilisateur est connecté, on l'autorise
+          window.location.href = "confirmation-premium.html";
+        } else {
+          // L'utilisateur n'est pas connecté, redirection
+          alert("Vous devez être connecté pour accéder au paiement.");
+          window.location.href = "connexion.html";
+        }
+      });
+    });
+  };
+</script>
+
 </body>
 </html>
 
