@@ -93,7 +93,7 @@
     <input type="number" id="price" placeholder="ex: 250">
 
     <label for="desc">Description</label>
-    <textarea id="desc" rows="4" placeholder="Écrivez une courte description..."></textarea>
+    <textarea id="desc" rows="4" placeholder="Écrivez une courte description... (facultatif)"></textarea>
 
     <div class="available-switch">
       <input type="checkbox" id="available">
@@ -117,6 +117,16 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="firebase.js"></script>
 
+<!-- IA : Génération description automatique -->
+<script>
+  function genererDescriptionAuto(nom, prix, disponible) {
+    const marque = nom.split(" ")[0] || "Cette voiture";
+    const etat = disponible ? "disponible immédiatement" : "actuellement non disponible";
+    return `${marque} offre un excellent rapport qualité/prix à seulement ${prix} DH/jour. Elle est ${etat} et parfaitement adaptée aux trajets urbains comme aux longues distances. Louez-la dès maintenant pour une expérience fiable et confortable.`;
+  }
+</script>
+
+<!-- Code principal -->
 <script>
   const db = firebase.firestore();
   const auth = firebase.auth();
@@ -134,7 +144,7 @@
 
         const nom = document.getElementById("name").value.trim();
         const prix = parseFloat(document.getElementById("price").value.trim());
-        const desc = document.getElementById("desc").value.trim();
+        const descInput = document.getElementById("desc").value.trim();
         const disponible = document.getElementById("available").checked;
         const file = imageInput.files[0];
 
@@ -142,6 +152,8 @@
           alert("Remplis tous les champs et ajoute une image.");
           return;
         }
+
+        const descriptionFinale = descInput || genererDescriptionAuto(nom, prix, disponible);
 
         const reader = new FileReader();
         reader.onloadend = function() {
@@ -151,7 +163,7 @@
             uid,
             nom,
             prix,
-            description: desc,
+            description: descriptionFinale,
             imageUrl,
             disponible,
             vidange: "-",
@@ -174,6 +186,8 @@
     }
   });
 </script>
+
 </body>
 </html>
+
 
