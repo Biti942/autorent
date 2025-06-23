@@ -70,11 +70,11 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="firebase.js"></script>
 
   <script>
-    const adminEmail = "biti.hassan@icloud.com"; // Change si nécessaire
+    const adminEmail = "biti.hassan@icloud.com";
+    const auth = firebase.auth();
 
     document.getElementById("loginBtn").addEventListener("click", () => {
       const email = document.getElementById("email").value.trim();
@@ -88,8 +88,6 @@
       auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-
-          // Redirection automatique
           if (user.email === adminEmail) {
             window.location.href = "admin-dashboard.html";
           } else {

@@ -160,8 +160,6 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
   <script src="firebase.js"></script>
 
   <!-- Script de redirection intelligente -->
@@ -172,18 +170,30 @@
       btn.addEventListener("click", (e) => {
         e.preventDefault();
 
-        firebase.auth().onAuthStateChanged((user) => {
+        if (firebase && firebase.auth) {
+          const auth = firebase.auth();
+          const user = auth.currentUser;
+
           if (user) {
             window.location.href = "confirmation-premium.html";
           } else {
-            alert("Vous devez être connecté pour activer votre pack.");
-            window.location.href = "connexion.html";
+            auth.onAuthStateChanged((u) => {
+              if (u) {
+                window.location.href = "confirmation-premium.html";
+              } else {
+                alert("Vous devez être connecté pour activer votre pack.");
+                window.location.href = "connexion.html";
+              }
+            });
           }
-        });
+        } else {
+          alert("Firebase non initialisé !");
+        }
       });
     });
   </script>
 </body>
 </html>
+
 
 
