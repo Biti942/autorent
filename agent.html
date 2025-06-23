@@ -149,7 +149,7 @@
         <li>🛡️ Support technique & mises à jour incluses</li>
       </ul>
       <span>299 MAD / mois</span>
-      <a href="confirmation-premium.html" id="btn-paiement">Activer mon pack</a>
+      <a href="#" id="btn-paiement">Activer mon pack</a>
     </div>
   </div>
 
@@ -164,35 +164,26 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
   <script src="firebase.js"></script>
 
-  <!-- Script pour vérifier la connexion -->
+  <!-- Script de redirection intelligente -->
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      const btnPaiement = document.getElementById("btn-paiement");
+    document.addEventListener("DOMContentLoaded", () => {
+      const btn = document.getElementById("btn-paiement");
 
-      btnPaiement.addEventListener("click", function (e) {
+      btn.addEventListener("click", (e) => {
         e.preventDefault();
 
-        if (firebase && firebase.auth) {
-          const user = firebase.auth().currentUser;
-
+        firebase.auth().onAuthStateChanged((user) => {
           if (user) {
             window.location.href = "confirmation-premium.html";
           } else {
-            firebase.auth().onAuthStateChanged(function(user) {
-              if (user) {
-                window.location.href = "confirmation-premium.html";
-              } else {
-                alert("Vous devez être connecté pour accéder au paiement.");
-                window.location.href = "connexion.html";
-              }
-            });
+            alert("Vous devez être connecté pour activer votre pack.");
+            window.location.href = "connexion.html";
           }
-        } else {
-          alert("Erreur Firebase : Authentification non disponible.");
-        }
+        });
       });
     });
   </script>
 </body>
 </html>
+
 
