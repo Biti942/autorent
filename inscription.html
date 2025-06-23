@@ -53,7 +53,6 @@
     <input type="text" id="nom" placeholder="Nom" required />
     <input type="text" id="ville" placeholder="Ville" required />
     <input type="text" id="telephone" placeholder="Téléphone" required />
-    <input type="text" id="code" placeholder="Code d'accès" required />
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Mot de passe" required />
     <button onclick="register()">S’inscrire</button>
@@ -69,7 +68,6 @@
       const nom = document.getElementById('nom').value;
       const ville = document.getElementById('ville').value;
       const telephone = document.getElementById('telephone').value;
-      const code = document.getElementById('code').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
@@ -81,7 +79,6 @@
             nom: nom,
             ville: ville,
             telephone: telephone,
-            code: code,
             email: email,
             uid: user.uid,
             createdAt: new Date().toISOString()
@@ -89,7 +86,7 @@
         })
         .then(() => {
           alert("Inscription réussie !");
-          window.location.href = "agent.html"; // à adapter si tu veux rediriger selon le pack
+          window.location.href = "agent.html";
         })
         .catch((error) => {
           alert("Erreur : " + error.message);
@@ -98,4 +95,5 @@
   </script>
 </body>
 </html>
+
 
