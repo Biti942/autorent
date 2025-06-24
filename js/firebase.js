@@ -11,15 +11,17 @@ const firebaseConfig = {
   measurementId: "G-DC3BM6BZVG"
 };
 
-// Initialiser Firebase
-firebase.initializeApp(firebaseConfig);
+// Initialiser Firebase si ce n'est pas déjà fait
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 
 // Initialisation des services Firebase
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// Accès global
+// Exposer globalement pour les autres fichiers
 window.auth = auth;
 window.db = db;
 window.storage = storage;

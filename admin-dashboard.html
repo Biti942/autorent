@@ -8,43 +8,46 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="js/firebase.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
       background-color: #f3f4f6;
       margin: 0;
-      padding: 20px;
+      padding: 0 20px;
     }
 
-    .topbar {
+    .navbar {
+      background-color: #0f172a;
+      color: #fff;
+      padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      flex-wrap: wrap;
     }
 
-    .topbar p {
-      font-size: 0.9rem;
-      color: #0f172a;
+    .navbar h2 {
+      margin: 0;
+      font-size: 1.2rem;
     }
 
-    .topbar button {
-      background-color: #ef4444;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.3s;
+    .nav-links a {
+      margin-left: 15px;
+      color: #facc15;
+      text-decoration: none;
+      font-weight: bold;
     }
 
-    .topbar button:hover {
-      background-color: #dc2626;
+    .nav-links a:hover {
+      text-decoration: underline;
     }
 
     h1 {
       color: #0f172a;
       text-align: center;
+      margin-top: 30px;
     }
 
     .stats {
@@ -109,12 +112,19 @@
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <p>Connecté en tant que : <span id="user-email"></span></p>
-    <button id="logout-btn">Se déconnecter</button>
+  <div class="navbar">
+    <h2>Admin AutoRent</h2>
+    <div class="nav-links">
+      <span id="user-email"></span>
+      <a href="index.html">🏠 Accueil</a>
+      <a href="#utilisateursTable">👥 Clients</a>
+      <a href="#abonnementsTable">📦 Abonnements</a>
+      <a href="gerance-premium.html">📊 Gérance</a>
+      <a href="#" id="logout-btn">🚪 Déconnexion</a>
+    </div>
   </div>
 
-  <h1>Tableau de Bord Admin - AutoRent</h1>
+  <h1>Tableau de Bord Admin</h1>
 
   <div class="stats" id="statsSection">
     <div class="stat-card">
@@ -142,37 +152,41 @@
   </div>
 
   <script>
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
     auth.onAuthStateChanged(user => {
       if (!user) {
         window.location.href = "connexion.html";
       } else {
         document.getElementById("user-email").textContent = user.email;
 
-        document.getElementById("logout-btn").addEventListener("click", () => {
+        document.getElementById("logout-btn").addEventListener("click", (e) => {
+          e.preventDefault();
           auth.signOut().then(() => {
-            // ✅ redirection vers la page d'accueil
-            window.location.href = "index.html";
+            Toastify({
+              text: "Déconnexion réussie ✅",
+              duration: 3000,
+              close: true,
+              gravity: "top",
+              position: "right",
+              backgroundColor: "#10b981"
+            }).showToast();
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 1000);
           }).catch(error => {
             alert("Erreur de déconnexion : " + error.message);
           });
         });
 
-        let totalUsers = 0;
-        let totalAbos = 0;
-        const packCount = {};
-
+        // Fetch Abonnements
         db.collection("abonnements").get().then(snapshot => {
-          totalAbos = snapshot.size;
-
+          let totalAbos = snapshot.size;
+          let packCount = {};
           let html = "<table><tr><th>Email</th><th>Pack</th><th>Max voitures</th><th>Date de paiement</th></tr>";
+
           snapshot.forEach(doc => {
             const data = doc.data();
             const pack = data.pack || "Inconnu";
             packCount[pack] = (packCount[pack] || 0) + 1;
-
             html += `<tr>
               <td>${doc.id}</td>
               <td>${pack}</td>
@@ -180,6 +194,7 @@
               <td>${data.datePaiement ? new Date(data.datePaiement.toDate()).toLocaleDateString() : ''}</td>
             </tr>`;
           });
+
           html += "</table>";
           document.getElementById("abonnementsTable").innerHTML = html;
           document.getElementById("totalAbos").textContent = totalAbos;
@@ -188,8 +203,9 @@
           document.getElementById("mostPopularPack").textContent = topPack ? `${topPack[0]} (${topPack[1]})` : "Aucun";
         });
 
+        // Fetch Users
         db.collection("utilisateurs").get().then(snapshot => {
-          totalUsers = snapshot.size;
+          let totalUsers = snapshot.size;
           document.getElementById("totalUsers").textContent = totalUsers;
 
           let html = "<table><tr><th>Nom</th><th>Prénom</th><th>Ville</th><th>Email</th><th>Téléphone</th><th>Code</th></tr>";
@@ -206,12 +222,17 @@
           });
           html += "</table>";
           document.getElementById("utilisateursTable").innerHTML = html;
+
+          Toastify({
+            text: "Tableau chargé avec succès 📊",
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: "#3b82f6"
+          }).showToast();
         });
       }
     });
   </script>
 </body>
 </html>
-
-
-
