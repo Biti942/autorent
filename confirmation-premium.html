@@ -11,9 +11,33 @@
       color: #fff;
       padding: 50px 20px;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
       min-height: 100vh;
+    }
+
+    .topbar {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    #logout-btn {
+      background-color: #ef4444;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #logout-btn:hover {
+      background-color: #dc2626;
     }
 
     .container {
@@ -57,6 +81,11 @@
   </style>
 </head>
 <body>
+  <div class="topbar">
+    <p>Connecté en tant que : <span id="user-email"></span></p>
+    <button id="logout-btn">Se déconnecter</button>
+  </div>
+
   <div class="container">
     <h1>🎉 Bravo et Bienvenue !</h1>
     <p>Tu as choisi le <strong>Pack Premium</strong>.</p>
@@ -74,12 +103,22 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="firebase.js"></script>
 
-  <!-- Redirection si utilisateur non connecté -->
+  <!-- Redirection + logout -->
   <script>
-    firebase.auth().onAuthStateChanged(function(user) {
+    const auth = firebase.auth();
+    auth.onAuthStateChanged(user => {
       if (!user) {
         alert("🚫 Vous devez créer un compte ou vous connecter avant de continuer.");
-        window.location.href = "connexion.html"; // Remplace par login.html si nécessaire
+        window.location.href = "connexion.html";
+      } else {
+        document.getElementById("user-email").textContent = user.email;
+        document.getElementById("logout-btn").addEventListener("click", () => {
+          auth.signOut().then(() => {
+            window.location.href = "index.html";
+          }).catch(err => {
+            alert("Erreur lors de la déconnexion : " + err.message);
+          });
+        });
       }
     });
   </script>
@@ -108,5 +147,6 @@
   </script>
 </body>
 </html>
+
 
 
