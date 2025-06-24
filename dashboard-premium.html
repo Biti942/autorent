@@ -56,15 +56,15 @@
       background-color: #dc2626;
     }
 
-    .form-section {
+    .form-section, .list-section {
       background-color: #1e293b;
       padding: 25px;
       border-radius: 12px;
       max-width: 800px;
-      margin: auto;
+      margin: 20px auto;
     }
 
-    .form-section h2 {
+    .form-section h2, .list-section h2 {
       margin-bottom: 20px;
       color: #4ade80;
     }
@@ -118,6 +118,38 @@
       text-decoration: none;
       font-weight: bold;
     }
+
+    .car-list {
+      margin-top: 20px;
+    }
+
+    .car-item {
+      background-color: #334155;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .car-item img {
+      width: 100px;
+      border-radius: 10px;
+    }
+
+    .car-info {
+      flex: 1;
+    }
+
+    .car-info h3 {
+      margin: 0;
+      color: #facc15;
+    }
+
+    .car-info p {
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
@@ -152,6 +184,11 @@
 
     <button type="submit" class="btn">Ajouter la voiture</button>
   </form>
+</div>
+
+<div class="list-section">
+  <h2>🚗 Mes voitures publiées</h2>
+  <div class="car-list" id="carList"></div>
 </div>
 
 <div class="navigation">
@@ -214,16 +251,11 @@
             description: descriptionFinale,
             imageUrl,
             disponible,
-            vidange: "-",
-            reservation: "-",
-            retour: "-",
-            kilometrage: "-",
-            credit: "-",
-            depenses: "-",
-            ca: "-"
+            dateAjout: new Date()
           }).then(() => {
             alert("🚗 Voiture ajoutée avec succès !");
             form.reset();
+            chargerVoitures(uid);
           }).catch((err) => {
             console.error("Erreur :", err);
             alert("Erreur lors de l’ajout.");
@@ -231,10 +263,42 @@
         };
         reader.readAsDataURL(file);
       });
+
+      function chargerVoitures(uid) {
+        db.collection("cars").where("uid", "==", uid).get().then(snapshot => {
+          const carList = document.getElementById("carList");
+          carList.innerHTML = "";
+
+          if (snapshot.empty) {
+            carList.innerHTML = "<p>Vous n'avez pas encore publié de voitures.</p>";
+            return;
+          }
+
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const carHTML = `
+              <div class="car-item">
+                <img src="${data.imageUrl}" alt="${data.nom}" />
+                <div class="car-info">
+                  <h3>${data.nom}</h3>
+                  <p>${data.description}</p>
+                  <p><strong>${data.prix} DH / jour</strong></p>
+                  <p>${data.disponible ? '✅ Disponible' : '❌ Indisponible'}</p>
+                </div>
+              </div>
+            `;
+            carList.innerHTML += carHTML;
+          });
+        });
+      }
+
+      // Charger les voitures à l’ouverture
+      chargerVoitures(uid);
     }
   });
 </script>
 
 </body>
 </html>
+
 
