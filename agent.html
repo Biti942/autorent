@@ -7,36 +7,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="icon" href="favicon.png" type="image/png" />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-
     body {
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
       padding: 20px;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      font-family: 'Poppins', sans-serif;
     }
 
     header {
       text-align: center;
       margin-bottom: 40px;
-    }
-
-    header h1 {
-      font-size: 2.5rem;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    header p {
-      font-size: 1.1rem;
-      color: #ccc;
     }
 
     .card {
@@ -48,44 +29,16 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     }
 
-    .card h2 {
-      font-size: 2rem;
-      color: #4ade80;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
     .pack {
       background-color: #0f172a;
       border-radius: 15px;
       padding: 25px;
       border: 2px solid #334155;
       text-align: center;
-      transition: 0.3s;
     }
 
     .pack:hover {
       border-color: #4ade80;
-    }
-
-    .pack h3 {
-      font-size: 1.6rem;
-      color: #facc15;
-    }
-
-    .pack p {
-      font-size: 1rem;
-      margin: 10px 0;
-      line-height: 1.6;
-      color: #e0e0e0;
-    }
-
-    .pack span {
-      display: block;
-      font-size: 1.4rem;
-      font-weight: bold;
-      color: #4ade80;
-      margin-top: 10px;
     }
 
     .pack a {
@@ -97,37 +50,41 @@
       border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
-      transition: background 0.3s;
     }
 
-    .pack a:hover {
-      background-color: #22c55e;
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
     }
 
-    footer {
-      text-align: center;
-      margin-top: 60px;
+    .topbar p {
+      margin: 0;
       font-size: 0.9rem;
-      color: #aaa;
+      color: #ccc;
     }
 
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 2rem;
-      }
+    #logout-btn {
+      background-color: #ef4444;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-      .card {
-        padding: 20px;
-      }
-
-      .pack a {
-        padding: 10px 20px;
-        font-size: 1rem;
-      }
+    #logout-btn:hover {
+      background-color: #dc2626;
     }
   </style>
 </head>
 <body>
+  <div class="topbar">
+    <p>Connecté en tant que : <span id="user-email"></span></p>
+    <button id="logout-btn">Se déconnecter</button>
+  </div>
+
   <header>
     <h1>Bienvenue sur AutoRent</h1>
     <p>Digitalisez votre agence avec notre solution Premium</p>
@@ -136,64 +93,54 @@
   <div class="card">
     <h2>Pack Premium</h2>
     <div class="pack">
-      <h3>✅ Abonnement unique : Premium</h3>
-      <p>
-        AutoRent vous permet de publier un nombre <strong>illimité de voitures</strong> sur une page dédiée à votre agence. Vous bénéficiez également :
-      </p>
+      <h3>✅ Abonnement : Premium</h3>
+      <p>Publiez un nombre <strong>illimité de voitures</strong> sur votre page dédiée.</p>
       <ul style="text-align: left; max-width: 550px; margin: 20px auto; color: #ccc;">
-        <li>🚀 Visibilité en ligne professionnelle</li>
-        <li>📱 Compatible smartphone/tablette</li>
-        <li>🖼️ Galerie d’images pour chaque véhicule</li>
-        <li>🔗 Lien unique de votre agence à partager avec vos clients</li>
-        <li>💬 Réception directe de réservations/contacts</li>
-        <li>🛡️ Support technique & mises à jour incluses</li>
+        <li>🚀 Visibilité en ligne pro</li>
+        <li>📱 Mobile friendly</li>
+        <li>🖼️ Galerie photos</li>
+        <li>🔗 Lien unique pour votre agence</li>
+        <li>💬 Réception de réservations</li>
+        <li>🛡️ Support & mises à jour</li>
       </ul>
       <span>299 MAD / mois</span>
       <a href="#" id="btn-paiement">Activer mon pack</a>
     </div>
   </div>
 
-  <footer>
-    &copy; 2025 AutoRent. Tous droits réservés.
-  </footer>
-
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="firebase.js"></script>
+  <script src="js/firebase.js"></script>
 
-  <!-- Script de redirection intelligente -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const btn = document.getElementById("btn-paiement");
+      const userEmailDisplay = document.getElementById("user-email");
+      const logoutBtn = document.getElementById("logout-btn");
 
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-
-        if (firebase && firebase.auth) {
-          const auth = firebase.auth();
-          const user = auth.currentUser;
-
-          if (user) {
-            window.location.href = "confirmation-premium.html";
-          } else {
-            auth.onAuthStateChanged((u) => {
-              if (u) {
-                window.location.href = "confirmation-premium.html";
-              } else {
-                alert("Vous devez être connecté pour activer votre pack.");
-                window.location.href = "connexion.html";
-              }
-            });
-          }
+      firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = "connexion.html";
         } else {
-          alert("Firebase non initialisé !");
+          userEmailDisplay.textContent = user.email;
+
+          logoutBtn.addEventListener("click", () => {
+            firebase.auth().signOut().then(() => {
+              window.location.href = "connexion.html";
+            });
+          });
+
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            window.location.href = "confirmation-premium.html";
+          });
         }
       });
     });
   </script>
 </body>
 </html>
+
 
 
 

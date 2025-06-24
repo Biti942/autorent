@@ -5,6 +5,10 @@
   <title>AutoRent - Dashboard Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase.js"></script>
   <style>
     body {
       margin: 0;
@@ -13,14 +17,78 @@
       color: #fff;
       padding: 20px;
     }
+
     header {
-      text-align: center;
-      margin-bottom: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
     }
+
     h1 {
-      font-size: 2rem;
+      font-size: 1.8rem;
       color: #38bdf8;
+      margin: 0;
     }
+
+    .user-info {
+      text-align: right;
+      font-size: 0.9rem;
+    }
+
+    .user-info span {
+      color: #facc15;
+    }
+
+    .logout-btn {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+
+    .form-section {
+      background-color: #1e293b;
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .form-section h2 {
+      margin-bottom: 20px;
+      color: #4ade80;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    .available-switch {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .available-switch input {
+      margin-right: 10px;
+    }
+
     .btn {
       background-color: #38bdf8;
       border: none;
@@ -29,44 +97,18 @@
       border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
-      transition: 0.3s;
     }
+
     .btn:hover {
       background-color: #0ea5e9;
     }
-    .form-section {
-      background-color: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-      max-width: 800px;
-      margin: auto;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-    }
-    label {
-      font-weight: 600;
-      margin-bottom: 5px;
-      display: block;
-    }
-    .available-switch {
-      display: flex;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .available-switch input {
-      margin-right: 10px;
-    }
+
     .navigation {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 40px;
     }
-    a {
+
+    .navigation a {
       color: #facc15;
       text-decoration: none;
       font-weight: bold;
@@ -76,8 +118,11 @@
 <body>
 
 <header>
-  <h1>🎯 Tableau de Bord - Pack Premium</h1>
-  <p>Ajoutez et gérez vos voitures directement depuis votre espace</p>
+  <h1>🎯 Dashboard Premium - AutoRent</h1>
+  <div class="user-info">
+    <p>Connecté en tant que : <span id="user-email"></span></p>
+    <button class="logout-btn" id="logoutBtn">Se déconnecter</button>
+  </div>
 </header>
 
 <div class="form-section">
@@ -93,7 +138,7 @@
     <input type="number" id="price" placeholder="ex: 250">
 
     <label for="desc">Description</label>
-    <textarea id="desc" rows="4" placeholder="Écrivez une courte description... (facultatif)"></textarea>
+    <textarea id="desc" rows="4" placeholder="Description auto ou générée..."></textarea>
 
     <div class="available-switch">
       <input type="checkbox" id="available">
@@ -105,38 +150,34 @@
 </div>
 
 <div class="navigation">
-  <p>📊 Gérer l’état complet de vos voitures : <a href="gerance-premium.html">Aller vers Gérance Premium</a></p>
-</div>
-<div class="navigation" style="margin-top: 20px;">
-  <p>🧑‍💻 Gérer votre site vitrine : <a href="site-agent.html">Voir mon site</a></p>
+  <p>📊 Gérer l’état de vos voitures : <a href="gerance-premium.html">Gérance Premium</a></p>
+  <p style="margin-top: 10px;">🧑‍💻 Voir votre site vitrine : <a href="site-agent.html">Mon site</a></p>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="firebase.js"></script>
-
-<!-- IA : Génération description automatique -->
+<!-- Script de gestion -->
 <script>
-  function genererDescriptionAuto(nom, prix, disponible) {
-    const marque = nom.split(" ")[0] || "Cette voiture";
-    const etat = disponible ? "disponible immédiatement" : "actuellement non disponible";
-    return `${marque} offre un excellent rapport qualité/prix à seulement ${prix} DH/jour. Elle est ${etat} et parfaitement adaptée aux trajets urbains comme aux longues distances. Louez-la dès maintenant pour une expérience fiable et confortable.`;
-  }
-</script>
-
-<!-- Code principal -->
-<script>
-  const db = firebase.firestore();
   const auth = firebase.auth();
+  const db = firebase.firestore();
   const form = document.querySelector("form");
   const imageInput = document.getElementById("image");
+
+  function genererDescriptionAuto(nom, prix, disponible) {
+    const marque = nom.split(" ")[0] || "Cette voiture";
+    const dispoTxt = disponible ? "disponible immédiatement" : "actuellement non disponible";
+    return `${marque} offre un excellent rapport qualité/prix à seulement ${prix} DH/jour. Elle est ${dispoTxt} et parfaitement adaptée aux trajets urbains comme aux longues distances.`;
+  }
 
   auth.onAuthStateChanged(function(user) {
     if (!user) {
       window.location.href = "connexion.html";
     } else {
+      document.getElementById("user-email").textContent = user.email;
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        auth.signOut().then(() => {
+          window.location.href = "connexion.html";
+        });
+      });
+
       const uid = user.uid;
 
       form.addEventListener("submit", async function(e) {

@@ -3,49 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Site Agence</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <title>Mon Agence - AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary: #38bdf8;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text-light: #ccc;
+      --text: #fff;
+    }
+
     body {
       margin: 0;
-      padding: 0;
-      font-family: 'Orbitron', sans-serif;
-      background-color: #0a0a0a;
-      color: white;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
     }
 
-    .header {
+    header {
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      padding: 30px 20px;
       text-align: center;
-      padding: 40px 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
 
-    .header h1 {
+    header h1 {
       margin: 0;
-      font-size: 2.8rem;
-      color: #38bdf8;
-      letter-spacing: 1px;
+      font-size: 2.5rem;
+      color: var(--primary);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      font-size: 1rem;
+      color: var(--text-light);
+    }
+
+    .container {
+      padding: 40px 20px;
+      max-width: 1200px;
+      margin: auto;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      padding: 40px;
-      max-width: 1200px;
-      margin: auto;
+      gap: 30px;
     }
 
     .car-card {
-      background-color: #111827;
-      border-radius: 12px;
+      background-color: var(--card);
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-      transition: transform 0.3s ease;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .car-card:hover {
-      transform: scale(1.03);
+      transform: translateY(-5px);
+      box-shadow: 0 12px 25px rgba(56, 189, 248, 0.2);
     }
 
     .car-card img {
@@ -56,91 +73,110 @@
 
     .car-info {
       padding: 20px;
-      text-align: center;
     }
 
     .car-info h2 {
       margin: 0;
-      font-size: 1.3rem;
-      color: #38bdf8;
+      font-size: 1.4rem;
+      color: var(--primary);
     }
 
     .car-info p {
-      margin: 8px 0 0;
-      font-size: 1.1rem;
-      color: #ddd;
+      margin: 10px 0 5px;
+      color: var(--text-light);
+      font-size: 0.95rem;
     }
 
-    .footer {
+    .car-info .price {
+      font-size: 1.1rem;
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    footer {
       text-align: center;
       padding: 20px;
       font-size: 0.9rem;
-      color: #777;
-      border-top: 1px solid #222;
+      color: #889;
+      border-top: 1px solid #1e293b;
+      margin-top: 50px;
+    }
+
+    @media(max-width: 480px) {
+      header h1 {
+        font-size: 1.8rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1 id="agency-name">Mon Agence</h1>
-  </div>
 
+<header>
+  <h1 id="agency-name">Mon Agence</h1>
+  <p class="subtitle">Découvrez nos voitures disponibles en temps réel</p>
+</header>
+
+<div class="container">
   <div class="grid" id="car-grid">
-    <!-- Les voitures dynamiques -->
+    <!-- voitures dynamiques ici -->
   </div>
+</div>
 
-  <div class="footer">
-    © 2025 AutoRent - Tous droits réservés.
-  </div>
+<footer>
+  &copy; 2025 AutoRent. Site vitrine professionnel propulsé par AutoRent.
+</footer>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="firebase.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
 
-  <script>
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+<script>
+  const db = firebase.firestore();
+  const auth = firebase.auth();
 
-    auth.onAuthStateChanged(function(user) {
-      if (!user) {
-        window.location.href = "connexion.html";
-      } else {
-        const uid = user.uid;
+  auth.onAuthStateChanged(function(user) {
+    if (!user) {
+      window.location.href = "connexion.html";
+    } else {
+      const uid = user.uid;
 
-        // 🔵 1. Charger le nom d'agence
-        db.collection("settings").doc("agencyInfo-" + uid).get().then(doc => {
-          if (doc.exists) {
-            document.getElementById("agency-name").textContent = doc.data().nom || "Mon Agence";
-          }
-        });
+      // 🏷️ Charger nom agence
+      db.collection("settings").doc("agencyInfo-" + uid).get().then(doc => {
+        if (doc.exists) {
+          document.getElementById("agency-name").textContent = doc.data().nom || "Mon Agence";
+        }
+      });
 
-        // 🚗 2. Afficher les voitures disponibles
-        db.collection("cars")
-          .where("uid", "==", uid)
-          .where("disponible", "==", true)
-          .get()
-          .then((querySnapshot) => {
-            const grid = document.getElementById('car-grid');
-            grid.innerHTML = '';
+      // 🚘 Charger voitures
+      db.collection("cars")
+        .where("uid", "==", uid)
+        .where("disponible", "==", true)
+        .get()
+        .then((querySnapshot) => {
+          const grid = document.getElementById('car-grid');
+          grid.innerHTML = '';
 
-            querySnapshot.forEach((doc) => {
-              const voiture = doc.data();
-              const carHTML = `
-                <div class="car-card">
-                  <img src="${voiture.imageUrl}" alt="${voiture.nom}">
-                  <div class="car-info">
-                    <h2>${voiture.nom}</h2>
-                    <p>${voiture.prix} DH / jour</p>
-                  </div>
-                </div>`;
-              grid.innerHTML += carHTML;
-            });
+          querySnapshot.forEach((doc) => {
+            const v = doc.data();
+            const html = `
+              <div class="car-card">
+                <img src="${v.imageUrl}" alt="${v.nom}">
+                <div class="car-info">
+                  <h2>${v.nom}</h2>
+                  <p class="price">${v.prix} DH / jour</p>
+                  <p>${v.description || 'Voiture disponible pour location'}</p>
+                </div>
+              </div>`;
+            grid.innerHTML += html;
           });
-      }
-    });
-  </script>
+        });
+    }
+  });
+</script>
+
 </body>
 </html>
+
 

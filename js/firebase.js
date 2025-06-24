@@ -19,7 +19,8 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// 📤 Rendre les services disponibles globalement
+// Accès global
 window.auth = auth;
 window.db = db;
 window.storage = storage;
+
