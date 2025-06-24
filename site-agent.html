@@ -26,6 +26,7 @@
       padding: 30px 20px;
       text-align: center;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      position: relative;
     }
 
     header h1 {
@@ -38,6 +39,24 @@
       margin-top: 8px;
       font-size: 1rem;
       color: var(--text-light);
+    }
+
+    #logoutBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #logoutBtn:hover {
+      background-color: #dc2626;
     }
 
     .container {
@@ -114,6 +133,7 @@
 <header>
   <h1 id="agency-name">Mon Agence</h1>
   <p class="subtitle">Découvrez nos voitures disponibles en temps réel</p>
+  <button id="logoutBtn">Se déconnecter</button>
 </header>
 
 <div class="container">
@@ -142,14 +162,14 @@
     } else {
       const uid = user.uid;
 
-      // 🏷️ Charger nom agence
+      // Charger nom agence
       db.collection("settings").doc("agencyInfo-" + uid).get().then(doc => {
         if (doc.exists) {
           document.getElementById("agency-name").textContent = doc.data().nom || "Mon Agence";
         }
       });
 
-      // 🚘 Charger voitures
+      // Charger voitures
       db.collection("cars")
         .where("uid", "==", uid)
         .where("disponible", "==", true)
@@ -174,9 +194,17 @@
         });
     }
   });
+
+  // 🔐 Déconnexion
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    auth.signOut().then(() => {
+      window.location.href = "index.html";
+    }).catch((error) => {
+      alert("Erreur lors de la déconnexion : " + error.message);
+    });
+  });
 </script>
 
 </body>
 </html>
-
 

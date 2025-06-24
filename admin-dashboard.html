@@ -35,6 +35,11 @@
       padding: 8px 16px;
       border-radius: 6px;
       cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .topbar button:hover {
+      background-color: #dc2626;
     }
 
     h1 {
@@ -148,7 +153,9 @@
 
         document.getElementById("logout-btn").addEventListener("click", () => {
           auth.signOut().then(() => {
-            window.location.href = "connexion.html";
+            window.location.href = "index.html";
+          }).catch(error => {
+            alert("Erreur de déconnexion : " + error.message);
           });
         });
 
@@ -204,5 +211,6 @@
   </script>
 </body>
 </html>
+
 
 

@@ -49,6 +49,11 @@
       border-radius: 6px;
       margin-top: 8px;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .logout-btn:hover {
+      background-color: #dc2626;
     }
 
     .form-section {
@@ -154,7 +159,6 @@
   <p style="margin-top: 10px;">🧑‍💻 Voir votre site vitrine : <a href="site-agent.html">Mon site</a></p>
 </div>
 
-<!-- Script de gestion -->
 <script>
   const auth = firebase.auth();
   const db = firebase.firestore();
@@ -172,9 +176,12 @@
       window.location.href = "connexion.html";
     } else {
       document.getElementById("user-email").textContent = user.email;
+
       document.getElementById("logoutBtn").addEventListener("click", () => {
         auth.signOut().then(() => {
-          window.location.href = "connexion.html";
+          window.location.href = "index.html";
+        }).catch((error) => {
+          alert("Erreur de déconnexion : " + error.message);
         });
       });
 
@@ -230,5 +237,4 @@
 
 </body>
 </html>
-
 
