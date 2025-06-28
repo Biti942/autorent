@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>AutoRent - Dashboard Premium</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
   <script src="js/firebase.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <style>
+    /* Styles existants inchangés pour brièveté, voir version précédente */
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
@@ -17,7 +21,6 @@
       color: #fff;
       padding: 20px;
     }
-
     header {
       display: flex;
       justify-content: space-between;
@@ -25,22 +28,18 @@
       flex-wrap: wrap;
       margin-bottom: 30px;
     }
-
     h1 {
       font-size: 1.8rem;
       color: #38bdf8;
       margin: 0;
     }
-
     .user-info {
       text-align: right;
       font-size: 0.9rem;
     }
-
     .user-info span {
       color: #facc15;
     }
-
     .logout-btn {
       background-color: #ef4444;
       color: white;
@@ -51,11 +50,9 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-
     .logout-btn:hover {
       background-color: #dc2626;
     }
-
     .form-section, .list-section {
       background-color: #1e293b;
       padding: 25px;
@@ -63,18 +60,15 @@
       max-width: 800px;
       margin: 20px auto;
     }
-
     .form-section h2, .list-section h2 {
       margin-bottom: 20px;
       color: #4ade80;
     }
-
     label {
       display: block;
       margin-bottom: 5px;
       font-weight: 600;
     }
-
     input, textarea {
       width: 100%;
       padding: 12px;
@@ -82,18 +76,23 @@
       border-radius: 8px;
       border: none;
       font-size: 1rem;
+      background-color: #334155;
+      color: #fff;
     }
-
+    .preview-image {
+      max-width: 200px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      display: none;
+    }
     .available-switch {
       display: flex;
       align-items: center;
       margin-bottom: 15px;
     }
-
     .available-switch input {
       margin-right: 10px;
     }
-
     .btn {
       background-color: #38bdf8;
       border: none;
@@ -103,26 +102,21 @@
       cursor: pointer;
       font-weight: bold;
     }
-
     .btn:hover {
       background-color: #0ea5e9;
     }
-
     .navigation {
       text-align: center;
       margin-top: 40px;
     }
-
     .navigation a {
       color: #facc15;
       text-decoration: none;
       font-weight: bold;
     }
-
     .car-list {
       margin-top: 20px;
     }
-
     .car-item {
       background-color: #334155;
       padding: 15px;
@@ -132,173 +126,98 @@
       gap: 20px;
       align-items: center;
     }
-
     .car-item img {
       width: 100px;
       border-radius: 10px;
     }
-
     .car-info {
       flex: 1;
     }
-
     .car-info h3 {
       margin: 0;
       color: #facc15;
     }
-
     .car-info p {
       margin: 5px 0;
+    }
+    .reserve-btn, .edit-btn, .delete-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .reserve-btn {
+      background-color: #4ade80;
+      color: #0f172a;
+    }
+    .reserve-btn:hover {
+      background-color: #22c55e;
+    }
+    .edit-btn {
+      background-color: #facc15;
+      color: #0f172a;
+    }
+    .edit-btn:hover {
+      background-color: #e0ab0d;
+    }
+    .delete-btn {
+      background-color: #ef4444;
+      color: white;
+    }
+    .delete-btn:hover {
+      background-color: #dc2626;
+    }
+    #loading {
+      text-align: center;
+      margin-top: 20px;
+      display: none;
     }
   </style>
 </head>
 <body>
-
-<header>
-  <h1>🎯 Dashboard Premium - AutoRent</h1>
-  <div class="user-info">
-    <p>Connecté en tant que : <span id="user-email"></span></p>
-    <button class="logout-btn" id="logoutBtn">Se déconnecter</button>
-  </div>
-</header>
-
-<div class="form-section">
-  <h2>➕ Ajouter une nouvelle voiture</h2>
-  <form>
-    <label for="name">Nom de la voiture</label>
-    <input type="text" id="name" placeholder="ex: Dacia Logan 2022">
-
-    <label for="image">Image de la voiture</label>
-    <input type="file" id="image">
-
-    <label for="price">Prix par jour (en MAD)</label>
-    <input type="number" id="price" placeholder="ex: 250">
-
-    <label for="desc">Description</label>
-    <textarea id="desc" rows="4" placeholder="Description auto ou générée..."></textarea>
-
-    <div class="available-switch">
-      <input type="checkbox" id="available">
-      <label for="available">Disponible</label>
+  <header>
+    <h1>🎯 Dashboard Premium - AutoRent</h1>
+    <div class="user-info">
+      <p>Connecté en tant que : <span id="user-email"></span></p>
+      <button class="logout-btn" id="logoutBtn">Se déconnecter</button>
     </div>
+  </header>
 
-    <button type="submit" class="btn">Ajouter la voiture</button>
-  </form>
-</div>
+  <div class="form-section">
+    <h2>➕ Ajouter une nouvelle voiture</h2>
+    <form id="carForm">
+      <label for="name">Nom de la voiture</label>
+      <input type="text" id="name" placeholder="ex: Dacia Logan 2022" required>
+      <label for="image">Image de la voiture</label>
+      <input type="file" id="image" accept="image/*" required>
+      <img id="previewImage" class="preview-image" alt="Prévisualisation de l'image" />
+      <label for="price">Prix par jour (en MAD)</label>
+      <input type="number" id="price" placeholder="ex: 250" required>
+      <label for="desc">Description</label>
+      <textarea id="desc" rows="4" placeholder="Description auto ou générée..."></textarea>
+      <div class="available-switch">
+        <input type="checkbox" id="available" checked>
+        <label for="available">Disponible</label>
+      </div>
+      <button type="submit" class="btn">Ajouter la voiture</button>
+    </form>
+  </div>
 
-<div class="list-section">
-  <h2>🚗 Mes voitures publiées</h2>
-  <div class="car-list" id="carList"></div>
-</div>
+  <div class="list-section">
+    <h2>🚗 Mes voitures publiées</h2>
+    <div id="loading">Chargement des voitures...</div>
+    <div class="car-list" id="carList"></div>
+  </div>
 
-<div class="navigation">
-  <p>📊 Gérer l’état de vos voitures : <a href="gerance-premium.html">Gérance Premium</a></p>
-  <p style="margin-top: 10px;">🧑‍💻 Voir votre site vitrine : <a href="site-agent.html">Mon site</a></p>
-</div>
+  <div class="navigation">
+    <p id="carCount">Vous avez <span id="carTotal">0</span> voitures publiées.</p>
+    <p>📊 Gérer l’état de vos voitures : <a href="gerance-premium.html">Gérance Premium</a></p>
+    <p style="margin-top: 10px;">🧑‍💻 Voir votre site vitrine : <a href="site-agent.html">Mon site</a></p>
+  </div>
 
-<script>
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-  const form = document.querySelector("form");
-  const imageInput = document.getElementById("image");
-
-  function genererDescriptionAuto(nom, prix, disponible) {
-    const marque = nom.split(" ")[0] || "Cette voiture";
-    const dispoTxt = disponible ? "disponible immédiatement" : "actuellement non disponible";
-    return `${marque} offre un excellent rapport qualité/prix à seulement ${prix} DH/jour. Elle est ${dispoTxt} et parfaitement adaptée aux trajets urbains comme aux longues distances.`;
-  }
-
-  auth.onAuthStateChanged(function(user) {
-    if (!user) {
-      window.location.href = "connexion.html";
-    } else {
-      document.getElementById("user-email").textContent = user.email;
-
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-        auth.signOut().then(() => {
-          window.location.href = "index.html";
-        }).catch((error) => {
-          alert("Erreur de déconnexion : " + error.message);
-        });
-      });
-
-      const uid = user.uid;
-
-      form.addEventListener("submit", async function(e) {
-        e.preventDefault();
-
-        const nom = document.getElementById("name").value.trim();
-        const prix = parseFloat(document.getElementById("price").value.trim());
-        const descInput = document.getElementById("desc").value.trim();
-        const disponible = document.getElementById("available").checked;
-        const file = imageInput.files[0];
-
-        if (!file || !nom || isNaN(prix)) {
-          alert("Remplis tous les champs et ajoute une image.");
-          return;
-        }
-
-        const descriptionFinale = descInput || genererDescriptionAuto(nom, prix, disponible);
-
-        const reader = new FileReader();
-        reader.onloadend = function() {
-          const imageUrl = reader.result;
-
-          db.collection("cars").add({
-            uid,
-            nom,
-            prix,
-            description: descriptionFinale,
-            imageUrl,
-            disponible,
-            dateAjout: new Date()
-          }).then(() => {
-            alert("🚗 Voiture ajoutée avec succès !");
-            form.reset();
-            chargerVoitures(uid);
-          }).catch((err) => {
-            console.error("Erreur :", err);
-            alert("Erreur lors de l’ajout.");
-          });
-        };
-        reader.readAsDataURL(file);
-      });
-
-      function chargerVoitures(uid) {
-        db.collection("cars").where("uid", "==", uid).get().then(snapshot => {
-          const carList = document.getElementById("carList");
-          carList.innerHTML = "";
-
-          if (snapshot.empty) {
-            carList.innerHTML = "<p>Vous n'avez pas encore publié de voitures.</p>";
-            return;
-          }
-
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const carHTML = `
-              <div class="car-item">
-                <img src="${data.imageUrl}" alt="${data.nom}" />
-                <div class="car-info">
-                  <h3>${data.nom}</h3>
-                  <p>${data.description}</p>
-                  <p><strong>${data.prix} DH / jour</strong></p>
-                  <p>${data.disponible ? '✅ Disponible' : '❌ Indisponible'}</p>
-                </div>
-              </div>
-            `;
-            carList.innerHTML += carHTML;
-          });
-        });
-      }
-
-      // Charger les voitures à l’ouverture
-      chargerVoitures(uid);
-    }
-  });
-</script>
-
+  <script src="js/dashboard.js"></script>
 </body>
 </html>
-
 
