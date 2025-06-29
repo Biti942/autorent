@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "autorent-7b992",
     "public": ".",
     "ignore": [
       "firebase.json",
@@ -11,4 +12,3 @@
     "rules": "firestore.rules"
   }
 }
-
