@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "autorent-7b992"
-  }
+  },
+  "targets": {
+    "autorent-7b992": {
+      "hosting": {
+        "default": [
+          "autorent-7b992"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
