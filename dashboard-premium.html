@@ -13,167 +13,39 @@
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <style>
-    /* Styles existants inchangés pour brièveté, voir version précédente */
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: #0f172a;
-      color: #fff;
-      padding: 20px;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-    }
-    h1 {
-      font-size: 1.8rem;
-      color: #38bdf8;
-      margin: 0;
-    }
-    .user-info {
-      text-align: right;
-      font-size: 0.9rem;
-    }
-    .user-info span {
-      color: #facc15;
-    }
-    .logout-btn {
-      background-color: #ef4444;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      margin-top: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .logout-btn:hover {
-      background-color: #dc2626;
-    }
-    .form-section, .list-section {
-      background-color: #1e293b;
-      padding: 25px;
-      border-radius: 12px;
-      max-width: 800px;
-      margin: 20px auto;
-    }
-    .form-section h2, .list-section h2 {
-      margin-bottom: 20px;
-      color: #4ade80;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 600;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: none;
-      font-size: 1rem;
-      background-color: #334155;
-      color: #fff;
-    }
-    .preview-image {
-      max-width: 200px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      display: none;
-    }
-    .available-switch {
-      display: flex;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-    .available-switch input {
-      margin-right: 10px;
-    }
-    .btn {
-      background-color: #38bdf8;
-      border: none;
-      color: #0f172a;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .btn:hover {
-      background-color: #0ea5e9;
-    }
-    .navigation {
-      text-align: center;
-      margin-top: 40px;
-    }
-    .navigation a {
-      color: #facc15;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .car-list {
-      margin-top: 20px;
-    }
-    .car-item {
-      background-color: #334155;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      display: flex;
-      gap: 20px;
-      align-items: center;
-    }
-    .car-item img {
-      width: 100px;
-      border-radius: 10px;
-    }
-    .car-info {
-      flex: 1;
-    }
-    .car-info h3 {
-      margin: 0;
-      color: #facc15;
-    }
-    .car-info p {
-      margin: 5px 0;
-    }
-    .reserve-btn, .edit-btn, .delete-btn {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-left: 10px;
-    }
-    .reserve-btn {
-      background-color: #4ade80;
-      color: #0f172a;
-    }
-    .reserve-btn:hover {
-      background-color: #22c55e;
-    }
-    .edit-btn {
-      background-color: #facc15;
-      color: #0f172a;
-    }
-    .edit-btn:hover {
-      background-color: #e0ab0d;
-    }
-    .delete-btn {
-      background-color: #ef4444;
-      color: white;
-    }
-    .delete-btn:hover {
-      background-color: #dc2626;
-    }
-    #loading {
-      text-align: center;
-      margin-top: 20px;
-      display: none;
-    }
+    /* Styles existants inchangés pour brièveté, voir versions précédentes */
+    body { margin: 0; font-family: 'Poppins', sans-serif; background: #0f172a; color: #fff; padding: 20px; }
+    header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 30px; }
+    h1 { font-size: 1.8rem; color: #38bdf8; margin: 0; }
+    .user-info { text-align: right; font-size: 0.9rem; }
+    .user-info span { color: #facc15; }
+    .logout-btn { background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; margin-top: 8px; cursor: pointer; transition: background 0.3s; }
+    .logout-btn:hover { background-color: #dc2626; }
+    .form-section, .list-section { background-color: #1e293b; padding: 25px; border-radius: 12px; max-width: 800px; margin: 20px auto; }
+    .form-section h2, .list-section h2 { margin-bottom: 20px; color: #4ade80; }
+    label { display: block; margin-bottom: 5px; font-weight: 600; }
+    input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: none; font-size: 1rem; background-color: #334155; color: #fff; }
+    .preview-image { max-width: 200px; margin-bottom: 15px; border-radius: 8px; display: none; }
+    .available-switch { display: flex; align-items: center; margin-bottom: 15px; }
+    .available-switch input { margin-right: 10px; }
+    .btn { background-color: #38bdf8; border: none; color: #0f172a; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .btn:hover { background-color: #0ea5e9; }
+    .navigation { text-align: center; margin-top: 40px; }
+    .navigation a { color: #facc15; text-decoration: none; font-weight: bold; }
+    .car-list { margin-top: 20px; }
+    .car-item { background-color: #334155; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 20px; align-items: center; }
+    .car-item img { width: 100px; border-radius: 10px; }
+    .car-info { flex: 1; }
+    .car-info h3 { margin: 0; color: #facc15; }
+    .car-info p { margin: 5px 0; }
+    .reserve-btn, .edit-btn, .delete-btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+    .reserve-btn { background-color: #4ade80; color: #0f172a; }
+    .reserve-btn:hover { background-color: #22c55e; }
+    .edit-btn { background-color: #facc15; color: #0f172a; }
+    .edit-btn:hover { background-color: #e0ab0d; }
+    .delete-btn { background-color: #ef4444; color: white; }
+    .delete-btn:hover { background-color: #dc2626; }
+    #loading { text-align: center; margin-top: 20px; display: none; }
   </style>
 </head>
 <body>
