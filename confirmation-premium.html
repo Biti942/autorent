@@ -86,9 +86,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="../js/firebase.js"></script>
+  <script src="js/firebase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-  <script src="https://www.paypal.com/sdk/js?client-id=Ab2KI4w1DAPtzHWEO-BUXVQMHIQHzxmP6rDZfKT8FNqp8JWwgvYjUTNsbBXYcGKCmnYmd46UW2WHUtRE&currency=MAD&enable-funding=card"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=Ab2KI4w1DAPtzHWEO-BUXVQMHIQHzxmP6rDZfKT8FNqp8JWwgvYjUTNsbBXYcGKCmnYmd46UW2WHUtRE¤cy=MAD&enable-funding=card"></script>
   <script>
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -96,17 +96,17 @@
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
         Toastify({ text: '🚫 Vous devez être connecté en tant qu\'agent.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
-        window.location.href = "../connexion.html";
+        window.location.href = "index.html";
       } else {
         const userDoc = await db.collection('users').doc(user.uid).get();
         if (userDoc.exists && userDoc.data().role !== 'agent') {
           Toastify({ text: '🚫 Accès réservé aux agents.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
-          window.location.href = "../public/marketplace.html";
+          window.location.href = "public/marketplace.html";
         } else {
           document.getElementById("user-email").textContent = user.email;
           document.getElementById("logout-btn").addEventListener("click", () => {
             auth.signOut().then(() => {
-              window.location.href = "../index.html";
+              window.location.href = "index.html";
             }).catch(err => {
               Toastify({ text: "Erreur lors de la déconnexion : " + err.message, duration: 3000, backgroundColor: '#ef4444' }).showToast();
             });
@@ -157,5 +157,4 @@
   </script>
 </body>
 </html>
-
 
