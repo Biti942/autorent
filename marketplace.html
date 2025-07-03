@@ -1,266 +1,113 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>AutoRent - Marketplace</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="js/firebase.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
-      background-size: 200% 200%;
-      animation: gradientAnimation 10s ease infinite;
-      color: #fff;
-      padding: 20px;
-      min-height: 100vh;
-    }
-    @keyframes gradientAnimation {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-      animation: fadeIn 1s ease-in;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    h1 {
-      font-size: 2rem;
-      color: #4ade80;
-      margin: 0;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    .user-info {
-      text-align: right;
-      font-size: 0.9rem;
-    }
-    .user-info span {
-      color: #facc15;
-    }
-    .logout-btn {
-      background-color: #ef4444;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      margin-top: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .logout-btn:hover {
-      background-color: #dc2626;
-      transform: scale(1.05);
-    }
-    .filters {
-      width: 250px;
-      background: rgba(30, 41, 59, 0.9);
-      padding: 15px;
-      border-radius: 12px;
-      margin-right: 20px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-    .filters h3 {
-      color: #4ade80;
-      margin-top: 0;
-    }
-    .filters select, .filters input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      border: none;
-      background: #334155;
-      color: #fff;
-      transition: all 0.3s ease;
-    }
-    .filters select:focus, .filters input:focus {
-      outline: none;
-      background: #475569;
-    }
-    .car-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-      animation: fadeIn 1s ease-in;
-    }
-    .car-item {
-      background: rgba(30, 41, 59, 0.9);
-      padding: 15px;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: all 0.3s ease;
-    }
-    .car-item:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(74, 222, 128, 0.3);
-    }
-    .car-item img {
-      width: 100%;
-      border-radius: 8px;
-      height: 150px;
-      object-fit: cover;
-    }
-    .car-info h3 {
-      margin: 0;
-      color: #facc15;
-    }
-    .car-info p {
-      margin: 5px 0;
-      color: #e0e0e0;
-    }
-    .reserve-btn {
-      background: #4ade80;
-      color: #0f172a;
-      border: none;
-      padding: 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
-    .reserve-btn:hover {
-      background: #22c55e;
-      transform: scale(1.05);
-    }
-    #loading {
-      text-align: center;
-      margin-top: 20px;
-      display: none;
-      color: #38bdf8;
-    }
-    @media (max-width: 768px) {
-      .filters { width: 100%; margin-bottom: 20px; }
-      header { flex-direction: column; text-align: center; }
-      .user-info { margin-top: 10px; }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marketplace AutoRent</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
-    <h1>🌐 Marketplace - AutoRent</h1>
-    <div class="user-info">
-      <p>Connecté en tant que : <span id="user-email"></span></p>
-      <button class="logout-btn" id="logoutBtn">Se déconnecter</button>
-    </div>
+    <h1>Marketplace AutoRent</h1>
+    <button id="logout-btn">Déconnexion</button>
   </header>
 
-  <div style="display: flex; flex-wrap: wrap;">
-    <div class="filters">
-      <h3>Filtres</h3>
-      <select id="priceFilter">
-        <option value="">Prix</option>
-        <option value="0-200">0-200 MAD</option>
-        <option value="200-500">200-500 MAD</option>
-        <option value="500+">500+ MAD</option>
+  <main>
+    <div id="filters">
+      <label for="location">Ville :</label>
+      <input type="text" id="location">
+
+      <label for="priceRange">Prix :</label>
+      <select id="priceRange">
+        <option value="">Tous</option>
+        <option value="0-300">0-300 MAD</option>
+        <option value="300-600">300-600 MAD</option>
+        <option value="600-1000">600-1000 MAD</option>
       </select>
-      <input type="text" id="locationFilter" placeholder="Localisation" />
+
+      <button onclick="applyFilters()">Appliquer</button>
     </div>
-    <div class="car-list" id="carList"></div>
-  </div>
-  <div id="loading">Chargement des voitures...</div>
 
-  <script>
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const carList = document.getElementById('carList');
-    const loading = document.getElementById('loading');
-    const priceFilter = document.getElementById('priceFilter');
-    const locationFilter = document.getElementById('locationFilter');
+    <div id="car-list">
+      <!-- Voitures chargées dynamiquement -->
+    </div>
+  </main>
 
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        Toastify({ text: '🚫 Vous devez être connecté.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
-        window.location.href = 'index.html';
-      } else {
-        document.getElementById('user-email').textContent = user.email;
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-          auth.signOut().then(() => {
-            window.location.href = 'index.html';
-          }).catch(err => {
-            Toastify({ text: 'Erreur lors de la déconnexion : ' + err.message, duration: 3000, backgroundColor: '#ef4444' }).showToast();
-          });
-        });
-        loadCars();
-      }
+  <script type="module">
+    import { auth, db } from './js/firebase.js';
+    import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import {
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const logoutBtn = document.getElementById("logout-btn");
+    logoutBtn.addEventListener("click", () => {
+      signOut(auth)
+        .then(() => window.location.href = "index.html")
+        .catch((error) => alert("Erreur déconnexion : " + error.message));
     });
 
-    function loadCars() {
-      loading.style.display = 'block';
-      carList.innerHTML = '';
-      let query = db.collection('cars').where('available', '==', true);
+    onAuthStateChanged(auth, (user) => {
+      if (!user) window.location.href = "index.html";
+    });
 
-      priceFilter.addEventListener('change', applyFilters);
-      locationFilter.addEventListener('input', applyFilters);
+    async function loadCars(filters = {}) {
+      const carList = document.getElementById("car-list");
+      carList.innerHTML = "<p>Chargement des voitures...</p>";
 
-      function applyFilters() {
-        let priceRange = priceFilter.value;
-        let location = locationFilter.value.toLowerCase();
-        let filteredQuery = query;
+      try {
+        let q = query(collection(db, "cars"), where("available", "==", true));
 
-        if (priceRange) {
-          const [min, max] = priceRange.split('-');
+        if (filters.priceRange) {
+          const [min, max] = filters.priceRange.split("-");
+          q = query(q, where("price", ">=", parseInt(min)));
           if (max) {
-            filteredQuery = filteredQuery.where('price', '>=', parseInt(min)).where('price', '<=', parseInt(max));
-          } else {
-            filteredQuery = filteredQuery.where('price', '>=', parseInt(min));
+            q = query(q, where("price", "<=", parseInt(max)));
           }
         }
-        if (location) {
-          filteredQuery = filteredQuery.where('location', '==', location);
+
+        if (filters.location) {
+          const loc = filters.location.toLowerCase();
+          q = query(q,
+            where("location", ">=", loc),
+            where("location", "<=", loc + "\uf8ff")
+          );
         }
 
-        filteredQuery.get().then((snapshot) => {
-          snapshot.forEach((doc) => {
-            const car = doc.data();
-            const carItem = document.createElement('div');
-            carItem.className = 'car-item';
-            carItem.innerHTML = `
-              <img src="${car.image || 'https://via.placeholder.com/300x150'}" alt="${car.model}">
-              <div class="car-info">
-                <h3>${car.brand} ${car.model}</h3>
-                <p>Prix : ${car.price} MAD/jour</p>
-                <p>Localisation : ${car.location}</p>
-                <button class="reserve-btn" data-id="${doc.id}">Réserver</button>
-              </div>
-            `;
-            carList.appendChild(carItem);
+        const snapshot = await getDocs(q);
 
-            carItem.querySelector('.reserve-btn').addEventListener('click', () => {
-              if (!auth.currentUser) {
-                Toastify({ text: '🚫 Connectez-vous pour réserver.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
-                return;
-              }
-              // Logique de réservation (à implémenter)
-              Toastify({ text: 'Réservation en cours...', duration: 3000, backgroundColor: '#4ade80' }).showToast();
-            });
-          });
-          loading.style.display = 'none';
-        }).catch((error) => {
-          Toastify({ text: 'Erreur : ' + error.message, duration: 3000, backgroundColor: '#ef4444' }).showToast();
-          loading.style.display = 'none';
-        });
+        if (snapshot.empty) {
+          carList.innerHTML = "<p>Aucune voiture trouvée.</p>";
+          return;
+        }
+
+        const cars = snapshot.docs.map(doc => doc.data());
+
+        carList.innerHTML = cars.map(car => `
+          <div class="car-card">
+            <h3>${car.name}</h3>
+            <p>${car.description}</p>
+            <p>Prix : ${car.price} MAD</p>
+            <p>Lieu : ${car.location}</p>
+          </div>
+        `).join("");
+
+      } catch (error) {
+        console.error("Erreur chargement voitures :", error);
+        carList.innerHTML = "<p>Erreur lors du chargement.</p>";
       }
-
-      applyFilters();
     }
+
+    window.applyFilters = function () {
+      const location = document.getElementById("location").value;
+      const priceRange = document.getElementById("priceRange").value;
+      loadCars({ location, priceRange });
+    };
+
+    loadCars();
   </script>
 </body>
 </html>

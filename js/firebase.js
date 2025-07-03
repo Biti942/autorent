@@ -1,10 +1,10 @@
-// Vérifier la disponibilité de Firebase avant tout
-if (typeof firebase === 'undefined') {
-  console.error('Firebase SDK non chargé. Vérifiez les scripts CDN dans votre HTML.');
-  throw new Error('Firebase non disponible. Arrêt du script.');
-}
+// js/firebase.js (modulaire - version corrigée)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
 
-// Configuration Firebase
+// Config Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDcSbsP-ylos5DC-oHUuyB-PFG6rnNhvJk",
   authDomain: "autorent-7b992.firebaseapp.com",
@@ -15,106 +15,104 @@ const firebaseConfig = {
   measurementId: "G-DC3BM6BZVG"
 };
 
-// Initialiser Firebase avec gestion d'erreur
-let firebaseApp;
-try {
-  if (!firebase.apps.length) {
-    firebaseApp = firebase.initializeApp(firebaseConfig);
-    console.log('Firebase initialisé avec succès.');
-  } else {
-    firebaseApp = firebase.app(); // Réutiliser l'instance existante
-  }
-} catch (error) {
-  console.error('Erreur lors de l\'initialisation de Firebase :', error.message);
-  throw new Error('Initialisation Firebase échouée. Vérifiez la configuration.');
-}
+// Initialiser Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-// Initialisation des services avec vérification
-const auth = firebaseApp.auth();
-const db = firebaseApp.firestore();
-const storage = firebaseApp.storage();
-
-if (!auth || !db || !storage) {
-  console.error('Un ou plusieurs services Firebase non disponibles :', { auth, db, storage });
-  throw new Error('Services Firebase non initialisés.');
-}
-
-// Exposer globalement
+// Exposer globalement si besoin
 window.auth = auth;
 window.db = db;
 window.storage = storage;
 
-// Fonction pour obtenir le rôle de l'utilisateur
-window.getUserRole = async function() {
-  const user = auth.currentUser;
-  if (!user) {
-    console.warn('Aucun utilisateur connecté.');
-    return null;
-  }
-  try {
-    const userDoc = await db.collection('users').doc(user.uid).get();
-    if (!userDoc.exists) {
-      console.warn('Document utilisateur non trouvé pour UID:', user.uid);
-      await db.collection('users').doc(user.uid).set({ role: 'user' }, { merge: true }); // Créer par défaut
-      return 'user';
-    }
-    const role = userDoc.data().role;
-    return role || 'user'; // Retourner 'user' si rôle non défini
-  } catch (error) {
-    console.error('Erreur lors de la récupération du rôle :', error);
-    return null;
-  }
+// Obtenir le rôle de l'utilisateur
+window.getUserRole = async function () {
+  return new Promise((resolve, reject) => {
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        console.warn("Aucun utilisateur connecté.");
+        resolve(null);
+        return;
+      }
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          await setDoc(userRef, { role: "user" }, { merge: true });
+          resolve("user");
+        } else {
+          const data = userSnap.data();
+          resolve(data.role || "user");
+        }
+      } catch (error) {
+        console.error("Erreur rôle utilisateur :", error);
+        reject(error);
+      }
+    });
+  });
 };
 
-// Fonction pour mettre à jour l'abonnement
-window.updateSubscription = async function(paymentDetails) {
+// Mettre à jour l'abonnement
+window.updateSubscription = async function (paymentDetails) {
   const user = auth.currentUser;
   if (!user) {
-    console.warn('Aucun utilisateur connecté pour mettre à jour l\'abonnement.');
-    return;
-  }
-  if (!paymentDetails || typeof paymentDetails !== 'object') {
-    console.error('Détails de paiement invalides :', paymentDetails);
+    console.warn("Aucun utilisateur connecté.");
     return;
   }
   try {
-    await db.collection('users').doc(user.uid).set({
+    const userRef = doc(db, "users", user.uid);
+    await setDoc(userRef, {
       subscriptionActive: true,
-      subscriptionDate: firebase.firestore.FieldValue.serverTimestamp(),
-      paymentDetails: paymentDetails
+      subscriptionDate: serverTimestamp(),
+      paymentDetails
     }, { merge: true });
-    console.log('Abonnement mis à jour avec succès pour UID:', user.uid);
+    console.log("Abonnement mis à jour avec succès.");
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'abonnement :', error);
+    console.error("Erreur mise à jour abonnement :", error);
   }
 };
 
-// Fonction pour charger les voitures
-window.loadCars = async function(filters = {}) {
+// Charger les voitures
+window.loadCars = async function (filters = {}) {
+  const carsRef = collection(db, "cars");
+  let q = query(carsRef, where("available", "==", true));
+
   const { priceRange, location } = filters;
-  let query = db.collection('cars').where('available', '==', true);
 
   if (priceRange) {
-    const [min, max] = priceRange.split('-');
+    const [min, max] = priceRange.split("-");
     if (max) {
-      query = query.where('price', '>=', parseInt(min)).where('price', '<=', parseInt(max));
+      q = query(carsRef,
+        where("available", "==", true),
+        where("price", ">=", parseInt(min)),
+        where("price", "<=", parseInt(max))
+      );
     } else if (min) {
-      query = query.where('price', '>=', parseInt(min));
+      q = query(carsRef,
+        where("available", "==", true),
+        where("price", ">=", parseInt(min))
+      );
     }
   }
+
   if (location) {
-    query = query.where('location', '>=', location.toLowerCase()).where('location', '<=', location.toLowerCase() + '\uf8ff');
+    // Firestore doesn't support "contains" for string, so simulate with range
+    q = query(q,
+      where("location", ">=", location.toLowerCase()),
+      where("location", "<=", location.toLowerCase() + '\uf8ff')
+    );
   }
 
   try {
-    const snapshot = await query.get();
+    const snapshot = await getDocs(q);
     if (snapshot.empty) {
-      console.warn('Aucune voiture trouvée avec les filtres appliqués.');
+      console.warn("Aucune voiture trouvée.");
       return [];
     }
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (error) {
-    console.error('Erreur lors du chargement des voitures :', error);
+    console.error("Erreur chargement voitures :", error);
     return [];
   }
 };

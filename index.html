@@ -100,46 +100,33 @@
     <p>Êtes-vous un agent ? <a href="#" class="agent-link" id="agentBtn">Je suis un agent</a></p>
   </div>
 
-  <!-- Firebase et JS placés en dernier -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="js/firebase.js"></script>
-  <script>
-    // Vérifier si Firebase est chargé
-    document.addEventListener('DOMContentLoaded', () => {
-      if (typeof firebase === 'undefined' || !window.auth) {
-        console.error('Firebase non chargé. Vérifiez la configuration ou js/firebase.js.');
-        return;
-      }
+  <!-- Script Firebase modulaire -->
+  <script type="module">
+    import { auth } from './js/firebase.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-      const auth = window.auth;
+    const marketplaceBtn = document.getElementById("marketplaceBtn");
+    const agentBtn = document.getElementById("agentBtn");
 
-      // Vérifier l'état d'authentification (optionnel pour l'accueil)
-      auth.onAuthStateChanged((user) => {
-        if (!user) {
-          console.log('Utilisateur non connecté.');
-        }
-      });
-
-      const marketplaceBtn = document.getElementById("marketplaceBtn");
-      const agentBtn = document.getElementById("agentBtn");
-
-      if (marketplaceBtn) {
-        marketplaceBtn.addEventListener("click", () => {
-          window.location.href = "marketplace.html";
-        });
-      } else {
-        console.error('Bouton marketplace non trouvé.');
-      }
-
-      if (agentBtn) {
-        agentBtn.addEventListener("click", () => {
-          window.location.href = "agent.html";
-        });
-      } else {
-        console.error('Bouton agent non trouvé.');
+    // État de connexion (facultatif pour page d'accueil)
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        console.log('Utilisateur non connecté');
       }
     });
+
+    if (marketplaceBtn) {
+      marketplaceBtn.addEventListener("click", () => {
+        window.location.href = "marketplace.html";
+      });
+    }
+
+    if (agentBtn) {
+      agentBtn.addEventListener("click", () => {
+        window.location.href = "agent.html";
+      });
+    }
   </script>
 </body>
 </html>
+

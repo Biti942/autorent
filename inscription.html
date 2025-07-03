@@ -15,7 +15,6 @@
       height: 100vh;
       margin: 0;
     }
-
     .form-container {
       background-color: #0f172a;
       padding: 40px;
@@ -23,12 +22,10 @@
       width: 320px;
       text-align: center;
     }
-
     .form-container h2 {
       margin-bottom: 20px;
       color: #4ade80;
     }
-
     input {
       width: 100%;
       padding: 10px;
@@ -36,7 +33,6 @@
       border-radius: 6px;
       border: none;
     }
-
     button {
       width: 100%;
       padding: 12px;
@@ -48,7 +44,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #0ea5e9;
     }
@@ -66,11 +61,16 @@
     <button id="registerBtn">S’inscrire</button>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="js/firebase.js"></script>
-  <script>
+  <script type="module">
+    import { auth, db } from './js/firebase.js';
+    import {
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+    import {
+      doc, setDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
     document.getElementById('registerBtn').addEventListener('click', async () => {
       const prenom = document.getElementById('prenom').value.trim();
       const nom = document.getElementById('nom').value.trim();
@@ -85,20 +85,21 @@
       }
 
       try {
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        await firebase.firestore().collection("users").doc(user.uid).set({
+        await setDoc(doc(db, "users", user.uid), {
           prenom,
           nom,
           ville,
           telephone,
           email,
           uid: user.uid,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          createdAt: serverTimestamp(),
+          role: "agent"
         });
 
-        alert("Inscription réussie ! Bienvenue.");
+        alert("Inscription réussie !");
         window.location.href = "agent.html";
       } catch (error) {
         console.error(error);

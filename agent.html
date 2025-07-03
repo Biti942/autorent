@@ -1,126 +1,48 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoRent | Abonnement Premium</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="icon" href="favicon.png" type="image/png" />
-  <style>
-    body {
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-      color: #fff;
-      padding: 20px;
-      min-height: 100vh;
-      font-family: 'Poppins', sans-serif;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    .card {
-      background-color: #1e293b;
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 700px;
-      margin: 0 auto;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    }
-    .pack {
-      background-color: #0f172a;
-      border-radius: 15px;
-      padding: 25px;
-      border: 2px solid #334155;
-      text-align: center;
-    }
-    .pack:hover {
-      border-color: #4ade80;
-    }
-    .pack a {
-      display: inline-block;
-      margin-top: 20px;
-      background-color: #4ade80;
-      color: #0f172a;
-      padding: 12px 24px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    .topbar p {
-      margin: 0;
-      font-size: 0.9rem;
-      color: #ccc;
-    }
-    #logout-btn {
-      background-color: #ef4444;
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    #logout-btn:hover {
-      background-color: #dc2626;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent AutoRent</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="topbar">
-    <p>Connecté en tant que : <span id="user-email"></span></p>
-    <button id="logout-btn">Se déconnecter</button>
-  </div>
   <header>
-    <h1>Bienvenue sur AutoRent</h1>
-    <p>Digitalisez votre agence avec notre solution Premium</p>
+    <h1>Bienvenue Agent</h1>
+    <p>Connecté en tant que <span id="user-email"></span></p>
+    <button id="logout-btn">Se déconnecter</button>
   </header>
-  <div class="card">
-    <h2>Pack Premium</h2>
-    <div class="pack">
-      <h3>✅ Abonnement : Premium</h3>
-      <p>Publiez un nombre <strong>illimité de voitures</strong> sur votre page dédiée.</p>
-      <ul style="text-align: left; max-width: 550px; margin: 20px auto; color: #ccc;">
-        <li>🚀 Visibilité en ligne pro</li>
-        <li>📱 Mobile friendly</li>
-        <li>🖼️ Galerie photos</li>
-        <li>🔗 Lien unique pour votre agence</li>
-        <li>💬 Réception de réservations</li>
-        <li>🛡️ Support & mises à jour</li>
-      </ul>
-      <span>299 MAD / mois</span>
-      <a href="inscription.html?role=agent" id="btn-paiement">Activer mon pack</a>
-    </div>
-  </div>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="js/firebase.js"></script>
-  <script>
+
+  <main>
+    <!-- Contenu spécifique pour les agents ici -->
+    <p>Vous pouvez publier et gérer vos voitures ici.</p>
+  </main>
+
+  <!-- Firebase JS modulaire -->
+  <script type="module">
+    import { auth, db } from './js/firebase.js';
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
     document.addEventListener("DOMContentLoaded", () => {
       const userEmailDisplay = document.getElementById("user-email");
       const logoutBtn = document.getElementById("logout-btn");
 
-      firebase.auth().onAuthStateChanged(async (user) => {
+      onAuthStateChanged(auth, async (user) => {
         if (!user) {
           window.location.href = "index.html";
         } else {
           userEmailDisplay.textContent = user.email;
-          const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
-          if (userDoc.exists && userDoc.data().role !== 'agent') {
+          const userRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userRef);
+          if (userDoc.exists() && userDoc.data().role !== "agent") {
             window.location.href = "public/marketplace.html";
           }
 
           logoutBtn.addEventListener("click", () => {
-            firebase.auth().signOut().then(() => {
-              window.location.href = "index.html";
-            }).catch((error) => {
-              alert("Erreur lors de la déconnexion : " + error.message);
-            });
+            signOut(auth)
+              .then(() => window.location.href = "index.html")
+              .catch((error) => alert("Erreur de déconnexion : " + error.message));
           });
         }
       });
@@ -128,7 +50,6 @@
   </script>
 </body>
 </html>
-
 
 
 
