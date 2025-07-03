@@ -20,11 +20,13 @@
       align-items: center;
       overflow: hidden;
     }
+
     @keyframes gradientAnimation {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
     .container {
       text-align: center;
       padding: 20px;
@@ -33,21 +35,25 @@
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
       animation: fadeIn 1s ease-in;
     }
+
     @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
     }
+
     h1 {
       font-size: 3rem;
       color: #4ade80;
       margin-bottom: 10px;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     }
+
     p {
       font-size: 1.2rem;
       color: #e0e0e0;
       margin-bottom: 20px;
     }
+
     .btn {
       background-color: #38bdf8;
       color: #0f172a;
@@ -60,11 +66,13 @@
       transition: all 0.3s ease;
       box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4);
     }
+
     .btn:hover {
       background-color: #0ea5e9;
       transform: scale(1.1);
       box-shadow: 0 8px 20px rgba(14, 165, 233, 0.6);
     }
+
     .agent-link {
       background-color: #facc15;
       color: #0f172a;
@@ -74,16 +82,19 @@
       font-weight: bold;
       transition: all 0.3s ease;
     }
+
     .agent-link:hover {
       background-color: #fde047;
       transform: scale(1.1);
     }
+
     .car-icon {
       font-size: 4rem;
       color: #4ade80;
       margin-bottom: 20px;
       animation: bounce 2s infinite;
     }
+
     @keyframes bounce {
       0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
       40% { transform: translateY(-20px); }
@@ -100,32 +111,34 @@
     <p>Êtes-vous un agent ? <a href="#" class="agent-link" id="agentBtn">Je suis un agent</a></p>
   </div>
 
-  <!-- Script Firebase modulaire -->
+  <!-- Firebase version modulaire -->
   <script type="module">
     import { auth } from './js/firebase.js';
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    const marketplaceBtn = document.getElementById("marketplaceBtn");
-    const agentBtn = document.getElementById("agentBtn");
+    document.addEventListener('DOMContentLoaded', () => {
+      const marketplaceBtn = document.getElementById("marketplaceBtn");
+      const agentBtn = document.getElementById("agentBtn");
 
-    // État de connexion (facultatif pour page d'accueil)
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        console.log('Utilisateur non connecté');
+      if (marketplaceBtn) {
+        marketplaceBtn.addEventListener("click", () => {
+          window.location.href = "marketplace.html";
+        });
       }
+
+      if (agentBtn) {
+        agentBtn.addEventListener("click", () => {
+          window.location.href = "agent.html";
+        });
+      }
+
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          console.log("Utilisateur connecté :", user.email);
+        } else {
+          console.log("Utilisateur non connecté.");
+        }
+      });
     });
-
-    if (marketplaceBtn) {
-      marketplaceBtn.addEventListener("click", () => {
-        window.location.href = "marketplace.html";
-      });
-    }
-
-    if (agentBtn) {
-      agentBtn.addEventListener("click", () => {
-        window.location.href = "agent.html";
-      });
-    }
   </script>
 </body>
 </html>

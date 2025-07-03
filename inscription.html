@@ -15,6 +15,7 @@
       height: 100vh;
       margin: 0;
     }
+
     .form-container {
       background-color: #0f172a;
       padding: 40px;
@@ -22,10 +23,12 @@
       width: 320px;
       text-align: center;
     }
+
     .form-container h2 {
       margin-bottom: 20px;
       color: #4ade80;
     }
+
     input {
       width: 100%;
       padding: 10px;
@@ -33,6 +36,7 @@
       border-radius: 6px;
       border: none;
     }
+
     button {
       width: 100%;
       padding: 12px;
@@ -44,6 +48,7 @@
       font-weight: bold;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #0ea5e9;
     }
@@ -63,13 +68,8 @@
 
   <script type="module">
     import { auth, db } from './js/firebase.js';
-    import {
-      createUserWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-
-    import {
-      doc, setDoc, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     document.getElementById('registerBtn').addEventListener('click', async () => {
       const prenom = document.getElementById('prenom').value.trim();
@@ -88,18 +88,17 @@
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        await setDoc(doc(db, "users", user.uid), {
+        await setDoc(doc(db, "utilisateurs", user.uid), {
           prenom,
           nom,
           ville,
           telephone,
           email,
           uid: user.uid,
-          createdAt: serverTimestamp(),
-          role: "agent"
+          createdAt: serverTimestamp()
         });
 
-        alert("Inscription réussie !");
+        alert("Inscription réussie ! Bienvenue.");
         window.location.href = "agent.html";
       } catch (error) {
         console.error(error);

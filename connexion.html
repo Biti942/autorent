@@ -15,6 +15,7 @@
       height: 100vh;
       margin: 0;
     }
+
     .form-container {
       background-color: #0f172a;
       padding: 40px;
@@ -22,6 +23,7 @@
       width: 300px;
       text-align: center;
     }
+
     input {
       width: 100%;
       padding: 10px;
@@ -29,6 +31,7 @@
       border-radius: 6px;
       border: none;
     }
+
     button {
       padding: 10px 20px;
       background-color: #38bdf8;
@@ -38,15 +41,18 @@
       font-weight: bold;
       cursor: pointer;
     }
+
     button:hover {
       background-color: #0ea5e9;
     }
+
     .link {
       margin-top: 15px;
       display: block;
       color: #38bdf8;
       text-decoration: none;
     }
+
     .link:hover {
       text-decoration: underline;
     }
@@ -63,13 +69,11 @@
 
   <script type="module">
     import { auth } from './js/firebase.js';
-    import {
-      signInWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
     const adminEmail = "biti.hassan@icloud.com";
 
-    document.getElementById("loginBtn").addEventListener("click", async () => {
+    document.getElementById("loginBtn").addEventListener("click", () => {
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
 
@@ -78,18 +82,18 @@
         return;
       }
 
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        if (user.email === adminEmail) {
-          window.location.href = "admin-dashboard.html";
-        } else {
-          window.location.href = "agent.html";
-        }
-      } catch (error) {
-        alert("Erreur : " + error.message);
-      }
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          if (user.email === adminEmail) {
+            window.location.href = "admin-dashboard.html";
+          } else {
+            window.location.href = "agent.html";
+          }
+        })
+        .catch((error) => {
+          alert("Erreur : " + error.message);
+        });
     });
   </script>
 </body>
