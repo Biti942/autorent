@@ -1,22 +1,10 @@
-import { auth, db } from './js/firebase.js';
-import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { db } from './js/firebase.js';
 import {
   collection,
   query,
   where,
   getDocs
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-
-const logoutBtn = document.getElementById("logout-btn");
-logoutBtn.addEventListener("click", () => {
-  signOut(auth)
-    .then(() => window.location.href = "index.html")
-    .catch((error) => alert("Erreur déconnexion : " + error.message));
-});
-
-onAuthStateChanged(auth, (user) => {
-  if (!user) return window.location.href = "connexion.html";
-});
 
 async function loadCars(filters = {}) {
   const carList = document.getElementById("car-list");
