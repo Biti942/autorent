@@ -1,10 +1,10 @@
-// js/firebase.js
+// js/firebase.js (modulaire - version corrigée)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
 
-// Firebase config
+// Config Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDcSbsP-ylos5DC-oHUuyB-PFG6rnNhvJk",
   authDomain: "autorent-7b992.firebaseapp.com",
@@ -15,35 +15,50 @@ const firebaseConfig = {
   measurementId: "G-DC3BM6BZVG"
 };
 
-// Init
+// Initialiser Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// Fonctions utilitaires
-const getUserRole = async () => {
+// Exposer dans le navigateur (facultatif mais utile pour debug)
+window.auth = auth;
+window.db = db;
+window.storage = storage;
+
+// Méthodes utiles globales
+window.getUserRole = async function () {
   return new Promise((resolve, reject) => {
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return resolve(null);
+      if (!user) {
+        console.warn("Aucun utilisateur connecté.");
+        resolve(null);
+        return;
+      }
       try {
         const userRef = doc(db, "users", user.uid);
-        const snap = await getDoc(userRef);
-        if (!snap.exists()) {
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
           await setDoc(userRef, { role: "user" }, { merge: true });
-          return resolve("user");
+          resolve("user");
+        } else {
+          const data = userSnap.data();
+          resolve(data.role || "user");
         }
-        resolve(snap.data().role || "user");
-      } catch (err) {
-        reject(err);
+      } catch (error) {
+        console.error("Erreur rôle utilisateur :", error);
+        reject(error);
       }
     });
   });
 };
 
-const updateSubscription = async (paymentDetails) => {
+window.updateSubscription = async function (paymentDetails) {
   const user = auth.currentUser;
-  if (!user) return;
+  if (!user) {
+    console.warn("Aucun utilisateur connecté.");
+    return;
+  }
   try {
     const userRef = doc(db, "users", user.uid);
     await setDoc(userRef, {
@@ -51,39 +66,53 @@ const updateSubscription = async (paymentDetails) => {
       subscriptionDate: serverTimestamp(),
       paymentDetails
     }, { merge: true });
-  } catch (err) {
-    console.error("Erreur abonnement :", err);
+    console.log("Abonnement mis à jour avec succès.");
+  } catch (error) {
+    console.error("Erreur mise à jour abonnement :", error);
   }
 };
 
-const loadCars = async (filters = {}) => {
-  let q = query(collection(db, "cars"), where("available", "==", true));
+window.loadCars = async function (filters = {}) {
+  const carsRef = collection(db, "cars");
+  let q = query(carsRef, where("available", "==", true));
+
   const { priceRange, location } = filters;
 
   if (priceRange) {
     const [min, max] = priceRange.split("-");
     if (max) {
-      q = query(q, where("price", ">=", +min), where("price", "<=", +max));
-    } else {
-      q = query(q, where("price", ">=", +min));
+      q = query(carsRef,
+        where("available", "==", true),
+        where("price", ">=", parseInt(min)),
+        where("price", "<=", parseInt(max))
+      );
+    } else if (min) {
+      q = query(carsRef,
+        where("available", "==", true),
+        where("price", ">=", parseInt(min))
+      );
     }
   }
 
   if (location) {
     q = query(q,
       where("location", ">=", location.toLowerCase()),
-      where("location", "<=", location.toLowerCase() + "\uf8ff")
+      where("location", "<=", location.toLowerCase() + '\uf8ff')
     );
   }
 
   try {
-    const snap = await getDocs(q);
-    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } catch (err) {
-    console.error("Erreur chargement voitures :", err);
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+      console.warn("Aucune voiture trouvée.");
+      return [];
+    }
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error("Erreur chargement voitures :", error);
     return [];
   }
 };
 
-// ✅ Export PRO
-export { auth, db, storage, getUserRole, updateSubscription, loadCars };
+// ✅ OBLIGATOIRE POUR LES IMPORTS
+export { auth, db, storage };
