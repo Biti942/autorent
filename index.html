@@ -111,7 +111,7 @@
     <p>Êtes-vous un agent ? <a href="#" class="agent-link" id="agentBtn">Je suis un agent</a></p>
   </div>
 
-  <!-- Firebase version modulaire -->
+  <!-- Firebase : Import module propre -->
   <script type="module">
     import { auth } from './js/firebase.js';
 
@@ -131,11 +131,12 @@
         });
       }
 
+      // État de connexion Firebase
       auth.onAuthStateChanged(user => {
         if (user) {
-          console.log("Utilisateur connecté :", user.email);
+          console.log("✅ Connecté :", user.email);
         } else {
-          console.log("Utilisateur non connecté.");
+          console.log("⚠️ Utilisateur non connecté.");
         }
       });
     });
