@@ -1,39 +1,37 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Marketplace AutoRent</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header>
-    <h1>Marketplace AutoRent</h1>
+  <header class="header">
+    <h1>🚗 Marketplace AutoRent</h1>
     <button id="logout-btn">Déconnexion</button>
   </header>
 
   <main>
-    <div id="filters">
-      <label for="location">Ville :</label>
-      <input type="text" id="location">
-
-      <label for="priceRange">Prix :</label>
+    <section class="filters">
+      <input type="text" id="location" placeholder="Ville..." />
       <select id="priceRange">
-        <option value="">Tous</option>
+        <option value="">Prix</option>
         <option value="0-300">0-300 MAD</option>
         <option value="300-600">300-600 MAD</option>
         <option value="600-1000">600-1000 MAD</option>
       </select>
-
       <button onclick="applyFilters()">Appliquer</button>
-    </div>
+    </section>
 
-    <div id="car-list">
-      <!-- Les voitures seront affichées ici -->
-    </div>
+    <section id="car-list" class="car-grid">
+      <!-- Voitures chargées ici -->
+    </section>
+
+    <div id="loader" class="loader"></div>
   </main>
 
-  <!-- ✅ Lien vers le fichier JS complet -->
   <script type="module" src="marketplace.js"></script>
 </body>
 </html>
+

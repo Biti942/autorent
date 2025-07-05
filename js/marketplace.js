@@ -3,22 +3,30 @@ import {
   collection,
   query,
   where,
-  getDocs
+  getDocs,
+  orderBy,
+  limit,
+  startAfter
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-async function loadCars(filters = {}) {
-  const carList = document.getElementById("car-list");
-  carList.innerHTML = "<p>Chargement des voitures...</p>";
+let filters = {};
+let lastVisible = null;
+let isLoading = false;
+const carList = document.getElementById("car-list");
+const loader = document.getElementById("loader");
+
+async function loadCars(isNewSearch = false) {
+  if (isLoading) return;
+  isLoading = true;
+  loader.style.display = "block";
 
   try {
-    let q = query(collection(db, "cars"), where("available", "==", true));
+    let q = query(collection(db, "cars"), where("available", "==", true), orderBy("price"), limit(6));
 
     if (filters.priceRange) {
       const [min, max] = filters.priceRange.split("-");
       q = query(q, where("price", ">=", parseInt(min)));
-      if (max) {
-        q = query(q, where("price", "<=", parseInt(max)));
-      }
+      if (max) q = query(q, where("price", "<=", parseInt(max)));
     }
 
     if (filters.location) {
@@ -29,34 +37,64 @@ async function loadCars(filters = {}) {
       );
     }
 
+    if (lastVisible && !isNewSearch) {
+      q = query(q, startAfter(lastVisible));
+    }
+
     const snapshot = await getDocs(q);
 
+    if (isNewSearch) carList.innerHTML = "";
+
     if (snapshot.empty) {
-      carList.innerHTML = "<p>Aucune voiture trouvée.</p>";
+      loader.style.display = "none";
+      if (isNewSearch) carList.innerHTML = "<p>Aucune voiture trouvée.</p>";
       return;
     }
 
-    const cars = snapshot.docs.map(doc => doc.data());
+    lastVisible = snapshot.docs[snapshot.docs.length - 1];
 
-    carList.innerHTML = cars.map(car => `
-      <div class="car-card">
+    snapshot.forEach(doc => {
+      const car = doc.data();
+      const div = document.createElement("div");
+      div.className = "car-card";
+      div.innerHTML = `
         <h3>${car.name}</h3>
         <p>${car.description}</p>
-        <p>Prix : ${car.price} MAD</p>
-        <p>Lieu : ${car.location}</p>
-      </div>
-    `).join("");
+        <p><strong>${car.price} MAD</strong></p>
+        <p>${car.location}</p>
+      `;
+      carList.appendChild(div);
+    });
 
   } catch (error) {
-    console.error("Erreur chargement voitures :", error);
-    carList.innerHTML = "<p>Erreur lors du chargement.</p>";
+    console.error("Erreur de chargement :", error);
+    if (isNewSearch) carList.innerHTML = "<p>Erreur lors du chargement.</p>";
   }
+
+  loader.style.display = "none";
+  isLoading = false;
 }
 
+// Filters logic
 window.applyFilters = function () {
-  const location = document.getElementById("location").value;
+  const location = document.getElementById("location").value.trim();
   const priceRange = document.getElementById("priceRange").value;
-  loadCars({ location, priceRange });
+  filters = { location, priceRange };
+  lastVisible = null;
+  loadCars(true);
 };
 
+// Infinite scroll
+const observer = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting) {
+    loadCars();
+  }
+}, {
+  rootMargin: "100px",
+});
+
+observer.observe(loader);
+
+// Initial load
 loadCars();
+
