@@ -1,102 +1,11 @@
 body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background-color: #f2f4f8;
-    color: #333;
-  }
-  
-  h1, h2 {
-    color: #2c3e50;
-  }
-  
-  .voiture {
-    background-color: #fff;
-    padding: 16px;
-    margin-bottom: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .voiture img {
-    border-radius: 10px;
-  }
-  
-  button {
-    padding: 10px 20px;
-    margin-top: 10px;
-    border: none;
-    background-color: #1abc9c;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #16a085;
-  }
-  
-  #reservationForm {
-    background-color: #ffffff;
-    padding: 20px;
-    margin-top: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  
-  .hidden {
-    display: none;
-  }
-  
-  input[type="text"], input[type="date"] {
-    width: 80%;
-    padding: 8px;
-    margin: 8px 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-  .pricing-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 2rem;
-    background-color: #161b22;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 0 12px rgba(0, 234, 255, 0.3);
-  }
-  
-  .pricing-table th, .pricing-table td {
-    padding: 1rem;
-    text-align: center;
-    border: 1px solid #2d333b;
-  }
-  
-  .pricing-table thead {
-    background-color: #21262d;
-  }
-  
-  .pricing-table tbody tr:nth-child(even) {
-    background-color: #1b1f24;
-  }
-  
-  .pricing-table tbody tr:hover {
-    background-color: #2c313a;
-  }
-  
-  .subscribe-btn {
-    background-color: #00eaff;
-    color: #0d1117;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s ease;
-  }
-  
-  .subscribe-btn:hover {
-    background-color: #00bcd4;
-    color: white;
-  }
-  .header {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f2f4f8;
+  color: #333;
+}
+
+.header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -106,6 +15,10 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
+}
+
+h1, h2 {
+  color: #2c3e50;
 }
 
 .filters {
@@ -157,5 +70,3 @@ body {
     transform: rotate(360deg);
   }
 }
-
-  

@@ -21,27 +21,27 @@ async function loadCars(isNewSearch = false) {
   loader.style.display = "block";
 
   try {
-    let q = query(collection(db, "cars"), where("available", "==", true), orderBy("price"), limit(6));
+    let baseQuery = query(collection(db, "cars"), where("available", "==", true), orderBy("price"), limit(6));
 
     if (filters.priceRange) {
       const [min, max] = filters.priceRange.split("-");
-      q = query(q, where("price", ">=", parseInt(min)));
-      if (max) q = query(q, where("price", "<=", parseInt(max)));
+      baseQuery = query(baseQuery, where("price", ">=", parseInt(min)));
+      if (max) baseQuery = query(baseQuery, where("price", "<=", parseInt(max)));
     }
 
     if (filters.location) {
       const loc = filters.location.toLowerCase();
-      q = query(q,
+      baseQuery = query(baseQuery,
         where("location", ">=", loc),
         where("location", "<=", loc + "\uf8ff")
       );
     }
 
     if (lastVisible && !isNewSearch) {
-      q = query(q, startAfter(lastVisible));
+      baseQuery = query(baseQuery, startAfter(lastVisible));
     }
 
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(baseQuery);
 
     if (isNewSearch) carList.innerHTML = "";
 
