@@ -1,145 +1,89 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>AutoRent - Accueil</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(45deg, #0f2027, #203a43, #2c5364);
-      background-size: 200% 200%;
-      animation: gradientAnimation 10s ease infinite;
-      color: #fff;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
 
-    @keyframes gradientAnimation {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/11.10.0/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/11.10.0/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/11.10.0/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/11.10.0/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/11.10.0/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/11.10.0/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/11.10.0/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/11.10.0/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/11.10.0/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/11.10.0/firebase-performance-compat.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
 
-    .container {
-      text-align: center;
-      padding: 20px;
-      background: rgba(15, 23, 42, 0.8);
-      border-radius: 15px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-      animation: fadeIn 1s ease-in;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    h1 {
-      font-size: 3rem;
-      color: #4ade80;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    p {
-      font-size: 1.2rem;
-      color: #e0e0e0;
-      margin-bottom: 20px;
-    }
-
-    .btn {
-      background-color: #38bdf8;
-      color: #0f172a;
-      border: none;
-      padding: 15px 30px;
-      border-radius: 10px;
-      font-size: 1.3rem;
-      cursor: pointer;
-      margin: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4);
-    }
-
-    .btn:hover {
-      background-color: #0ea5e9;
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(14, 165, 233, 0.6);
-    }
-
-    .agent-link {
-      background-color: #facc15;
-      color: #0f172a;
-      padding: 15px 30px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
-
-    .agent-link:hover {
-      background-color: #fde047;
-      transform: scale(1.1);
-    }
-
-    .car-icon {
-      font-size: 4rem;
-      color: #4ade80;
-      margin-bottom: 20px;
-      animation: bounce 2s infinite;
-    }
-
-    @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-20px); }
-      60% { transform: translateY(-10px); }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="car-icon">🚗</div>
-    <h1>Bienvenue sur AutoRent</h1>
-    <p>La solution ultime pour louer ou gérer des voitures.</p>
-    <button class="btn" id="marketplaceBtn">Explorer la Marketplace</button>
-    <p>Êtes-vous un agent ? <a href="#" class="agent-link" id="agentBtn">Je suis un agent</a></p>
-  </div>
-
-  <!-- Firebase : Import module propre -->
-  <script type="module">
-    import { auth } from './js/firebase.js';
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const marketplaceBtn = document.getElementById("marketplaceBtn");
-      const agentBtn = document.getElementById("agentBtn");
-
-      if (marketplaceBtn) {
-        marketplaceBtn.addEventListener("click", () => {
-          window.location.href = "marketplace.html";
-        });
+    <style media="screen">
+      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
+      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
+      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
+      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
+      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
+      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
+      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
+      @media (max-width: 600px) {
+        body, #message { margin-top: 0; background: white; box-shadow: none; }
+        body { border-top: 16px solid #ffa100; }
       }
+    </style>
+  </head>
+  <body>
+    <div id="message">
+      <h2>Welcome</h2>
+      <h1>Firebase Hosting Setup Complete</h1>
+      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
+      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+    </div>
+    <p id="load">Firebase SDK Loading&hellip;</p>
 
-      if (agentBtn) {
-        agentBtn.addEventListener("click", () => {
-          window.location.href = "agent.html";
-        });
-      }
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const loadEl = document.querySelector('#load');
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // // The Firebase SDK is initialized and available here!
+        //
+        // firebase.auth().onAuthStateChanged(user => { });
+        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+        // firebase.firestore().doc('/foo/bar').get().then(() => { });
+        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
+        // firebase.messaging().requestPermission().then(() => { });
+        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+        // firebase.analytics(); // call to activate
+        // firebase.analytics().logEvent('tutorial_completed');
+        // firebase.performance(); // call to activate
+        //
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
 
-      // État de connexion Firebase
-      auth.onAuthStateChanged(user => {
-        if (user) {
-          console.log("✅ Connecté :", user.email);
-        } else {
-          console.log("⚠️ Utilisateur non connecté.");
+        try {
+          let app = firebase.app();
+          let features = [
+            'auth', 
+            'database', 
+            'firestore',
+            'functions',
+            'messaging', 
+            'storage', 
+            'analytics', 
+            'remoteConfig',
+            'performance',
+          ].filter(feature => typeof app[feature] === 'function');
+          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
+        } catch (e) {
+          console.error(e);
+          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
         }
       });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

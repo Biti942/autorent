@@ -1,11 +1,16 @@
 {
   "hosting": {
-    "site": "autorent-7b992",
     "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
   },
   "firestore": {
