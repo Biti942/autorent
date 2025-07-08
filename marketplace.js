@@ -1,28 +1,36 @@
+// marketplace.js
 import { db } from './js/firebase.js';
 import {
   collection,
   query,
   where,
-  getDocs,
   orderBy,
+  getDocs,
   limit,
   startAfter
 } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
+const carList = document.getElementById("car-list");
+const loader = document.getElementById("loader");
 let filters = {};
 let lastVisible = null;
 let isLoading = false;
-const carList = document.getElementById("car-list");
-const loader = document.getElementById("loader");
 
+// 🔄 Charger les voitures avec filtres
 async function loadCars(isNewSearch = false) {
   if (isLoading) return;
   isLoading = true;
   loader.style.display = "block";
 
   try {
-    let baseQuery = query(collection(db, "cars"), where("available", "==", true), orderBy("price"), limit(6));
+    let baseQuery = query(
+      collection(db, "cars"),
+      where("available", "==", true),
+      orderBy("price"),
+      limit(6)
+    );
 
+    // Appliquer les filtres
     if (filters.priceRange) {
       const [min, max] = filters.priceRange.split("-");
       baseQuery = query(baseQuery, where("price", ">=", parseInt(min)));
@@ -31,7 +39,8 @@ async function loadCars(isNewSearch = false) {
 
     if (filters.location) {
       const loc = filters.location.toLowerCase();
-      baseQuery = query(baseQuery,
+      baseQuery = query(
+        baseQuery,
         where("location", ">=", loc),
         where("location", "<=", loc + "\uf8ff")
       );
@@ -55,27 +64,35 @@ async function loadCars(isNewSearch = false) {
 
     snapshot.forEach(doc => {
       const car = doc.data();
-      const div = document.createElement("div");
-      div.className = "car-card";
-      div.innerHTML = `
-        <h3>${car.name}</h3>
-        <p>${car.description}</p>
-        <p><strong>${car.price} MAD</strong></p>
-        <p>${car.location}</p>
-      `;
-      carList.appendChild(div);
+      carList.appendChild(createCarCard(car));
     });
 
   } catch (error) {
-    console.error("Erreur de chargement :", error);
-    if (isNewSearch) carList.innerHTML = "<p>Erreur lors du chargement.</p>";
+    console.error("Erreur Firestore :", error);
+    carList.innerHTML = "<p>Une erreur est survenue. Réessaie plus tard.</p>";
   }
 
   loader.style.display = "none";
   isLoading = false;
 }
 
-// Filters logic
+// ✅ Créer dynamiquement une carte de voiture
+function createCarCard(car) {
+  const div = document.createElement("div");
+  div.className = "car-card";
+
+  div.innerHTML = `
+    <h3>${car.name}</h3>
+    <p>${car.description}</p>
+    <p><strong>${car.price} MAD</strong></p>
+    <p>📍 ${car.location}</p>
+    <button class="btn-reserver">Réserver</button>
+  `;
+
+  return div;
+}
+
+// 🎯 Appliquer les filtres
 window.applyFilters = function () {
   const location = document.getElementById("location").value.trim();
   const priceRange = document.getElementById("priceRange").value;
@@ -84,17 +101,12 @@ window.applyFilters = function () {
   loadCars(true);
 };
 
-// Infinite scroll
+// 🔄 Scroll infini
 const observer = new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting) {
-    loadCars();
-  }
-}, {
-  rootMargin: "100px",
-});
+  if (entries[0].isIntersecting) loadCars();
+}, { rootMargin: "100px" });
 
 observer.observe(loader);
 
-// Initial load
+// 🔄 Lancer chargement initial
 loadCars();
-
