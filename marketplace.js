@@ -12,11 +12,12 @@ import {
 
 const carList = document.getElementById("car-list");
 const loader = document.getElementById("loader");
+
 let filters = {};
 let lastVisible = null;
 let isLoading = false;
 
-// 🔄 Charger les voitures avec filtres
+// Chargement principal
 async function loadCars(isNewSearch = false) {
   if (isLoading) return;
   isLoading = true;
@@ -30,7 +31,6 @@ async function loadCars(isNewSearch = false) {
       limit(6)
     );
 
-    // Appliquer les filtres
     if (filters.priceRange) {
       const [min, max] = filters.priceRange.split("-");
       baseQuery = query(baseQuery, where("price", ">=", parseInt(min)));
@@ -76,23 +76,28 @@ async function loadCars(isNewSearch = false) {
   isLoading = false;
 }
 
-// ✅ Créer dynamiquement une carte de voiture
+// Création dynamique de carte voiture
 function createCarCard(car) {
   const div = document.createElement("div");
   div.className = "car-card";
 
   div.innerHTML = `
-    <h3>${car.name}</h3>
-    <p>${car.description}</p>
-    <p><strong>${car.price} MAD</strong></p>
-    <p>📍 ${car.location}</p>
-    <button class="btn-reserver">Réserver</button>
+    <div class="car-img-container">
+      <img src="${car.imageUrl}" alt="${car.name}" class="car-img"/>
+      <span class="location-badge">📍 ${car.location}</span>
+    </div>
+    <div class="car-info">
+      <h3>${car.name}</h3>
+      <p>${car.description}</p>
+      <p><strong>${car.price} MAD/jour</strong></p>
+      <button class="btn-reserver" onclick="window.alert('Fonction Réserver bientôt disponible')">Réserver</button>
+    </div>
   `;
 
   return div;
 }
 
-// 🎯 Appliquer les filtres
+// Filtres
 window.applyFilters = function () {
   const location = document.getElementById("location").value.trim();
   const priceRange = document.getElementById("priceRange").value;
@@ -101,12 +106,10 @@ window.applyFilters = function () {
   loadCars(true);
 };
 
-// 🔄 Scroll infini
+// Scroll infini
 const observer = new IntersectionObserver(entries => {
   if (entries[0].isIntersecting) loadCars();
 }, { rootMargin: "100px" });
 
 observer.observe(loader);
-
-// 🔄 Lancer chargement initial
 loadCars();
