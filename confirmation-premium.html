@@ -106,7 +106,7 @@
           document.getElementById("user-email").textContent = user.email;
           document.getElementById("logout-btn").addEventListener("click", () => {
             auth.signOut().then(() => {
-              window.location.href = "index.html";
+              window.location.href = "indexx.html";
             }).catch(err => {
               Toastify({ text: "Erreur lors de la déconnexion : " + err.message, duration: 3000, backgroundColor: '#ef4444' }).showToast();
             });

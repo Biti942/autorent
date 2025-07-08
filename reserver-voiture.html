@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réservation - AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    .topbar span {
+      color: #facc15;
+      margin-right: 20px;
+    }
+    .topbar button {
+      background-color: #ef4444;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .topbar button:hover {
+      background-color: #dc2626;
+    }
+    .form-container {
+      max-width: 500px;
+      margin: 40px auto;
+      background-color: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .form-container h2 {
+      color: #facc15;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .form-container input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+      background-color: #334155;
+      color: #fff;
+    }
+    .form-container button {
+      background-color: #4ade80;
+      color: #0f172a;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 10px;
+    }
+    .form-container button:hover {
+      background-color: #22c55e;
+    }
+    .car-details {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span>Connecté en tant que : <span id="user-email"></span></span>
+    <button id="logoutBtn">Se déconnecter</button>
+  </div>
+  <div class="form-container">
+    <h2>Réserver une voiture</h2>
+    <div class="car-details">
+      <p>Véhicule : <span id="carDetails">Chargement...</span></p>
+    </div>
+    <input type="date" id="startDate" required>
+    <input type="date" id="endDate" required>
+    <button onclick="submitReservation()">Confirmer la réservation</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="js/firebase.js"></script>
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        Toastify({
+          text: "Veuillez vous connecter pour réserver.",
+          duration: 3000,
+          backgroundColor: "#ef4444"
+        }).showToast();
+        window.location.href = "connexion.html";
+        return;
+      }
+
+      document.getElementById("user-email").textContent = user.email;
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        auth.signOut().then(() => {
+          window.location.href = "index.html";
+        }).catch(error => {
+          Toastify({
+            text: "Erreur lors de la déconnexion : " + error.message,
+            duration: 3000,
+            backgroundColor: "#ef4444"
+          }).showToast();
+        });
+      });
+
+      // Récupérer l'ID de la voiture depuis l'URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const carId = urlParams.get("carId");
+
+      if (!carId) {
+        Toastify({
+          text: "Aucun identifiant de voiture fourni.",
+          duration: 3000,
+          backgroundColor: "#ef4444"
+        }).showToast();
+        window.location.href = "reservations.html";
+        return;
+      }
+
+      // Charger les détails de la voiture
+      db.collection("cars").doc(carId).get().then(doc => {
+        if (doc.exists) {
+          const car = doc.data();
+          document.getElementById("carDetails").textContent = `${car.nom} - ${car.prix} MAD/jour`;
+        } else {
+          Toastify({
+            text: "Voiture introuvable.",
+            duration: 3000,
+            backgroundColor: "#ef4444"
+          }).showToast();
+          window.location.href = "reservations.html";
+        }
+      }).catch(error => {
+        Toastify({
+          text: "Erreur lors du chargement de la voiture : " + error.message,
+          duration: 3000,
+          backgroundColor: "#ef4444"
+        }).showToast();
+      });
+    });
+
+    function submitReservation() {
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const user = auth.currentUser;
+      const urlParams = new URLSearchParams(window.location.search);
+      const carId = urlParams.get("carId");
+
+      if (!startDate || !endDate) {
+        Toastify({
+          text: "Veuillez sélectionner les dates de début et de fin.",
+          duration: 3000,
+          backgroundColor: "#ef4444"
+        }).showToast();
+        return;
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (start < today) {
+        Toastify({
+          text: "La date de début ne peut pas être antérieure à aujourd'hui.",
+          duration: 3000,
+          backgroundColor: "#ef4444"
+        }).showToast();
+        return;
+      }
+
+      if (end <= start) {
+        Toastify({
+          text: "La date de fin doit être postérieure à la date de début.",
+          duration: 3000,
+          backgroundColor: "#ef4444"
+        }).showToast();
+        return;
+      }
+
+      db.collection("reservations")
+        .where("carId", "==", carId)
+        .where("status", "==", "confirmed")
+        .get()
+        .then(snapshot => {
+          let isAvailable = true;
+          snapshot.forEach(doc => {
+            const res = doc.data();
+            const resStart = res.startDate.toDate();
+            const resEnd = res.endDate.toDate();
+            if ((start >= resStart && start <= resEnd) || (end >= resStart && end <= resEnd) || (start <= resStart && end >= resEnd)) {
+              isAvailable = false;
+            }
+          });
+
+          if (!isAvailable) {
+            Toastify({
+              text: "La voiture n'est pas disponible pour ces dates.",
+              duration: 3000,
+              backgroundColor: "#ef4444"
+            }).showToast();
+            return;
+          }
+
+          db.collection("cars").doc(carId).get().then(doc => {
+            const car = doc.data();
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            const totalPrice = days * car.prix;
+
+            db.collection("reservations").add({
+              userId: user.uid,
+              carId: carId,
+              startDate: start,
+              endDate: end,
+              totalPrice: totalPrice,
+              status: "pending",
+              createdAt: new Date()
+            }).then(() => {
+              Toastify({
+                text: "Réservation enregistrée avec succès !",
+                duration: 3000,
+                backgroundColor: "#4ade80"
+              }).showToast();
+              window.location.href = "dashboard-premium.html";
+            }).catch(error => {
+              Toastify({
+                text: "Erreur lors de l'enregistrement : " + error.message,
+                duration: 3000,
+                backgroundColor: "#ef4444"
+              }).showToast();
+            });
+          }).catch(error => {
+            Toastify({
+              text: "Erreur lors de la récupération des données de la voiture : " + error.message,
+              duration: 3000,
+              backgroundColor: "#ef4444"
+            }).showToast();
+          });
+        }).catch(error => {
+          Toastify({
+            text: "Erreur lors de la vérification de disponibilité : " + error.message,
+            duration: 3000,
+            backgroundColor: "#ef4444"
+          }).showToast();
+        });
+    }
+  </script>
+</body>
+</html>
