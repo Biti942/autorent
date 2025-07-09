@@ -2,33 +2,124 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>AutoRent - Ma Vitrine</title>
+  <title>Vitrine AutoRent - Ma flotte en ligne</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Découvrez la flotte de l'agence AutoRent. Louez une voiture dès aujourd'hui au meilleur prix. Vitrine personnalisée, rapide et simple." />
+  <meta property="og:title" content="AutoRent - Site Vitrine de l'agence" />
+  <meta property="og:description" content="Explorez les voitures disponibles à la location sur AutoRent. Facile, rapide et sécurisé." />
+  <meta property="og:image" content="images/logo.png" />
+  <meta property="og:url" content="https://autorent-7b992.web.app/site-agent.html" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script src="js/firebase.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <style>
-    body { margin: 0; font-family: 'Poppins', sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
-    header { text-align: center; padding: 20px; background: #0f172a; color: #fff; }
-    h1 { font-size: 2rem; color: #38bdf8; }
-    .car-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-    .car-item { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .car-item img { width: 100%; border-radius: 8px; height: 150px; object-fit: cover; }
-    .car-info h3 { margin: 0; color: #facc15; }
-    .car-info p { margin: 5px 0; }
-    .reserve-btn { background: #4ade80; color: #fff; border: none; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    .reserve-btn:hover { background: #22c55e; }
-    #loading { text-align: center; margin-top: 20px; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      padding: 0;
+    }
+    header {
+      text-align: center;
+      padding: 30px 20px;
+      background: #0f172a;
+      color: #fff;
+    }
+    h1 {
+      font-size: 2.2rem;
+      color: #38bdf8;
+      margin-bottom: 8px;
+    }
+    .subheader {
+      margin-bottom: 20px;
+      font-size: 1rem;
+      color: #facc15;
+    }
+    .actions {
+      margin-top: 20px;
+    }
+    .actions input, .actions button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      margin: 5px;
+    }
+    #searchInput {
+      width: 280px;
+      max-width: 80%;
+    }
+    #shareBtn {
+      background-color: #facc15;
+      color: #0f172a;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .car-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 30px 20px;
+    }
+    .car-item {
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .car-item img {
+      width: 100%;
+      border-radius: 8px;
+      height: 170px;
+      object-fit: cover;
+    }
+    .car-info h3 {
+      margin: 10px 0 5px;
+      color: #facc15;
+      font-size: 1.1rem;
+    }
+    .car-info p {
+      margin: 4px 0;
+    }
+    .reserve-btn {
+      margin-top: 10px;
+      background: #4ade80;
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+    }
+    .reserve-btn:hover {
+      background: #22c55e;
+    }
+    #loading {
+      text-align: center;
+      margin: 30px 0;
+      font-size: 1rem;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Ma Vitrine - AutoRent</h1>
-    <p>Gérée par : <span id="agent-name"></span></p>
+    <h1>🚗 Ma Vitrine AutoRent</h1>
+    <div class="subheader">Gérée par : <span id="agent-name"></span></div>
+    <div class="actions">
+      <input type="text" id="searchInput" placeholder="Rechercher une voiture..." aria-label="Rechercher une voiture" />
+      <button id="shareBtn">Partager mon site</button>
+    </div>
   </header>
 
   <div class="car-list" id="carList"></div>
