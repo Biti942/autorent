@@ -15,23 +15,41 @@
   <main>
     <section class="filters">
       <input type="text" id="location" placeholder="Ville..." />
+
       <select id="priceRange">
         <option value="">Prix</option>
         <option value="0-300">0-300 MAD</option>
         <option value="300-600">300-600 MAD</option>
         <option value="600-1000">600-1000 MAD</option>
+        <option value="1000+">+1000 MAD</option>
       </select>
+
+      <select id="carType">
+        <option value="">Type</option>
+        <option value="SUV">SUV</option>
+        <option value="Berline">Berline</option>
+        <option value="Citadine">Citadine</option>
+        <option value="Utilitaire">Utilitaire</option>
+      </select>
+
+      <select id="transmission">
+        <option value="">Transmission</option>
+        <option value="Automatique">Automatique</option>
+        <option value="Manuelle">Manuelle</option>
+      </select>
+
+      <select id="sortOrder">
+        <option value="asc">Prix ↑</option>
+        <option value="desc">Prix ↓</option>
+      </select>
+
       <button onclick="applyFilters()">Appliquer</button>
     </section>
 
-    <section id="car-list" class="car-grid">
-      <!-- Voitures chargées ici -->
-    </section>
-
-    <div id="loader" class="loader"></div>
+    <section id="car-list" class="car-grid"></section>
+    <div id="loader" class="loader">Chargement...</div>
   </main>
 
-  <script type="module" src="./marketplace.js"></script>
+  <script type="module" src="marketplace.js"></script>
 </body>
 </html>
-

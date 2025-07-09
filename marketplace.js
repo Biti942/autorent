@@ -1,4 +1,3 @@
-// marketplace.js
 import { db } from './js/firebase.js';
 import {
   collection,
@@ -17,43 +16,56 @@ let filters = {};
 let lastVisible = null;
 let isLoading = false;
 
-// Chargement principal
 async function loadCars(isNewSearch = false) {
   if (isLoading) return;
   isLoading = true;
   loader.style.display = "block";
 
   try {
-    let baseQuery = query(
-      collection(db, "cars"),
-      where("available", "==", true),
-      orderBy("price"),
-      limit(6)
-    );
+    let baseQuery = collection(db, "cars");
+    const constraints = [where("available", "==", true)];
 
+    // Prix
     if (filters.priceRange) {
-      const [min, max] = filters.priceRange.split("-");
-      baseQuery = query(baseQuery, where("price", ">=", parseInt(min)));
-      if (max) baseQuery = query(baseQuery, where("price", "<=", parseInt(max)));
+      if (filters.priceRange === "1000+") {
+        constraints.push(where("price", ">", 1000));
+      } else {
+        const [min, max] = filters.priceRange.split("-");
+        constraints.push(where("price", ">=", parseInt(min)));
+        if (max) constraints.push(where("price", "<=", parseInt(max)));
+      }
     }
 
+    // Ville
     if (filters.location) {
       const loc = filters.location.toLowerCase();
-      baseQuery = query(
-        baseQuery,
-        where("location", ">=", loc),
-        where("location", "<=", loc + "\uf8ff")
-      );
+      constraints.push(where("location", ">=", loc));
+      constraints.push(where("location", "<=", loc + "\uf8ff"));
     }
 
+    // Type
+    if (filters.carType) {
+      constraints.push(where("type", "==", filters.carType));
+    }
+
+    // Transmission
+    if (filters.transmission) {
+      constraints.push(where("transmission", "==", filters.transmission));
+    }
+
+    // Tri
+    const order = filters.sortOrder === "desc" ? "desc" : "asc";
+    constraints.push(orderBy("price", order));
+
+    // Pagination
     if (lastVisible && !isNewSearch) {
-      baseQuery = query(baseQuery, startAfter(lastVisible));
+      constraints.push(startAfter(lastVisible));
     }
 
-    const snapshot = await getDocs(baseQuery);
+    const finalQuery = query(baseQuery, ...constraints, limit(6));
+    const snapshot = await getDocs(finalQuery);
 
     if (isNewSearch) carList.innerHTML = "";
-
     if (snapshot.empty) {
       loader.style.display = "none";
       if (isNewSearch) carList.innerHTML = "<p>Aucune voiture trouvée.</p>";
@@ -64,49 +76,45 @@ async function loadCars(isNewSearch = false) {
 
     snapshot.forEach(doc => {
       const car = doc.data();
-      carList.appendChild(createCarCard(car));
+      const div = document.createElement("div");
+      div.className = "car-card";
+      div.innerHTML = `
+        <img src="${car.image || 'https://via.placeholder.com/300x200'}" alt="${car.name}">
+        <div class="car-info">
+          <h3>${car.name}</h3>
+          <p class="description">${car.description}</p>
+          <p><strong>${car.price} MAD</strong> - ${car.location}</p>
+          <div class="tags">
+            <span class="badge">${car.type}</span>
+            <span class="badge">${car.transmission}</span>
+          </div>
+          <button class="reserve-btn">Réserver</button>
+        </div>
+      `;
+      carList.appendChild(div);
     });
 
-  } catch (error) {
-    console.error("Erreur Firestore :", error);
-    carList.innerHTML = "<p>Une erreur est survenue. Réessaie plus tard.</p>";
+  } catch (err) {
+    console.error(err);
+    if (isNewSearch) carList.innerHTML = "<p>Erreur lors du chargement.</p>";
   }
 
   loader.style.display = "none";
   isLoading = false;
 }
 
-// Création dynamique de carte voiture
-function createCarCard(car) {
-  const div = document.createElement("div");
-  div.className = "car-card";
-
-  div.innerHTML = `
-    <div class="car-img-container">
-      <img src="${car.imageUrl}" alt="${car.name}" class="car-img"/>
-      <span class="location-badge">📍 ${car.location}</span>
-    </div>
-    <div class="car-info">
-      <h3>${car.name}</h3>
-      <p>${car.description}</p>
-      <p><strong>${car.price} MAD/jour</strong></p>
-      <button class="btn-reserver" onclick="window.alert('Fonction Réserver bientôt disponible')">Réserver</button>
-    </div>
-  `;
-
-  return div;
-}
-
-// Filtres
 window.applyFilters = function () {
-  const location = document.getElementById("location").value.trim();
-  const priceRange = document.getElementById("priceRange").value;
-  filters = { location, priceRange };
+  filters = {
+    location: document.getElementById("location").value.trim(),
+    priceRange: document.getElementById("priceRange").value,
+    carType: document.getElementById("carType").value,
+    transmission: document.getElementById("transmission").value,
+    sortOrder: document.getElementById("sortOrder").value
+  };
   lastVisible = null;
   loadCars(true);
 };
 
-// Scroll infini
 const observer = new IntersectionObserver(entries => {
   if (entries[0].isIntersecting) loadCars();
 }, { rootMargin: "100px" });
