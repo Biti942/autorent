@@ -4,69 +4,493 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Marketplace AutoRent</title>
-  <link rel="stylesheet" href="marketplace.css" />
-  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <title>M<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AutoRent - Marketplace</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
   <style>
-    body { font-family: 'Poppins', sans-serif; margin: 0; background: #f8fafc; color: #1e293b; padding: 20px; }
-    .header { display: flex; justify-content: space-between; align-items: center; background-color: #0f172a; padding: 16px; border-radius: 12px; color: white; }
-    .header h1 { margin: 0; font-size: 1.5rem; }
-    .header button { background-color: #ef4444; border: none; padding: 8px 16px; color: white; border-radius: 6px; cursor: pointer; }
-    .filters { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
-    .filters input, .filters select, .filters button {
-      padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .filters button { background-color: #0ea5e9; color: white; border: none; cursor: pointer; }
-    .car-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-    .car-item { background-color: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-    .car-item img { width: 100%; height: 180px; object-fit: cover; border-radius: 10px; }
-    .car-info h3 { margin: 12px 0 4px; color: #0f172a; }
-    .car-info p { margin: 4px 0; }
-    .reserve-btn { margin-top: 10px; background-color: #22c55e; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; }
-    .loader { text-align: center; margin-top: 20px; color: #64748b; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: #0f172a;
+      color: #fff;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.8rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-weight: 600;
+    }
+    .auth-section span {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-auth {
+      background: #3b82f6;
+      color: #fff;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .btn-auth:hover {
+      background: #2563eb;
+    }
+    .filters {
+      max-width: 1000px;
+      margin: 24px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      align-items: end;
+    }
+    .filters label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .filters input, .filters select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #1e293b;
+      outline-offset: 2px;
+      outline-color: #3b82f6;
+    }
+    .filters button {
+      background: #22c55e;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .filters button:hover {
+      background: #16a34a;
+    }
+    #car-list {
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      padding: 0 16px;
+    }
+    .car-card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .car-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    .car-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+    .car-info {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .car-info h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .car-info p.description {
+      font-size: 0.9rem;
+      color: #475569;
+      line-height: 1.4;
+      margin: 0;
+    }
+    .car-info p.price-location {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #2563eb;
+      margin: 0;
+    }
+    .car-info .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      background: #3b82f6;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .reserve-btn {
+      background: #22c55e;
+      color: #fff;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .reserve-btn:hover {
+      background: #16a34a;
+    }
+    #loader {
+      text-align: center;
+      padding: 24px;
+      color: #475569;
+      font-weight: 600;
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+      .filters button {
+        width: 100%;
+      }
+      .car-card img {
+        height: 160px;
+      }
+      .auth-section span {
+        max-width: 150px;
+      }
+    }
   </style>
 </head>
 <body>
-  <header class="header">
-    <h1>🚗 Marketplace AutoRent</h1>
-    <button id="logout-btn">Déconnexion</button>
+  <header>
+    <div class="logo" tabindex="0" role="heading" aria-level="1" aria-label="Accueil AutoRent" onclick="window.location.href='index.html'">AutoRent</div>
+    <nav aria-label="Navigation principale">
+      <a href="mes-reservations.html" class="btn-auth" id="reservations-link" style="display: none;">Mes Réservations</a>
+    </nav>
+    <div class="auth-section" id="auth-section">
+      <button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>
+    </div>
   </header>
 
-  <main>
-    <section class="filters">
-      <input type="text" id="location" placeholder="Ville..." />
-      <select id="priceRange">
-        <option value="">Prix</option>
-        <option value="0-300">0-300 MAD</option>
-        <option value="300-600">300-600 MAD</option>
-        <option value="600-1000">600-1000 MAD</option>
-        <option value="1000+">+1000 MAD</option>
+  <section class="filters" aria-label="Filtres de recherche pour les voitures">
+    <div>
+      <label for="location">Ville</label>
+      <input type="text" id="location" placeholder="Ex: Casablanca" aria-label="Rechercher par ville">
+    </div>
+    <div>
+      <label for="startDate">Date de début</label>
+      <input type="date" id="startDate" aria-label="Date de début de location" min="2025-07-11">
+    </div>
+    <div>
+      <label for="endDate">Date de fin</label>
+      <input type="date" id="endDate" aria-label="Date de fin de location" min="2025-07-11">
+    </div>
+    <div>
+      <label for="priceRange">Prix par jour</label>
+      <select id="priceRange" aria-label="Filtrer par prix">
+        <option value="">Tous</option>
+        <option value="0-200">0 - 200 MAD</option>
+        <option value="201-500">201 - 500 MAD</option>
+        <option value="501-1000">501 - 1000 MAD</option>
+        <option value="1000+">1000+ MAD</option>
       </select>
-      <select id="carType">
-        <option value="">Type</option>
+    </div>
+    <div>
+      <label for="carType">Type</label>
+      <select id="carType" aria-label="Filtrer par type de voiture">
+        <option value="">Tous</option>
+        <option value="berline">Berline</option>
         <option value="SUV">SUV</option>
-        <option value="Berline">Berline</option>
-        <option value="Citadine">Citadine</option>
-        <option value="Utilitaire">Utilitaire</option>
+        <option value="citadine">Citadine</option>
+        <option value="utilitaire">Utilitaire</option>
       </select>
-      <select id="transmission">
-        <option value="">Transmission</option>
-        <option value="Automatique">Automatique</option>
-        <option value="Manuelle">Manuelle</option>
+    </div>
+    <div>
+      <label for="transmission">Transmission</label>
+      <select id="transmission" aria-label="Filtrer par transmission">
+        <option value="">Tous</option>
+        <option value="manuelle">Manuelle</option>
+        <option value="automatique">Automatique</option>
       </select>
-      <select id="sortOrder">
-        <option value="asc">Prix ↑</option>
-        <option value="desc">Prix ↓</option>
+    </div>
+    <div>
+      <label for="sortOrder">Trier par prix</label>
+      <select id="sortOrder" aria-label="Trier par prix">
+        <option value="asc">Croissant</option>
+        <option value="desc">Décroissant</option>
       </select>
-      <button onclick="applyFilters()">Appliquer</button>
-    </section>
+    </div>
+    <button id="btnApplyFilters" aria-label="Appliquer les filtres">Rechercher</button>
+  </section>
 
-    <section id="car-list" class="car-grid"></section>
-    <div id="loader" class="loader">Chargement...</div>
-  </main>
+  <main id="car-list" aria-live="polite"></main>
+  <div id="loader" aria-hidden="true">Chargement...</div>
 
-  <script type="module" src="marketplace.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getFirestore, collection, query, where, orderBy, limit, startAfter, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { firebaseConfig } from './js/firebase.js';
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const carList = document.getElementById("car-list");
+    const loader = document.getElementById("loader");
+    const authSection = document.getElementById("auth-section");
+    let filters = {};
+    let lastVisible = null;
+    let isLoading = false;
+
+    // Debounce function for input handling
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Update auth UI and show/hide reservations link
+    function updateAuthUI(user) {
+      const reservationsLink = document.getElementById("reservations-link");
+      if (user) {
+        authSection.innerHTML = `
+          <span title="Connecté en tant que ${DOMPurify.sanitize(user.email)}">${DOMPurify.sanitize(user.email)}</span>
+          <button class="btn-auth" id="btn-logout" aria-label="Se déconnecter">Déconnexion</button>
+        `;
+        reservationsLink.style.display = "inline-block";
+        document.getElementById("btn-logout").addEventListener("click", () => {
+          signOut(auth).then(() => {
+            Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+            window.location.href = "index.html";
+          }).catch(err => {
+            Toastify({ text: `Erreur déconnexion: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+          });
+        });
+      } else {
+        authSection.innerHTML = `<button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>`;
+        reservationsLink.style.display = "none";
+        document.getElementById("btn-auth").addEventListener("click", () => {
+          window.location.href = "connexion.html";
+        });
+      }
+    }
+
+    // Check reservation conflicts for date filters
+    async function isCarAvailable(carId, start, end) {
+      const snapshot = await onSnapshot(
+        query(
+          collection(db, "reservations"),
+          where("carId", "==", carId),
+          where("status", "==", "confirmed")
+        ),
+        snapshot => snapshot
+      );
+      return !snapshot.docs.some(doc => {
+        const r = doc.data();
+        const rs = r.startDate.toDate();
+        const re = r.endDate.toDate();
+        return start <= re && end >= rs;
+      });
+    }
+
+    // Load cars with real-time updates
+    async function loadCars(isNewSearch = false) {
+      if (isLoading) return;
+      isLoading = true;
+      loader.style.display = "block";
+
+      try {
+        let constraints = [where("disponible", "==", true)];
+        const startDate = filters.startDate ? new Date(filters.startDate) : null;
+        const endDate = filters.endDate ? new Date(filters.endDate) : null;
+
+        if (filters.priceRange) {
+          if (filters.priceRange === "1000+") {
+            constraints.push(where("prix", ">", 1000));
+          } else {
+            const [min, max] = filters.priceRange.split("-");
+            constraints.push(where("prix", ">=", parseInt(min)));
+            if (max) constraints.push(where("prix", "<=", parseInt(max)));
+          }
+        }
+        if (filters.location) {
+          const loc = filters.location.toLowerCase();
+          constraints.push(where("location", ">=", loc));
+          constraints.push(where("location", "<=", loc + "\uf8ff"));
+        }
+        if (filters.carType) constraints.push(where("type", "==", filters.carType));
+        if (filters.transmission) constraints.push(where("transmission", "==", filters.transmission));
+        constraints.push(orderBy("prix", filters.sortOrder || "asc"));
+        if (lastVisible && !isNewSearch) constraints.push(startAfter(lastVisible));
+
+        const q = query(collection(db, "cars"), ...constraints, limit(8));
+        onSnapshot(q, async snapshot => {
+          if (snapshot.empty) {
+            carList.innerHTML = `<p style="text-align:center; color:#475569; font-weight:600;" aria-live="polite">Aucune voiture trouvée.</p>`;
+            loader.style.display = "none";
+            isLoading = false;
+            return;
+          }
+          if (isNewSearch) carList.innerHTML = "";
+
+          for (const doc of snapshot.docs) {
+            const car = doc.data();
+            let isAvailable = true;
+            if (startDate && endDate) {
+              isAvailable = await isCarAvailable(doc.id, startDate, endDate);
+            }
+            if (!isAvailable) continue;
+
+            const safeName = DOMPurify.sanitize(car.nom || "Voiture");
+            const safeDesc = DOMPurify.sanitize(car.description || "");
+            const safeLoc = DOMPurify.sanitize(car.location || "Inconnue");
+            carList.insertAdjacentHTML("beforeend", `
+              <article class="car-card" aria-label="Voiture ${safeName}">
+                <img src="${car.imageUrl || 'images/default-car.jpg'}" alt="Photo de ${safeName}" loading="lazy">
+                <div class="car-info">
+                  <h3>${safeName}</h3>
+                  <p class="description">${safeDesc}</p>
+                  <p class="price-location">${car.prix} MAD - ${safeLoc}</p>
+                  <div class="tags" aria-label="Informations complémentaires">
+                    <span class="badge">${DOMPurify.sanitize(car.type || 'N/A')}</span>
+                    <span class="badge">${DOMPurify.sanitize(car.transmission || 'N/A')}</span>
+                  </div>
+                  <button class="reserve-btn" aria-label="Réserver ${safeName}" onclick="reserveCar('${doc.id}')">Réserver</button>
+                </div>
+              </article>
+            `);
+          }
+          lastVisible = snapshot.docs[snapshot.docs.length - 1];
+          loader.style.display = "none";
+          isLoading = false;
+        }, err => {
+          Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+          loader.style.display = "none";
+          isLoading = false;
+        });
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        loader.style.display = "none";
+        isLoading = false;
+      }
+    }
+
+    window.reserveCar = function(carId) {
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const url = new URL("reserver-voiture.html", window.location.origin);
+      url.searchParams.set("carId", carId);
+      if (startDate) url.searchParams.set("startDate", startDate);
+      if (endDate) url.searchParams.set("endDate", endDate);
+      window.location.href = url.toString();
+    };
+
+    // Debounced filter application
+    const applyFilters = debounce(() => {
+      filters = {
+        location: document.getElementById("location").value.trim(),
+        startDate: document.getElementById("startDate").value,
+        endDate: document.getElementById("endDate").value,
+        priceRange: document.getElementById("priceRange").value,
+        carType: document.getElementById("carType").value,
+        transmission: document.getElementById("transmission").value,
+        sortOrder: document.getElementById("sortOrder").value
+      };
+      if (filters.startDate && filters.endDate && new Date(filters.endDate) <= new Date(filters.startDate)) {
+        Toastify({ text: "La date de fin doit être après la date de début.", duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        return;
+      }
+      lastVisible = null;
+      loadCars(true);
+    }, 500);
+
+    document.getElementById("btnApplyFilters").addEventListener("click", applyFilters);
+    document.getElementById("location").addEventListener("input", applyFilters);
+    document.getElementById("startDate").addEventListener("input", applyFilters);
+    document.getElementById("endDate").addEventListener("input", applyFilters);
+    document.getElementById("priceRange").addEventListener("change", applyFilters);
+    document.getElementById("carType").addEventListener("change", applyFilters);
+    document.getElementById("transmission").addEventListener("change", applyFilters);
+    document.getElementById("sortOrder").addEventListener("change", applyFilters);
+
+    // Authentication state
+    onAuthStateChanged(auth, user => {
+      updateAuthUI(user);
+    });
+
+    // Offline support
+    window.addEventListener("offline", () => {
+      Toastify({ text: "Vous êtes hors ligne.", duration: -1, backgroundColor: "#ef4444" }).showToast();
+    });
+    window.addEventListener("online", () => {
+      Toastify({ text: "Connexion rétablie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      loadCars(true);
+    });
+
+    // Initial load
+    loadCars(true);
+
+    // Infinite scroll
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !isLoading) loadCars();
+    }, { rootMargin: "100px" });
+    observer.observe(loader);
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
-
