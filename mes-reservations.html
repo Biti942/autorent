@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes Réservations - AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      color: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .topbar span {
+      font-weight: 600;
+    }
+    .topbar button {
+      background: #ef4444;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .reservation-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .reservation-card h3 {
+      color: #1e293b;
+      margin: 0 0 10px;
+    }
+    .reservation-card p {
+      margin: 5px 0;
+    }
+    .reservation-card .cancel-btn {
+      background: #ef4444;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #loader {
+      text-align: center;
+      padding: 20px;
+      color: #4b5563;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span>Connecté : <span id="user-email"></span></span>
+    <button id="logoutBtn" aria-label="Se déconnecter">Déconnexion</button>
+  </div>
+  <h2 aria-label="Liste de vos réservations">Mes Réservations</h2>
+  <div id="reservationsContainer"></div>
+  <div id="loader">Chargement...</div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, collection, query, where, orderBy, limit, startAfter, onSnapshot, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { firebaseConfig } from './js/firebase.js';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let lastVisible = null;
+    let isLoading = false;
+    const container = document.getElementById("reservationsContainer");
+    const loader = document.getElementById("loader");
+
+    // Handle authentication state
+    onAuthStateChanged(auth, user => {
+      if (!user) return window.location.href = "connexion.html";
+      document.getElementById("user-email").textContent = DOMPurify.sanitize(user.email);
+      document.getElementById("logoutBtn").onclick = () => {
+        signOut(auth).then(() => {
+          Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+          window.location.href = "index.html";
+        });
+      };
+      loadReservations(user.uid, true);
+    });
+
+    // Load reservations with pagination and real-time updates
+    async function loadReservations(userId, isNewSearch = false) {
+      if (isLoading) return;
+      isLoading = true;
+      loader.style.display = "block";
+
+      try {
+        let q = query(
+          collection(db, "reservations"),
+          where("userId", "==", userId),
+          orderBy("createdAt", "desc"),
+          limit(5)
+        );
+        if (lastVisible && !isNewSearch) q = query(q, startAfter(lastVisible));
+
+        onSnapshot(q, async snapshot => {
+          if (snapshot.empty) {
+            container.innerHTML = "<p aria-live='polite'>Aucune réservation trouvée.</p>";
+            loader.style.display = "none";
+            isLoading = false;
+            return;
+          }
+          if (isNewSearch) container.innerHTML = "";
+
+          for (const doc of snapshot.docs) {
+            const r = doc.data();
+            const start = r.startDate.toDate().toLocaleDateString('fr-FR');
+            const end = r.endDate.toDate().toLocaleDateString('fr-FR');
+            const carDoc = await getDoc(doc(db, "cars", r.carId));
+            const carName = carDoc.exists() ? carDoc.data().nom : "Voiture inconnue";
+
+            const div = document.createElement("div");
+            div.className = "reservation-card";
+            div.setAttribute("aria-label", `Réservation pour ${DOMPurify.sanitize(carName)}`);
+            div.innerHTML = `
+              <h3>${DOMPurify.sanitize(carName)}</h3>
+              <p><strong>Du:</strong> ${start} <strong>au</strong> ${end}</p>
+              <p><strong>Total:</strong> ${r.totalPrice} MAD</p>
+              <p><strong>Statut:</strong> ${DOMPurify.sanitize(r.status)}</p>
+              ${r.status === "pending" ? `<button class="cancel-btn" data-res-id="${doc.id}" aria-label="Annuler la réservation pour ${DOMPurify.sanitize(carName)}">Annuler</button>` : ""}
+            `;
+            container.appendChild(div);
+          }
+          lastVisible = snapshot.docs[snapshot.docs.length - 1];
+          loader.style.display = "none";
+          isLoading = false;
+        }, e => {
+          Toastify({ text: `Erreur: ${e.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+          loader.style.display = "none";
+          isLoading = false;
+        });
+      } catch (e) {
+        Toastify({ text: `Erreur: ${e.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        loader.style.display = "none";
+        isLoading = false;
+      }
+    }
+
+    // Handle cancel button clicks
+    container.addEventListener("click", async e => {
+      if (e.target.classList.contains("cancel-btn")) {
+        const resId = e.target.dataset.resId;
+        try {
+          await updateDoc(doc(db, "reservations", resId), { status: "cancelled" });
+          Toastify({ text: "Réservation annulée.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+        } catch (e) {
+          Toastify({ text: `Erreur: ${e.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        }
+      }
+    });
+
+    // Infinite scroll
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && auth.currentUser) {
+        loadReservations(auth.currentUser.uid);
+      }
+    }, { rootMargin: "100px" });
+    observer.observe(loader);
+
+    // Offline support
+    window.addEventListener('offline', () => {
+      Toastify({ text: 'Vous êtes hors ligne.', duration: -1, backgroundColor: '#ef4444' }).showToast();
+    });
+    window.addEventListener('online', () => {
+      Toastify({ text: 'Connexion rétablie.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
+      if (auth.currentUser) loadReservations(auth.currentUser.uid, true);
+    });
+  </script>
+</body>
+</html>
