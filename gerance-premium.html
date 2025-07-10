@@ -2,224 +2,762 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Gérance - AutoRent</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gérance Agence - AutoRent</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: #0f172a;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: #0f172a;
       color: #fff;
-      padding: 20px;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.8rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-weight: 600;
+    }
+    .auth-section span {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-auth {
+      background: #3b82f6;
+      color: #fff;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .btn-auth:hover {
+      background: #2563eb;
     }
     h1 {
       text-align: center;
-      color: #38bdf8;
-      margin-bottom: 20px;
+      font-size: 2rem;
+      color: #0f172a;
+      margin: 24px 0;
+    }
+    .section-title {
+      max-width: 1000px;
+      margin: 40px auto 16px;
+      font-size: 1.5rem;
+      color: #0f172a;
+      padding: 0 16px;
+    }
+    .filter-container {
+      max-width: 1000px;
+      margin: 0 auto 16px;
+      padding: 0 16px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-container input, .filter-container select {
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #1e293b;
+      outline-offset: 2px;
+      outline-color: #3b82f6;
+      flex: 1;
+      min-width: 150px;
+    }
+    .add-car-btn {
+      background: #22c55e;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .add-car-btn:hover {
+      background: #16a34a;
     }
     table {
+      max-width: 1000px;
       width: 100%;
+      margin: 0 auto 40px;
       border-collapse: collapse;
-      background-color: #1e293b;
-      border-radius: 10px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       overflow: hidden;
-      margin-bottom: 40px;
     }
     th, td {
       padding: 12px;
-      text-align: center;
-      border-bottom: 1px solid #334155;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
     }
     th {
-      background-color: #334155;
-      color: #facc15;
+      background: #0f172a;
+      color: #fff;
+      font-weight: 600;
     }
     tr:hover {
-      background-color: #273549;
+      background: #f1f5f9;
+    }
+    .action-btn {
+      background: #22c55e;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+      margin: 0 4px;
+    }
+    .action-btn.reject {
+      background: #ef4444;
+    }
+    .action-btn:hover {
+      background: #16a34a;
+    }
+    .action-btn.reject:hover {
+      background: #dc2626;
     }
     .chart-container {
-      max-width: 900px;
-      margin: auto;
-      background-color: #1e293b;
-      padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      background: #fff;
+      padding: 24px;
       border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .chart-container h2 {
+      font-size: 1.5rem;
+      color: #0f172a;
+      text-align: center;
+      margin-bottom: 16px;
     }
     canvas {
       width: 100% !important;
       height: 400px !important;
     }
+    #ia-analysis {
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-size: 1rem;
+      line-height: 1.8;
+      color: #1e293b;
+    }
+    #ia-analysis h2 {
+      font-size: 1.5rem;
+      color: #0f172a;
+      margin-bottom: 16px;
+    }
+    #ia-analysis strong {
+      color: #2563eb;
+    }
+    #loader {
+      text-align: center;
+      padding: 24px;
+      color: #475569;
+      font-weight: 600;
+      display: none;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-content h2 {
+      font-size: 1.5rem;
+      color: #0f172a;
+      margin-bottom: 16px;
+    }
+    .modal-content label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #1e293b;
+    }
+    .modal-content input, .modal-content select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #1e293b;
+    }
+    .modal-content button {
+      background: #22c55e;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .modal-content button:hover {
+      background: #16a34a;
+    }
+    .modal-content .close-btn {
+      background: #ef4444;
+      float: right;
+    }
+    .modal-content .close-btn:hover {
+      background: #dc2626;
+    }
+    @media (max-width: 768px) {
+      .filter-container {
+        flex-direction: column;
+      }
+      table {
+        font-size: 0.9rem;
+      }
+      .action-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+      }
+      .auth-section span {
+        max-width: 150px;
+      }
+      canvas {
+        height: 300px !important;
+      }
+    }
   </style>
 </head>
 <body>
+  <header>
+    <div class="logo" tabindex="0" role="heading" aria-level="1" aria-label="Gérance Agence AutoRent">AutoRent Agence</div>
+    <div class="auth-section" id="auth-section">
+      <span id="user-email" aria-label="Email de l'utilisateur connecté"></span>
+      <button class="btn-auth" id="btn-logout" aria-label="Se déconnecter">Déconnexion</button>
+    </div>
+  </header>
 
-<h1>📘 Gérance de la flotte - Pack Premium</h1>
+  <h1>📘 Gérance Agence - Pack Premium</h1>
 
-<table id="fleet-table">
-  <thead>
-    <tr>
-      <th>Voiture</th>
-      <th>Vidange</th>
-      <th>Réservation</th>
-      <th>Retour</th>
-      <th>Kilométrage</th>
-      <th>Crédit/Mois</th>
-      <th>Dépenses</th>
-      <th>CA</th>
-    </tr>
-  </thead>
-  <tbody id="fleet-body">
-    <!-- Contenu dynamique -->
-  </tbody>
-</table>
+  <div class="section-title">📋 Demandes de Réservations</div>
+  <div class="filter-container">
+    <input type="text" id="resFilter" placeholder="Filtrer par client ou voiture" aria-label="Filtrer les réservations par client ou voiture">
+    <select id="resStatusFilter" aria-label="Filtrer par statut de réservation">
+      <option value="">Tous</option>
+      <option value="pending">En attente</option>
+      <option value="confirmed">Confirmé</option>
+      <option value="rejected">Rejeté</option>
+    </select>
+  </div>
+  <table id="reservations-table" aria-live="polite">
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Voiture</th>
+        <th>Début</th>
+        <th>Fin</th>
+        <th>Total</th>
+        <th>Statut</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="reservations-body"></tbody>
+  </table>
 
-<div class="chart-container">
-  <h2 style="text-align:center; color:#4ade80;">📊 Résumé Financier Mensuel</h2>
-  <canvas id="financeChart"></canvas>
-</div>
+  <div class="section-title">🚗 Gestion de la Flotte</div>
+  <div class="filter-container">
+    <input type="text" id="fleetFilter" placeholder="Filtrer par nom de voiture" aria-label="Filtrer les voitures par nom">
+    <select id="statusFilter" aria-label="Filtrer par disponibilité">
+      <option value="">Tous</option>
+      <option value="true">Disponible</option>
+      <option value="false">Non disponible</option>
+    </select>
+    <button class="add-car-btn" id="addCarBtn" aria-label="Ajouter une voiture">Ajouter Voiture</button>
+  </div>
+  <table id="fleet-table" aria-live="polite">
+    <thead>
+      <tr>
+        <th>Voiture</th>
+        <th>Type</th>
+        <th>Location</th>
+        <th>Vidange</th>
+        <th>Kilométrage</th>
+        <th>Crédit/Mois</th>
+        <th>Dépenses</th>
+        <th>CA</th>
+        <th>Réservations Actives</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="fleet-body"></tbody>
+  </table>
 
-<div class="chart-container" style="margin-top: 40px;">
-  <h2 style="text-align:center; color:#facc15;">🤖 Analyse IA des Performances</h2>
-  <div id="ia-analysis" style="margin-top: 20px; font-size: 1rem; line-height: 1.8; background-color: #1e293b; padding: 20px; border-radius: 12px;">
+  <div class="chart-container">
+    <h2>📊 Résumé Financier Mensuel</h2>
+    <canvas id="financeChart"></canvas>
+  </div>
+
+  <div id="ia-analysis" aria-live="polite">
+    <h2>🤖 Analyse IA des Performances</h2>
     <p>Chargement de l’analyse...</p>
   </div>
-</div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="firebase.js"></script>
+  <div id="addCarModal" class="modal">
+    <div class="modal-content">
+      <h2>Ajouter une voiture</h2>
+      <button class="close-btn" id="closeModalBtn" aria-label="Fermer">Fermer</button>
+      <form id="addCarForm">
+        <label for="carName">Nom</label>
+        <input type="text" id="carName" required aria-label="Nom de la voiture">
+        <label for="carType">Type</label>
+        <select id="carType" required aria-label="Type de voiture">
+          <option value="berline">Berline</option>
+          <option value="SUV">SUV</option>
+          <option value="citadine">Citadine</option>
+          <option value="utilitaire">Utilitaire</option>
+        </select>
+        <label for="carLocation">Ville</label>
+        <input type="text" id="carLocation" required aria-label="Ville de disponibilité">
+        <label for="carTransmission">Transmission</label>
+        <select id="carTransmission" required aria-label="Type de transmission">
+          <option value="manuelle">Manuelle</option>
+          <option value="automatique">Automatique</option>
+        </select>
+        <label for="carPrice">Prix/jour (MAD)</label>
+        <input type="number" id="carPrice" required min="0" aria-label="Prix par jour">
+        <label for="carVidange">Vidange (km)</label>
+        <input type="text" id="carVidange" aria-label="Prochain kilométrage pour vidange">
+        <label for="carKilometrage">Kilométrage (km)</label>
+        <input type="number" id="carKilometrage" min="0" aria-label="Kilométrage actuel">
+        <label for="carCredit">Crédit/Mois (MAD)</label>
+        <input type="number" id="carCredit" min="0" aria-label="Crédit mensuel">
+        <label for="carDepenses">Dépenses (MAD)</label>
+        <input type="number" id="carDepenses" min="0" aria-label="Dépenses totales">
+        <button type="submit" aria-label="Ajouter la voiture">Ajouter</button>
+      </form>
+    </div>
+  </div>
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <div id="loader" aria-hidden="true">Chargement...</div>
 
-<script>
-  const db = firebase.firestore();
-  const auth = firebase.auth();
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, addDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { firebaseConfig } from './js/firebase.js';
 
-  auth.onAuthStateChanged(function(user) {
-    if (!user) {
-      window.location.href = "connexion.html";
-    } else {
-      const uid = user.uid;
-      const tbody = document.getElementById("fleet-body");
-      tbody.innerHTML = "";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-      db.collection("cars").where("uid", "==", uid).get().then(snapshot => {
-        const fleetData = [];
+    const fleetBody = document.getElementById("fleet-body");
+    const reservationsBody = document.getElementById("reservations-body");
+    const iaAnalysis = document.getElementById("ia-analysis");
+    const userEmail = document.getElementById("user-email");
+    const loader = document.getElementById("loader");
+    const authSection = document.getElementById("auth-section");
+    let chartInstance = null;
 
-        snapshot.forEach(doc => {
-          const v = doc.data();
-          fleetData.push(v);
-
-          const ligne = `
-            <tr>
-              <td>${v.nom || 'N/A'}</td>
-              <td>${v.vidange || '-'}</td>
-              <td>${v.reservation || '-'}</td>
-              <td>${v.retour || '-'}</td>
-              <td>${v.kilometrage || '-'}</td>
-              <td>${v.credit || '-'}</td>
-              <td>${v.depenses || '-'}</td>
-              <td>${v.ca || '-'}</td>
-            </tr>
-          `;
-          tbody.innerHTML += ligne;
-        });
-
-        lancerAnalyseIA(fleetData);
-      }).catch(err => {
-        console.error("Erreur chargement voitures:", err);
-      });
+    // Debounce function for filter inputs
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
     }
-  });
 
-  function afficherGraphique() {
-    const ctx = document.getElementById('financeChart').getContext('2d');
+    // Update auth UI
+    function updateAuthUI(user) {
+      if (user) {
+        userEmail.textContent = DOMPurify.sanitize(user.email);
+        authSection.querySelector("#btn-logout").addEventListener("click", () => {
+          signOut(auth).then(() => {
+            Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+            window.location.href = "index.html";
+          }).catch(err => {
+            Toastify({ text: `Erreur déconnexion: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+          });
+        });
+      } else {
+        window.location.href = "connexion.html";
+      }
+    }
 
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
-        datasets: [
-          {
-            label: 'Chiffre d\'Affaire',
-            data: [15000, 17000, 19000, 22000, 21000, 25000],
-            borderColor: '#4ade80',
-            backgroundColor: 'rgba(74, 222, 128, 0.2)',
-            tension: 0.4
-          },
-          {
-            label: 'Dépenses',
-            data: [7000, 7500, 8000, 8500, 9000, 9500],
-            borderColor: '#f87171',
-            backgroundColor: 'rgba(248, 113, 113, 0.2)',
-            tension: 0.4
+    // Check if user is admin
+    async function isAdmin(user) {
+      const adminDoc = await getDoc(doc(db, "admins", user.uid));
+      return adminDoc.exists();
+    }
+
+    // Toggle car availability
+    window.toggleAvailability = async function(carId, disponible) {
+      try {
+        await updateDoc(doc(db, "cars", carId), { disponible: !disponible });
+        Toastify({ text: `Voiture ${!disponible ? "activée" : "désactivée"} avec succès.`, duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      }
+    };
+
+    // Update reservation status
+    window.updateReservation = async function(resId, status) {
+      try {
+        await updateDoc(doc(db, "reservations", resId), { status });
+        Toastify({ text: `Réservation ${status === "confirmed" ? "approuvée" : "rejetée"} avec succès.`, duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      }
+    };
+
+    // Add new car
+    async function addCar(event) {
+      event.preventDefault();
+      const form = event.target;
+      const carData = {
+        nom: DOMPurify.sanitize(form.carName.value),
+        type: form.carType.value,
+        location: DOMPurify.sanitize(form.carLocation.value),
+        transmission: form.carTransmission.value,
+        prix: parseFloat(form.carPrice.value) || 0,
+        vidange: DOMPurify.sanitize(form.carVidange.value) || null,
+        kilometrage: parseInt(form.carKilometrage.value) || 0,
+        credit: parseFloat(form.carCredit.value) || 0,
+        depenses: parseFloat(form.carDepenses.value) || 0,
+        ca: 0,
+        disponible: true,
+        uid: auth.currentUser.uid
+      };
+      try {
+        await addDoc(collection(db, "cars"), carData);
+        Toastify({ text: "Voiture ajoutée avec succès.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+        document.getElementById("addCarModal").style.display = "none";
+        form.reset();
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      }
+    }
+
+    // Load agency data
+    async function loadAgencyData(user) {
+      loader.style.display = "block";
+      try {
+        // Load reservations
+        onSnapshot(query(collection(db, "reservations"), where("agencyId", "==", user.uid)), async snapshot => {
+          reservationsBody.innerHTML = "";
+          const pendingCount = snapshot.docs.filter(doc => doc.data().status === "pending").length;
+
+          for (const doc of snapshot.docs) {
+            const res = doc.data();
+            const carDoc = await getDoc(doc(db, "cars", res.carId));
+            const userDoc = await getDoc(doc(db, "utilisateurs", res.userId));
+            const carName = carDoc.exists() ? DOMPurify.sanitize(carDoc.data().nom) : "Inconnu";
+            const userEmail = userDoc.exists() ? DOMPurify.sanitize(userDoc.data().email) : "Inconnu";
+            const start = res.startDate ? new Date(res.startDate.toDate()).toLocaleDateString('fr-FR') : "-";
+            const end = res.endDate ? new Date(res.endDate.toDate()).toLocaleDateString('fr-FR') : "-";
+            reservationsBody.insertAdjacentHTML("beforeend", `
+              <tr>
+                <td>${userEmail}</td>
+                <td>${carName}</td>
+                <td>${start}</td>
+                <td>${end}</td>
+                <td>${res.totalPrice || "-"} DH</td>
+                <td>${DOMPurify.sanitize(res.status)}</td>
+                <td>
+                  ${res.status === "pending" ? `
+                    <button class="action-btn" onclick="updateReservation('${doc.id}', 'confirmed')" aria-label="Approuver la réservation">Approuver</button>
+                    <button class="action-btn reject" onclick="updateReservation('${doc.id}', 'rejected')" aria-label="Rejeter la réservation">Rejeter</button>
+                  ` : "-"}
+                </td>
+              </tr>
+            `);
           }
-        ]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        },
-        plugins: {
-          legend: {
-            labels: {
-              color: "#fff"
+
+          // Filter reservations table
+          const filterReservations = debounce(() => {
+            const filter = document.getElementById("resFilter").value.toLowerCase();
+            const status = document.getElementById("resStatusFilter").value;
+            const rows = reservationsBody.getElementsByTagName("tr");
+            for (let row of rows) {
+              const client = row.cells[0].textContent.toLowerCase();
+              const car = row.cells[1].textContent.toLowerCase();
+              const resStatus = row.cells[5].textContent.toLowerCase();
+              const textMatch = client.includes(filter) || car.includes(filter);
+              const statusMatch = !status || resStatus === status;
+              row.style.display = textMatch && statusMatch ? "" : "none";
             }
-          }
-        }
+          }, 300);
+          document.getElementById("resFilter").addEventListener("input", filterReservations);
+          document.getElementById("resStatusFilter").addEventListener("change", filterReservations);
+
+          // Load cars
+          onSnapshot(query(collection(db, "cars"), where("uid", "==", user.uid)), async snapshot => {
+            fleetBody.innerHTML = "";
+            const fleetData = [];
+            const monthlyData = {};
+            const today = new Date("2025-07-11");
+            const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+
+            for (const doc of snapshot.docs) {
+              const car = doc.data();
+              car.id = doc.id;
+              fleetData.push(car);
+
+              // Count active reservations and revenue
+              const resQuery = query(
+                collection(db, "reservations"),
+                where("carId", "==", car.id),
+                where("status", "==", "confirmed"),
+                where("endDate", ">=", sixMonthsAgo)
+              );
+              const resSnapshot = await getDocs(resQuery);
+              let activeReservations = 0;
+              let carCA = 0;
+              resSnapshot.forEach(resDoc => {
+                const res = resDoc.data();
+                if (res.endDate.toDate() >= today && res.startDate.toDate() <= today) activeReservations++;
+                const resMonth = res.startDate.toDate().toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
+                monthlyData[resMonth] = monthlyData[resMonth] || { ca: 0, depenses: parseFloat(car.depenses || 0), credit: parseFloat(car.credit || 0) };
+                monthlyData[resMonth].ca += parseFloat(res.totalPrice || 0);
+                carCA += parseFloat(res.totalPrice || 0);
+              });
+
+              // Update car CA
+              if (carCA !== parseFloat(car.ca || 0)) {
+                await updateDoc(doc(db, "cars", car.id), { ca: carCA });
+              }
+
+              fleetBody.insertAdjacentHTML("beforeend", `
+                <tr>
+                  <td>${DOMPurify.sanitize(car.nom || "N/A")}</td>
+                  <td>${DOMPurify.sanitize(car.type || "N/A")}</td>
+                  <td>${DOMPurify.sanitize(car.location || "N/A")}</td>
+                  <td>${DOMPurify.sanitize(car.vidange || "-")}</td>
+                  <td>${car.kilometrage || "-"}</td>
+                  <td>${car.credit || "-"} DH</td>
+                  <td>${car.depenses || "-"} DH</td>
+                  <td>${carCA.toFixed(2)} DH</td>
+                  <td>${activeReservations}</td>
+                  <td>
+                    <button class="action-btn" onclick="toggleAvailability('${car.id}', ${car.disponible})" aria-label="${car.disponible ? "Désactiver" : "Activer"} la voiture">
+                      ${car.disponible ? "Désactiver" : "Activer"}
+                    </button>
+                  </td>
+                </tr>
+              `);
+            }
+
+            // Filter fleet table
+            const filterFleet = debounce(() => {
+              const filter = document.getElementById("fleetFilter").value.toLowerCase();
+              const status = document.getElementById("statusFilter").value;
+              const rows = fleetBody.getElementsByTagName("tr");
+              for (let row of rows) {
+                const name = row.cells[0].textContent.toLowerCase();
+                const disponible = row.cells[9].querySelector("button").textContent === "Désactiver" ? "true" : "false";
+                const nameMatch = name.includes(filter);
+                const statusMatch = !status || disponible === status;
+                row.style.display = nameMatch && statusMatch ? "" : "none";
+              }
+            }, 300);
+            document.getElementById("fleetFilter").addEventListener("input", filterFleet);
+            document.getElementById("statusFilter").addEventListener("change", filterFleet);
+
+            // Financial chart
+            if (chartInstance) chartInstance.destroy();
+            const ctx = document.getElementById("financeChart").getContext("2d");
+            const months = Array.from({length: 6}, (_, i) => {
+              const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+              return date.toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
+            }).reverse();
+
+            chartInstance = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: months,
+                datasets: [
+                  {
+                    label: 'Chiffre d\'Affaires',
+                    data: months.map(m => monthlyData[m]?.ca || 0),
+                    borderColor: '#22c55e',
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                    tension: 0.4
+                  },
+                  {
+                    label: 'Dépenses',
+                    data: months.map(m => monthlyData[m]?.depenses || 0),
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    tension: 0.4
+                  },
+                  {
+                    label: 'Crédit Mensuel',
+                    data: months.map(m => monthlyData[m]?.credit || 0),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    tension: 0.4
+                  }
+                ]
+              },
+              options: {
+                scales: {
+                  y: { beginAtZero: true, ticks: { color: '#1e293b' } },
+                  x: { ticks: { color: '#1e293b' } }
+                },
+                plugins: {
+                  legend: { labels: { color: '#1e293b' } }
+                }
+              }
+            });
+
+            // AI Analysis
+            let totalCA = 0, totalDepenses = 0, totalCredit = 0;
+            let bestCar = null, maxCA = 0;
+            let minCreditCar = null, minCredit = Number.MAX_VALUE;
+            let totalReservations = snapshot.size;
+
+            fleetData.forEach(car => {
+              const ca = parseFloat(car.ca || 0);
+              const depenses = parseFloat(car.depenses || 0);
+              const credit = parseFloat(car.credit || 0);
+              totalCA += ca;
+              totalDepenses += depenses;
+              totalCredit += credit;
+              if (ca > maxCA) {
+                maxCA = ca;
+                bestCar = car;
+              }
+              if (credit && credit < minCredit) {
+                minCredit = credit;
+                minCreditCar = car;
+              }
+            });
+
+            const benefice = totalCA - totalDepenses - totalCredit;
+            const analysisText = `
+              <p><strong>Total CA:</strong> ${totalCA.toFixed(2)} DH</p>
+              <p><strong>Dépenses totales:</strong> ${totalDepenses.toFixed(2)} DH</p>
+              <p><strong>Crédit mensuel cumulé:</strong> ${totalCredit.toFixed(2)} DH</p>
+              <p><strong>Bénéfice estimé:</strong> <span style="color:${benefice > 0 ? '#22c55e' : '#ef4444'}">${benefice.toFixed(2)} DH</span></p>
+              <p><strong>Total réservations:</strong> ${totalReservations}</p>
+              <p><strong>Réservations en attente:</strong> ${pendingCount}</p>
+              <p><strong>Meilleure voiture:</strong> ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "Aucune"} (${maxCA.toFixed(2)} DH CA)</p>
+              <p><strong>Voiture la plus économique:</strong> ${minCreditCar ? DOMPurify.sanitize(minCreditCar.nom) : "Aucune"} (${minCredit.toFixed(2)} DH crédit)</p>
+              <p><strong>Conseils:</strong></p>
+              <ul>
+                <li>${benefice > 0 ? `Continuez à maximiser la disponibilité de ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "vos meilleures unités"}.` : "Réduisez les dépenses ou augmentez les prix des véhicules peu rentables."}</li>
+                <li>Priorisez le traitement des ${pendingCount} demandes de réservation en attente.</li>
+                <li>Envisagez d’ajouter des modèles similaires à ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "vos unités performantes"}.</li>
+                <li>Vérifiez les vidanges pour maintenir la qualité de votre flotte.</li>
+              </ul>
+            `;
+            iaAnalysis.innerHTML = analysisText;
+
+            loader.style.display = "none";
+            Toastify({ text: "Données chargées avec succès 📊", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+          });
+        });
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        loader.style.display = "none";
       }
+    }
+
+    // Modal handling
+    document.getElementById("addCarBtn").addEventListener("click", () => {
+      document.getElementById("addCarModal").style.display = "flex";
     });
-  }
+    document.getElementById("closeModalBtn").addEventListener("click", () => {
+      document.getElementById("addCarModal").style.display = "none";
+    });
+    document.getElementById("addCarForm").addEventListener("submit", addCar);
 
-  afficherGraphique();
-
-  function lancerAnalyseIA(carsData) {
-    let totalCA = 0, totalDepenses = 0, creditMensuel = 0;
-    let bestCar = null;
-    let minCredit = Number.MAX_VALUE;
-
-    carsData.forEach(car => {
-      const ca = parseFloat(car.ca) || 0;
-      const dep = parseFloat(car.depenses) || 0;
-      const credit = parseFloat(car.credit) || 0;
-
-      totalCA += ca;
-      totalDepenses += dep;
-      creditMensuel += credit;
-
-      if (!bestCar || ca > parseFloat(bestCar.ca || 0)) {
-        bestCar = car;
+    // Authentication state
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = "connexion.html";
+        return;
       }
-
-      if (credit < minCredit) minCredit = credit;
+      updateAuthUI(user);
+      const isAdminUser = await isAdmin(user);
+      if (isAdminUser) {
+        Toastify({ text: "Redirection vers le tableau de bord admin.", duration: 3000, backgroundColor: "#3b82f6" }).showToast();
+        window.location.href = "admin-dashboard.html";
+        return;
+      }
+      const aboDoc = await getDoc(doc(db, "abonnements", user.uid));
+      if (!aboDoc.exists() || !aboDoc.data().pack) {
+        Toastify({ text: "Accès refusé. Abonnement premium requis.", duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        window.location.href = "index.html";
+        return;
+      }
+      loadAgencyData(user);
     });
 
-    const benefice = totalCA - totalDepenses - creditMensuel;
-
-    const texte = `
-      📊 <strong>Total CA:</strong> ${totalCA.toFixed(2)} DH<br/>
-      💸 <strong>Dépenses totales:</strong> ${totalDepenses.toFixed(2)} DH<br/>
-      🏦 <strong>Crédit mensuel cumulé:</strong> ${creditMensuel.toFixed(2)} DH<br/>
-      📈 <strong>Bénéfice estimé:</strong> <span style="color:${benefice > 0 ? '#4ade80' : '#f87171'}">${benefice.toFixed(2)} DH</span><br/><br/>
-
-      🚗 <strong>Meilleure voiture:</strong> ${bestCar?.nom || "Aucune"} (${bestCar?.ca || 0} DH CA)<br/>
-      🔎 <strong>Voiture la plus économique:</strong> Crédit mensuel < ${minCredit} DH<br/><br/>
-
-      ✅ <strong>Conseils:</strong><br/>
-      - ${benefice > 0 ? "Continuez à maximiser la disponibilité des voitures performantes." : "Réduisez les dépenses ou augmentez les prix des véhicules peu rentables."}<br/>
-      - Vérifiez les voitures avec peu de réservations ou avec trop de dépenses.<br/>
-      - Pensez à investir dans des modèles similaires à la voiture avec le meilleur rendement.
-    `;
-
-    document.getElementById("ia-analysis").innerHTML = texte;
-  }
-</script>
-
+    // Offline support
+    window.addEventListener("offline", () => {
+      Toastify({ text: "Vous êtes hors ligne.", duration: -1, backgroundColor: "#ef4444" }).showToast();
+    });
+    window.addEventListener("online", () => {
+      Toastify({ text: "Connexion rétablie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      if (auth.currentUser) loadAgencyData(auth.currentUser);
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
-
 
