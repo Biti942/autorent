@@ -1,6 +1,9 @@
+// ✅ dashboard.js (version PRO) complet - prêt à coller
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
+
 const form = document.getElementById("carForm");
 const imageInput = document.getElementById("image");
 const previewImage = document.getElementById("previewImage");
@@ -67,6 +70,81 @@ function chargerVoitures(uid) {
     });
 }
 
+function chargerReservations(uid) {
+  const resList = document.getElementById("reservationList");
+  resList.innerHTML = "<p>Chargement...</p>";
+
+  db.collection("reservations")
+    .where("agencyId", "==", uid)
+    .where("status", "==", "en_attente")
+    .onSnapshot(snapshot => {
+      if (snapshot.empty) {
+        resList.innerHTML = "<p>Pas de nouvelles réservations.</p>";
+        return;
+      }
+
+      const html = snapshot.docs.map(doc => {
+        const r = doc.data();
+        return `
+          <div class="car-item">
+            <div class="car-info">
+              <h3>Réservation de ${r.clientEmail}</h3>
+              <p>Date: ${r.dateDebut.toDate().toLocaleDateString()} → ${r.dateFin.toDate().toLocaleDateString()}</p>
+              <p>Prix total: ${r.totalPrice} DH</p>
+            </div>
+            <button onclick="accepterReservation('${doc.id}', ${r.totalPrice})" class="reserve-btn">Accepter</button>
+            <button onclick="refuserReservation('${doc.id}')" class="delete-btn">Refuser</button>
+          </div>
+        `;
+      }).join("");
+      resList.innerHTML = html;
+    });
+}
+
+async function chargerSoldeCommission(uid) {
+  const agencyRef = db.collection("agencies").doc(uid);
+  const docSnap = await agencyRef.get();
+  const solde = docSnap.exists ? docSnap.data().soldeCommission || 0 : 0;
+  document.getElementById("soldeCommission").textContent = `${solde.toFixed(2)} DH`;
+}
+
+window.accepterReservation = async (id, prix) => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const commission = prix * 0.09;
+
+  await db.collection("reservations").doc(id).update({
+    status: "acceptée",
+    commission: commission
+  });
+
+  const agencyRef = db.collection("agencies").doc(user.uid);
+  const docSnap = await agencyRef.get();
+  const solde = docSnap.exists ? docSnap.data().soldeCommission || 0 : 0;
+
+  await agencyRef.set({ soldeCommission: solde + commission }, { merge: true });
+
+  Toastify({ text: "✅ Réservation acceptée !", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+};
+
+window.refuserReservation = async (id) => {
+  await db.collection("reservations").doc(id).update({ status: "refusée" });
+  Toastify({ text: "❌ Réservation refusée.", duration: 3000, backgroundColor: "#ef4444" }).showToast();
+};
+
+window.payerCommission = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  await db.collection("agencies").doc(user.uid).update({
+    soldeCommission: 0
+  });
+
+  document.getElementById("soldeCommission").textContent = "0 DH";
+  Toastify({ text: "✅ Paiement enregistré", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+};
+
 auth.onAuthStateChanged(user => {
   if (!user) return window.location.href = "connexion.html";
 
@@ -119,6 +197,8 @@ auth.onAuthStateChanged(user => {
   });
 
   chargerVoitures(user.uid);
+  chargerReservations(user.uid);
+  chargerSoldeCommission(user.uid);
 
   window.editCar = (carId) => {
     db.collection("cars").doc(carId).get().then(doc => {

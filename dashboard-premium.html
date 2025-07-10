@@ -1,3 +1,4 @@
+<!-- ✅ dashboard-premium.html - version finale améliorée -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -13,7 +14,6 @@
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <style>
-    /* Styles existants inchangés pour brièveté, voir versions précédentes */
     body { margin: 0; font-family: 'Poppins', sans-serif; background: #0f172a; color: #fff; padding: 20px; }
     header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 30px; }
     h1 { font-size: 1.8rem; color: #38bdf8; margin: 0; }
@@ -63,7 +63,7 @@
       <label for="name">Nom de la voiture</label>
       <input type="text" id="name" placeholder="ex: Dacia Logan 2022" required>
       <label for="image">Image de la voiture</label>
-      <input type="file" id="image" accept="image/*" required>
+      <input type="file" id="image" accept="image/jpeg,image/png,image/webp" required>
       <img id="previewImage" class="preview-image" alt="Prévisualisation de l'image" />
       <label for="price">Prix par jour (en MAD)</label>
       <input type="number" id="price" placeholder="ex: 250" required>
@@ -83,6 +83,17 @@
     <div class="car-list" id="carList"></div>
   </div>
 
+  <div class="list-section">
+    <h2>📥 Réservations en attente</h2>
+    <div class="car-list" id="reservationList"></div>
+  </div>
+
+  <div class="list-section" style="background:#172032;">
+    <h2>💰 Paiement des commissions</h2>
+    <p>Solde à payer : <strong id="soldeCommission">Chargement...</strong></p>
+    <button class="btn" onclick="payerCommission()">Payer maintenant</button>
+  </div>
+
   <div class="navigation">
     <p id="carCount">Vous avez <span id="carTotal">0</span> voitures publiées.</p>
     <p>📊 Gérer l’état de vos voitures : <a href="gerance-premium.html">Gérance Premium</a></p>
@@ -92,4 +103,3 @@
   <script src="js/dashboard.js"></script>
 </body>
 </html>
-
