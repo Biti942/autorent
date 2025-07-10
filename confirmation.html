@@ -1,37 +1,259 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Confirmation - AutoRent</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
+      font-family: 'Poppins', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+    header {
+      position: sticky;
+      top: 0;
       background: #0f172a;
       color: #fff;
-      font-family: 'Poppins', sans-serif;
+      padding: 16px 32px;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      height: 100vh;
-      text-align: center;
-      flex-direction: column;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
     }
-    h1 { color: #4ade80; }
-    a {
-      margin-top: 20px;
-      background: #38bdf8;
+    .logo {
+      font-weight: 700;
+      font-size: 1.8rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-weight: 600;
+    }
+    .auth-section span {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-auth {
+      background: #3b82f6;
+      color: #fff;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .btn-auth:hover {
+      background: #2563eb;
+    }
+    .container {
+      max-width: 600px;
+      margin: 24px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+    .container h1 {
+      color: #22c55e;
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+    }
+    .reservation-details {
+      text-align: left;
+      margin: 16px 0;
+      padding: 16px;
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    .reservation-details p {
+      margin: 8px 0;
+      font-size: 1rem;
+    }
+    .reservation-details strong {
       color: #0f172a;
-      padding: 10px 20px;
+    }
+    .actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .actions a {
+      background: #22c55e;
+      color: #fff;
+      padding: 12px 24px;
       border-radius: 8px;
       text-decoration: none;
-      font-weight: bold;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .actions a:hover {
+      background: #16a34a;
+    }
+    #loader {
+      text-align: center;
+      padding: 24px;
+      color: #475569;
+      font-weight: 600;
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 16px;
+      }
+      .actions {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .actions a {
+        width: 100%;
+        text-align: center;
+      }
+      .auth-section span {
+        max-width: 150px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Réservation réussie !</h1>
-  <p>Merci pour votre confiance. Nous vous contacterons bientôt.</p>
-  <a href="marketplace.html">Retour à la Marketplace</a>
+  <header>
+    <div class="logo" tabindex="0" role="heading" aria-level="1" aria-label="Accueil AutoRent" onclick="window.location.href='index.html'">AutoRent</div>
+    <div class="auth-section" id="auth-section">
+      <button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>
+    </div>
+  </header>
+
+  <div class="container" aria-live="polite">
+    <h1>Réservation Confirmée</h1>
+    <p id="message">Votre réservation est en attente de confirmation par l'agence.</p>
+    <div id="reservation-details" class="reservation-details"></div>
+    <div class="actions">
+      <a href="marketplace.html" aria-label="Retourner au marketplace">Retour au Marketplace</a>
+      <a href="mes-reservations.html" aria-label="Voir mes réservations">Mes Réservations</a>
+    </div>
+  </div>
+  <div id="loader" aria-hidden="true">Chargement...</div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { firebaseConfig } from './js/firebase.js';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const reservationDetails = document.getElementById("reservation-details");
+    const message = document.getElementById("message");
+    const loader = document.getElementById("loader");
+    const authSection = document.getElementById("auth-section");
+
+    // Update auth UI
+    function updateAuthUI(user) {
+      if (user) {
+        authSection.innerHTML = `
+          <span title="Connecté en tant que ${DOMPurify.sanitize(user.email)}">${DOMPurify.sanitize(user.email)}</span>
+          <button class="btn-auth" id="btn-logout" aria-label="Se déconnecter">Déconnexion</button>
+        `;
+        document.getElementById("btn-logout").addEventListener("click", () => {
+          signOut(auth).then(() => {
+            Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+            window.location.href = "index.html";
+          }).catch(err => {
+            Toastify({ text: `Erreur déconnexion: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+          });
+        });
+      } else {
+        authSection.innerHTML = `<button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>`;
+        document.getElementById("btn-auth").addEventListener("click", () => {
+          window.location.href = "connexion.html";
+        });
+      }
+    }
+
+    // Load reservation details
+    async function loadReservationDetails(resId, userId) {
+      loader.style.display = "block";
+      try {
+        const resDoc = await getDoc(doc(db, "reservations", resId));
+        if (!resDoc.exists() || resDoc.data().userId !== userId) {
+          message.textContent = "Réservation non trouvée ou accès non autorisé.";
+          reservationDetails.innerHTML = "";
+          loader.style.display = "none";
+          return;
+        }
+        const r = resDoc.data();
+        const carDoc = await getDoc(doc(db, "cars", r.carId));
+        const carName = carDoc.exists() ? carDoc.data().nom : "Voiture inconnue";
+        const start = r.startDate.toDate().toLocaleDateString('fr-FR');
+        const end = r.endDate.toDate().toLocaleDateString('fr-FR');
+
+        reservationDetails.innerHTML = `
+          <p><strong>Voiture:</strong> ${DOMPurify.sanitize(carName)}</p>
+          <p><strong>Du:</strong> ${start} <strong>au</strong> ${end}</p>
+          <p><strong>Total:</strong> ${r.totalPrice} MAD</p>
+          <p><strong>Statut:</strong> ${DOMPurify.sanitize(r.status)}</p>
+        `;
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        message.textContent = "Erreur lors du chargement des détails.";
+        reservationDetails.innerHTML = "";
+      }
+      loader.style.display = "none";
+    }
+
+    // Authentication state
+    onAuthStateChanged(auth, user => {
+      updateAuthUI(user);
+      if (!user) {
+        window.location.href = "connexion.html";
+        return;
+      }
+      const urlParams = new URLSearchParams(window.location.search);
+      const resId = urlParams.get("resId");
+      if (!resId) {
+        message.textContent = "Aucune réservation spécifiée.";
+        reservationDetails.innerHTML = "";
+        return;
+      }
+      loadReservationDetails(resId, user.uid);
+    });
+
+    // Offline support
+    window.addEventListener("offline", () => {
+      Toastify({ text: "Vous êtes hors ligne.", duration: -1, backgroundColor: "#ef4444" }).showToast();
+    });
+    window.addEventListener("online", () => {
+      Toastify({ text: "Connexion rétablie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      if (auth.currentUser) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const resId = urlParams.get("resId");
+        if (resId) loadReservationDetails(resId, auth.currentUser.uid);
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
