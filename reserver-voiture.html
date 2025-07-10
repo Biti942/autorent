@@ -1,93 +1,361 @@
-<!-- ... (header + style similaires) -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réserver une voiture - AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: #0f172a;
+      color: #fff;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.8rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-weight: 600;
+    }
+    .auth-section span {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-auth {
+      background: #3b82f6;
+      color: #fff;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .btn-auth:hover {
+      background: #2563eb;
+    }
+    .form-container {
+      max-width: 600px;
+      margin: 24px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .form-container h2 {
+      font-size: 1.8rem;
+      color: #1e293b;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .car-details {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      background: #f1f5f9;
+      padding: 16px;
+      border-radius: 8px;
+    }
+    .car-details img {
+      width: 120px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .car-details div {
+      flex-grow: 1;
+    }
+    .car-details h3 {
+      margin: 0 0 8px;
+      font-size: 1.2rem;
+      color: #0f172a;
+    }
+    .car-details p {
+      margin: 0;
+      font-size: 1rem;
+      color: #2563eb;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      color: #1e293b;
+      outline-offset: 2px;
+      outline-color: #3b82f6;
+    }
+    #reserveBtn {
+      background: #22c55e;
+      color: #fff;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    #reserveBtn:hover {
+      background: #16a34a;
+    }
+    #reserveBtn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    #loader {
+      text-align: center;
+      padding: 24px;
+      color: #475569;
+      font-weight: 600;
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .form-container {
+        padding: 16px;
+      }
+      .car-details {
+        flex-direction: column;
+        align-items: center;
+      }
+      .car-details img {
+        width: 100%;
+        height: 120px;
+      }
+    }
+  </style>
+</head>
 <body>
-  <div class="topbar">
-    <span id="user-email"></span>
-    <button id="logoutBtn">Se déconnecter</button>
-  </div>
+  <header>
+    <div class="logo" tabindex="0" role="heading" aria-level="1" aria-label="Accueil AutoRent" onclick="window.location.href='index.html'">AutoRent</div>
+    <nav aria-label="Navigation principale">
+      <a href="mes-reservations.html" class="btn-auth" aria-label="Voir mes réservations">Mes Réservations</a>
+    </nav>
+    <div class="auth-section" id="auth-section">
+      <button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>
+    </div>
+  </header>
 
-  <div class="form-container">
-    <h2>Réserver</h2>
-    <div id="carDetails">Chargement...</div>
-    <input type="date" id="startDate">
-    <input type="date" id="endDate">
-    <button id="reserveBtn" onclick="submitReservation()">Réserver maintenant</button>
+  <div class="form-container" aria-live="polite">
+    <h2>Réserver une voiture</h2>
+    <div id="carDetails" class="car-details"></div>
+    <div class="form-group">
+      <label for="startDate">Date de début</label>
+      <input type="date" id="startDate" aria-label="Date de début de location" required>
+    </div>
+    <div class="form-group">
+      <label for="endDate">Date de fin</label>
+      <input type="date" id="endDate" aria-label="Date de fin de location" required>
+    </div>
+    <button id="reserveBtn" aria-label="Confirmer la réservation">Réserver maintenant</button>
   </div>
+  <div id="loader" aria-hidden="true">Chargement...</div>
 
-  <script>
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc, addDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { firebaseConfig } from './js/firebase.js';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const carDetails = document.getElementById("carDetails");
+    const reserveBtn = document.getElementById("reserveBtn");
+    const startDateInput = document.getElementById("startDate");
+    const endDateInput = document.getElementById("endDate");
+    const loader = document.getElementById("loader");
+    const authSection = document.getElementById("auth-section");
     const urlParams = new URLSearchParams(window.location.search);
     const carId = urlParams.get("carId");
-
-    let user;
     let carData;
 
-    auth.onAuthStateChanged(u => {
-      if (!u) return location.href = "connexion.html";
-      user = u;
-      document.getElementById("user-email").textContent = "Connecté : " + user.email;
-      loadCar();
-    });
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    startDateInput.min = today;
+    endDateInput.min = today;
 
-    document.getElementById("logoutBtn").onclick = () => {
-      auth.signOut().then(() => location.href = "index.html");
-    };
-
-    function loadCar() {
-      db.collection("cars").doc(carId).get().then(doc => {
-        if (!doc.exists) return carDetails.textContent = "Voiture introuvable.";
-        carData = doc.data();
-        carDetails.innerHTML = `<strong>${carData.nom}</strong> - ${carData.prix} MAD/jour`;
-      });
+    // Update auth UI
+    function updateAuthUI(user) {
+      if (user) {
+        authSection.innerHTML = `
+          <span title="Connecté en tant que ${DOMPurify.sanitize(user.email)}">${DOMPurify.sanitize(user.email)}</span>
+          <button class="btn-auth" id="btn-logout" aria-label="Se déconnecter">Déconnexion</button>
+        `;
+        document.getElementById("btn-logout").addEventListener("click", () => {
+          signOut(auth).then(() => {
+            Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+            window.location.href = "index.html";
+          }).catch(err => {
+            Toastify({ text: `Erreur déconnexion: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+          });
+        });
+      } else {
+        authSection.innerHTML = `<button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>`;
+        document.getElementById("btn-auth").addEventListener("click", () => {
+          window.location.href = "connexion.html";
+        });
+      }
     }
 
-    async function submitReservation() {
-      const reserveBtn = document.getElementById("reserveBtn");
-      reserveBtn.disabled = true;
+    // Load car details
+    async function loadCar() {
+      loader.style.display = "block";
+      try {
+        const carDoc = await getDoc(doc(db, "cars", carId));
+        if (!carDoc.exists() || !carDoc.data().disponible) {
+          carDetails.innerHTML = "<p style='color:#ef4444; text-align:center;'>Voiture introuvable ou non disponible.</p>";
+          reserveBtn.disabled = true;
+          return;
+        }
+        carData = carDoc.data();
+        carDetails.innerHTML = `
+          <img src="${carData.imageUrl || 'images/default-car.jpg'}" alt="Photo de ${DOMPurify.sanitize(carData.nom)}" loading="lazy">
+          <div>
+            <h3>${DOMPurify.sanitize(carData.nom)}</h3>
+            <p>${carData.prix} MAD/jour</p>
+          </div>
+        `;
+        // Pre-fill dates from URL
+        const startDate = urlParams.get("startDate");
+        const endDate = urlParams.get("endDate");
+        if (startDate && new Date(startDate) >= new Date(today)) startDateInput.value = startDate;
+        if (endDate && new Date(endDate) > new Date(startDate || today)) endDateInput.value = endDate;
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        carDetails.innerHTML = "<p style='color:#ef4444; text-align:center;'>Erreur lors du chargement.</p>";
+        reserveBtn.disabled = true;
+      }
+      loader.style.display = "none";
+    }
 
-      const start = new Date(document.getElementById("startDate").value);
-      const end = new Date(document.getElementById("endDate").value);
+    // Submit reservation
+    async function submitReservation() {
+      reserveBtn.disabled = true;
+      const start = new Date(startDateInput.value);
+      const end = new Date(endDateInput.value);
 
       if (!start || !end || end <= start) {
-        Toastify({ text: "Dates invalides.", backgroundColor: "#ef4444", duration: 3000 }).showToast();
+        Toastify({ text: "Dates invalides. La date de fin doit être après la date de début.", backgroundColor: "#ef4444", duration: 3000 }).showToast();
         reserveBtn.disabled = false;
         return;
       }
 
       try {
-        const existing = await db.collection("reservations")
-          .where("carId", "==", carId)
-          .where("status", "==", "confirmed")
-          .get();
-
-        for (let doc of existing.docs) {
+        const snapshot = await getDocs(
+          query(
+            collection(db, "reservations"),
+            where("carId", "==", carId),
+            where("status", "==", "confirmed")
+          )
+        );
+        let conflict = false;
+        snapshot.forEach(doc => {
           const r = doc.data();
-          const rs = r.startDate.toDate(), re = r.endDate.toDate();
-          if ((start <= re && end >= rs)) {
-            Toastify({ text: "Déjà réservé à ces dates.", backgroundColor: "#ef4444", duration: 3000 }).showToast();
-            reserveBtn.disabled = false;
-            return;
-          }
+          const rs = r.startDate.toDate();
+          const re = r.endDate.toDate();
+          if (start <= re && end >= rs) conflict = true;
+        });
+
+        if (conflict) {
+          Toastify({ text: "Voiture déjà réservée pour ces dates.", backgroundColor: "#ef4444", duration: 3000 }).showToast();
+          reserveBtn.disabled = false;
+          return;
         }
 
         const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
         const total = days * carData.prix;
 
-        await db.collection("reservations").add({
-          carId, userId: user.uid,
-          startDate: start, endDate: end,
-          totalPrice: total, status: "pending",
+        const docRef = await addDoc(collection(db, "reservations"), {
+          carId,
+          userId: auth.currentUser.uid,
+          startDate,
+          endDate,
+          totalPrice: total,
+          status: "pending",
           createdAt: new Date()
         });
 
-        location.href = "confirmation.html";
-
-      } catch (e) {
-        Toastify({ text: "Erreur : " + e.message, backgroundColor: "#ef4444", duration: 3000 }).showToast();
+        Toastify({ text: "Réservation enregistrée !", backgroundColor: "#4ade80", duration: 3000 }).showToast();
+        window.location.href = `confirmation.html?resId=${docRef.id}`;
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, backgroundColor: "#ef4444", duration: 3000 }).showToast();
+        reserveBtn.disabled = false;
       }
-
-      reserveBtn.disabled = false;
     }
+
+    // Authentication state
+    onAuthStateChanged(auth, user => {
+      updateAuthUI(user);
+      if (!user) {
+        window.location.href = "connexion.html";
+        return;
+      }
+      if (!carId) {
+        carDetails.innerHTML = "<p style='color:#ef4444; text-align:center;'>Aucune voiture sélectionnée.</p>";
+        reserveBtn.disabled = true;
+        return;
+      }
+      loadCar();
+    });
+
+    // Event listeners
+    reserveBtn.addEventListener("click", submitReservation);
+
+    // Offline support
+    window.addEventListener("offline", () => {
+      Toastify({ text: "Vous êtes hors ligne.", duration: -1, backgroundColor: "#ef4444" }).showToast();
+      reserveBtn.disabled = true;
+    });
+    window.addEventListener("online", () => {
+      Toastify({ text: "Connexion rétablie.", backgroundColor: "#4ade80", duration: 3000 }).showToast();
+      if (auth.currentUser && carId) {
+        loadCar();
+        reserveBtn.disabled = false;
+      }
+    });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
