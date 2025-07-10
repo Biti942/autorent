@@ -1,114 +1,225 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin Dashboard - AutoRent</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de Bord Admin - AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: #f3f4f6;
-      margin: 0;
-      padding: 0 20px;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
     }
-    .navbar {
-      background-color: #0f172a;
+    header {
+      position: sticky;
+      top: 0;
+      background: #0f172a;
       color: #fff;
-      padding: 15px 20px;
+      padding: 16px 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
     }
-    .navbar h2 {
-      margin: 0;
-      font-size: 1.2rem;
+    .logo {
+      font-weight: 700;
+      font-size: 1.8rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
     }
     .nav-links a {
-      margin-left: 15px;
-      color: #facc15;
+      color: #3b82f6;
       text-decoration: none;
-      font-weight: bold;
+      font-weight: 600;
+      transition: color 0.3s;
     }
     .nav-links a:hover {
-      text-decoration: underline;
+      color: #2563eb;
+    }
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-weight: 600;
+    }
+    .auth-section span {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn-auth {
+      background: #3b82f6;
+      color: #fff;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .btn-auth:hover {
+      background: #2563eb;
     }
     h1 {
-      color: #0f172a;
       text-align: center;
-      margin-top: 30px;
+      font-size: 2rem;
+      color: #0f172a;
+      margin: 24px 0;
     }
     .stats {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      margin: 30px 0;
-      flex-wrap: wrap;
+      max-width: 1000px;
+      margin: 0 auto 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      padding: 0 16px;
     }
     .stat-card {
-      background-color: #1e293b;
-      color: white;
-      padding: 20px;
+      background: #fff;
+      padding: 24px;
       border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       text-align: center;
-      min-width: 180px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .stat-card h3 {
-      margin: 0;
       font-size: 1.2rem;
+      color: #0f172a;
+      margin-bottom: 12px;
     }
     .stat-card p {
-      font-size: 1.8rem;
-      margin-top: 10px;
-      font-weight: bold;
+      font-size: 2rem;
+      font-weight: 600;
+      color: #2563eb;
     }
     .section-title {
-      font-size: 1.3rem;
-      margin-top: 40px;
+      max-width: 1000px;
+      margin: 40px auto 16px;
+      font-size: 1.5rem;
+      color: #0f172a;
+      padding: 0 16px;
+    }
+    .filter-container {
+      max-width: 1000px;
+      margin: 0 auto 16px;
+      padding: 0 16px;
+    }
+    .filter-container input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.9rem;
       color: #1e293b;
+      outline-offset: 2px;
+      outline-color: #3b82f6;
     }
     table {
+      max-width: 1000px;
       width: 100%;
+      margin: 0 auto;
       border-collapse: collapse;
-      margin-top: 20px;
-      background-color: #fff;
+      background: #fff;
       border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
     }
     th {
-      background-color: #0f172a;
+      background: #0f172a;
       color: #fff;
-      padding: 12px;
-    }
-    td {
-      padding: 12px;
-      border-bottom: 1px solid #ccc;
+      font-weight: 600;
     }
     tr:hover {
-      background-color: #f1f5f9;
+      background: #f1f5f9;
+    }
+    .action-btn {
+      background: #22c55e;
+      color: #fff;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+    }
+    .action-btn.reject {
+      background: #ef4444;
+    }
+    .action-btn:hover {
+      background: #16a34a;
+    }
+    .action-btn.reject:hover {
+      background: #dc2626;
+    }
+    #loader {
+      text-align: center;
+      padding: 24px;
+      color: #475569;
+      font-weight: 600;
+      display: none;
+    }
+    @media (max-width: 768px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+      .nav-links {
+        flex-direction: column;
+        gap: 8px;
+      }
+      table {
+        font-size: 0.9rem;
+      }
+      .action-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+      }
+      .auth-section span {
+        max-width: 150px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="navbar">
-    <h2>Admin AutoRent</h2>
-    <div class="nav-links">
-      <span id="user-email"></span>
-      <a href="index.html">🏠 Accueil</a>
-      <a href="#utilisateursTable">👥 Clients</a>
-      <a href="#abonnementsTable">📦 Abonnements</a>
-      <a href="gerance-premium.html">📊 Gérance</a>
-      <a href="#" id="logout-btn">🚪 Déconnexion</a>
+  <header>
+    <div class="logo" tabindex="0" role="heading" aria-level="1" aria-label="Accueil AutoRent" onclick="window.location.href='index.html'">AutoRent Admin</div>
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a href="index.html" aria-label="Retour à l'accueil">🏠 Accueil</a>
+      <a href="#utilisateursTable" aria-label="Voir les clients">👥 Clients</a>
+      <a href="#abonnementsTable" aria-label="Voir les abonnements">📦 Abonnements</a>
+      <a href="#reservationsTable" aria-label="Voir les réservations">🚗 Réservations</a>
+      <a href="gerance-premium.html" aria-label="Gérer les abonnements premium">📊 Gérance</a>
+    </nav>
+    <div class="auth-section" id="auth-section">
+      <button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>
     </div>
-  </div>
+  </header>
 
   <h1>Tableau de Bord Admin</h1>
 
-  <div class="stats" id="statsSection">
+  <div class="stats" id="statsSection" aria-live="polite">
     <div class="stat-card">
       <h3>Total Utilisateurs</h3>
       <p id="totalUsers">...</p>
@@ -121,111 +232,275 @@
       <h3>Pack Populaire</h3>
       <p id="mostPopularPack">...</p>
     </div>
+    <div class="stat-card">
+      <h3>Réservations en attente</h3>
+      <p id="pendingReservations">...</p>
+    </div>
   </div>
 
   <div>
     <h2 class="section-title">🔐 Abonnements</h2>
-    <div id="abonnementsTable">Chargement...</div>
+    <div class="filter-container">
+      <input type="text" id="aboFilter" placeholder="Filtrer par email ou pack" aria-label="Filtrer les abonnements par email ou pack">
+    </div>
+    <div id="abonnementsTable" aria-live="polite">Chargement...</div>
   </div>
 
   <div>
     <h2 class="section-title">🧍 Utilisateurs Inscrits</h2>
-    <div id="utilisateursTable">Chargement...</div>
+    <div class="filter-container">
+      <input type="text" id="userFilter" placeholder="Filtrer par nom, prénom ou email" aria-label="Filtrer les utilisateurs par nom, prénom ou email">
+    </div>
+    <div id="utilisateursTable" aria-live="polite">Chargement...</div>
   </div>
 
+  <div>
+    <h2 class="section-title">🚗 Réservations</h2>
+    <div class="filter-container">
+      <input type="text" id="resFilter" placeholder="Filtrer par email ou voiture" aria-label="Filtrer les réservations par email ou voiture">
+    </div>
+    <div id="reservationsTable" aria-live="polite">Chargement...</div>
+  </div>
+
+  <div id="loader" aria-hidden="true">Chargement...</div>
+
   <script type="module">
-    import { auth, db } from './js/firebase.js';
-    import {
-      onAuthStateChanged, signOut
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, collection, onSnapshot, query, where, updateDoc, doc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { firebaseConfig } from './js/firebase.js';
 
-    import {
-      collection, getDocs, doc
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    const adminEmail = "biti.hassan@icloud.com";
+    const totalUsers = document.getElementById("totalUsers");
+    const totalAbos = document.getElementById("totalAbos");
+    const mostPopularPack = document.getElementById("mostPopularPack");
+    const pendingReservations = document.getElementById("pendingReservations");
+    const utilisateursTable = document.getElementById("utilisateursTable");
+    const abonnementsTable = document.getElementById("abonnementsTable");
+    const reservationsTable = document.getElementById("reservationsTable");
+    const loader = document.getElementById("loader");
+    const authSection = document.getElementById("auth-section");
 
-    onAuthStateChanged(auth, async (user) => {
+    // Debounce function for filter inputs
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Update auth UI
+    function updateAuthUI(user) {
+      if (user) {
+        authSection.innerHTML = `
+          <span title="Connecté en tant que ${DOMPurify.sanitize(user.email)}">${DOMPurify.sanitize(user.email)}</span>
+          <button class="btn-auth" id="btn-logout" aria-label="Se déconnecter">Déconnexion</button>
+        `;
+        document.getElementById("btn-logout").addEventListener("click", () => {
+          signOut(auth).then(() => {
+            Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+            window.location.href = "index.html";
+          }).catch(err => {
+            Toastify({ text: `Erreur déconnexion: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+          });
+        });
+      } else {
+        authSection.innerHTML = `<button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>`;
+        document.getElementById("btn-auth").addEventListener("click", () => {
+          window.location.href = "connexion.html";
+        });
+      }
+    }
+
+    // Check if user is admin
+    async function isAdmin(user) {
+      const adminDoc = await getDoc(doc(db, "admins", user.uid));
+      return adminDoc.exists();
+    }
+
+    // Load dashboard data
+    async function loadDashboard(user) {
+      loader.style.display = "block";
+      try {
+        // Load users
+        onSnapshot(collection(db, "utilisateurs"), snapshot => {
+          totalUsers.textContent = snapshot.size;
+          let userHTML = `<table>
+            <tr>
+              <th>Nom</th>
+              <th>Prénom</th>
+              <th>Ville</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Code</th>
+            </tr>`;
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const safeNom = DOMPurify.sanitize(data.nom || "");
+            const safePrenom = DOMPurify.sanitize(data.prenom || "");
+            const safeVille = DOMPurify.sanitize(data.ville || "");
+            const safeEmail = DOMPurify.sanitize(data.email || "");
+            const safeTelephone = DOMPurify.sanitize(data.telephone || "");
+            const safeCode = DOMPurify.sanitize(data.code || "");
+            userHTML += `<tr>
+              <td>${safeNom}</td>
+              <td>${safePrenom}</td>
+              <td>${safeVille}</td>
+              <td>${safeEmail}</td>
+              <td>${safeTelephone}</td>
+              <td>${safeCode}</td>
+            </tr>`;
+          });
+          userHTML += "</table>";
+          utilisateursTable.innerHTML = userHTML;
+        });
+
+        // Load subscriptions
+        onSnapshot(collection(db, "abonnements"), snapshot => {
+          totalAbos.textContent = snapshot.size;
+          let packCount = {};
+          let aboHTML = `<table>
+            <tr>
+              <th>Email</th>
+              <th>Pack</th>
+              <th>Max voitures</th>
+              <th>Date paiement</th>
+            </tr>`;
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const pack = DOMPurify.sanitize(data.pack || "Inconnu");
+            packCount[pack] = (packCount[pack] || 0) + 1;
+            aboHTML += `<tr>
+              <td>${DOMPurify.sanitize(doc.id)}</td>
+              <td>${pack}</td>
+              <td>${data.voituresMax || "-"}</td>
+              <td>${data.datePaiement ? new Date(data.datePaiement.toDate()).toLocaleDateString('fr-FR') : "-"}</td>
+            </tr>`;
+          });
+          aboHTML += "</table>";
+          abonnementsTable.innerHTML = aboHTML;
+          const topPack = Object.entries(packCount).sort((a, b) => b[1] - a[1])[0];
+          mostPopularPack.textContent = topPack ? `${topPack[0]} (${topPack[1]})` : "Aucun";
+        });
+
+        // Load reservations
+        onSnapshot(query(collection(db, "reservations")), async snapshot => {
+          const pendingCount = snapshot.docs.filter(doc => doc.data().status === "pending").length;
+          pendingReservations.textContent = pendingCount;
+          let resHTML = `<table>
+            <tr>
+              <th>Utilisateur</th>
+              <th>Voiture</th>
+              <th>Début</th>
+              <th>Fin</th>
+              <th>Total</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>`;
+          for (const doc of snapshot.docs) {
+            const data = doc.data();
+            const carDoc = await getDoc(doc(db, "cars", data.carId));
+            const carName = carDoc.exists() ? DOMPurify.sanitize(carDoc.data().nom) : "Inconnu";
+            const userDoc = await getDoc(doc(db, "utilisateurs", data.userId));
+            const userEmail = userDoc.exists() ? DOMPurify.sanitize(userDoc.data().email) : "Inconnu";
+            const start = data.startDate ? new Date(data.startDate.toDate()).toLocaleDateString('fr-FR') : "-";
+            const end = data.endDate ? new Date(data.endDate.toDate()).toLocaleDateString('fr-FR') : "-";
+            resHTML += `<tr>
+              <td>${userEmail}</td>
+              <td>${carName}</td>
+              <td>${start}</td>
+              <td>${end}</td>
+              <td>${data.totalPrice || "-"} MAD</td>
+              <td>${DOMPurify.sanitize(data.status)}</td>
+              <td>
+                ${data.status === "pending" ? `
+                  <button class="action-btn" onclick="updateReservation('${doc.id}', 'confirmed')" aria-label="Approuver la réservation">Approuver</button>
+                  <button class="action-btn reject" onclick="updateReservation('${doc.id}', 'rejected')" aria-label="Rejeter la réservation">Rejeter</button>
+                ` : "-"}
+              </td>
+            </tr>`;
+          }
+          resHTML += "</table>";
+          reservationsTable.innerHTML = resHTML;
+        });
+
+        loader.style.display = "none";
+        Toastify({ text: "Tableau chargé avec succès 📊", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        loader.style.display = "none";
+      }
+    }
+
+    // Update reservation status
+    window.updateReservation = async function(resId, status) {
+      try {
+        await updateDoc(doc(db, "reservations", resId), { status });
+        Toastify({ text: `Réservation ${status === "confirmed" ? "approuvée" : "rejetée"} avec succès.`, duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      }
+    };
+
+    // Filter tables
+    function filterTable(tableId, filterInputId) {
+      const filterInput = document.getElementById(filterInputId);
+      const table = document.getElementById(tableId).querySelector("table");
+      if (!table) return;
+
+      filterInput.addEventListener("input", debounce(() => {
+        const filter = filterInput.value.toLowerCase();
+        const rows = table.getElementsByTagName("tr");
+        for (let i = 1; i < rows.length; i++) {
+          const cells = rows[i].getElementsByTagName("td");
+          let match = false;
+          for (let cell of cells) {
+            if (cell.textContent.toLowerCase().includes(filter)) {
+              match = true;
+              break;
+            }
+          }
+          rows[i].style.display = match ? "" : "none";
+        }
+      }, 300));
+    }
+
+    // Authentication state
+    onAuthStateChanged(auth, async user => {
+      updateAuthUI(user);
       if (!user) {
         window.location.href = "connexion.html";
         return;
       }
-
-      document.getElementById("user-email").textContent = user.email;
-
-      if (user.email !== adminEmail) {
-        alert("Accès refusé. Vous n'êtes pas autorisé à accéder à cette page.");
+      const isAdminUser = await isAdmin(user);
+      if (!isAdminUser) {
+        Toastify({ text: "Accès refusé. Vous n'êtes pas autorisé.", duration: 3000, backgroundColor: "#ef4444" }).showToast();
         window.location.href = "index.html";
         return;
       }
+      loadDashboard(user);
+      filterTable("utilisateursTable", "userFilter");
+      filterTable("abonnementsTable", "aboFilter");
+      filterTable("reservationsTable", "resFilter");
+    });
 
-      document.getElementById("logout-btn").addEventListener("click", async (e) => {
-        e.preventDefault();
-        await signOut(auth);
-        Toastify({
-          text: "Déconnexion réussie ✅",
-          duration: 3000,
-          gravity: "top",
-          position: "right",
-          backgroundColor: "#10b981"
-        }).showToast();
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1000);
-      });
-
-      // Charger abonnements
-      const aboSnap = await getDocs(collection(db, "abonnements"));
-      document.getElementById("totalAbos").textContent = aboSnap.size;
-
-      let packCount = {};
-      let aboHTML = "<table><tr><th>Email</th><th>Pack</th><th>Max voitures</th><th>Date paiement</th></tr>";
-
-      aboSnap.forEach(doc => {
-        const data = doc.data();
-        const pack = data.pack || "Inconnu";
-        packCount[pack] = (packCount[pack] || 0) + 1;
-        aboHTML += `<tr>
-          <td>${doc.id}</td>
-          <td>${pack}</td>
-          <td>${data.voituresMax || "-"}</td>
-          <td>${data.datePaiement ? new Date(data.datePaiement.toDate()).toLocaleDateString() : "-"}</td>
-        </tr>`;
-      });
-
-      aboHTML += "</table>";
-      document.getElementById("abonnementsTable").innerHTML = aboHTML;
-
-      const topPack = Object.entries(packCount).sort((a, b) => b[1] - a[1])[0];
-      document.getElementById("mostPopularPack").textContent = topPack ? `${topPack[0]} (${topPack[1]})` : "Aucun";
-
-      // Charger utilisateurs
-      const usersSnap = await getDocs(collection(db, "utilisateurs"));
-      document.getElementById("totalUsers").textContent = usersSnap.size;
-
-      let userHTML = "<table><tr><th>Nom</th><th>Prénom</th><th>Ville</th><th>Email</th><th>Téléphone</th><th>Code</th></tr>";
-      usersSnap.forEach(doc => {
-        const data = doc.data();
-        userHTML += `<tr>
-          <td>${data.nom || ""}</td>
-          <td>${data.prenom || ""}</td>
-          <td>${data.ville || ""}</td>
-          <td>${data.email || ""}</td>
-          <td>${data.telephone || ""}</td>
-          <td>${data.code || ""}</td>
-        </tr>`;
-      });
-      userHTML += "</table>";
-      document.getElementById("utilisateursTable").innerHTML = userHTML;
-
-      Toastify({
-        text: "Tableau chargé avec succès 📊",
-        duration: 3000,
-        gravity: "top",
-        position: "right",
-        backgroundColor: "#3b82f6"
-      }).showToast();
+    // Offline support
+    window.addEventListener("offline", () => {
+      Toastify({ text: "Vous êtes hors ligne.", duration: -1, backgroundColor: "#ef4444" }).showToast();
+    });
+    window.addEventListener("online", () => {
+      Toastify({ text: "Connexion rétablie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      if (auth.currentUser) loadDashboard(auth.currentUser);
     });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>

@@ -1,17 +1,26 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Cars - lecture publique si disponible
-    match /cars/{carId} {
-      allow read: if resource.data.disponible == true;
-      allow write: if request.auth != null && request.auth.token.admin == true;
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
     }
-
-    // Réservations
+    match /utilisateurs/{userId} {
+      allow read: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /abonnements/{userId} {
+      allow read: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
     match /reservations/{resId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    match /cars/{carId} {
+      allow read: if resource.data.disponible == true || exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow write: if request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
   }
 }
