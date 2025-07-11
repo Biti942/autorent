@@ -3,56 +3,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Bienvenue sur AutoRent, la plateforme de gestion de flotte automobile, 100% gratuite au début du lancement." />
+  <meta name="robots" content="index, follow" />
   <title>Bienvenue sur AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+  <script type="module" src="js/firebase.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #fff;
       padding: 50px 20px;
       text-align: center;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     .container {
       max-width: 600px;
       margin: auto;
-      background-color: #1e293b;
+      background: #1e293b;
       padding: 40px;
       border-radius: 15px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     h1 {
       color: #4ade80;
       margin-bottom: 20px;
+      font-size: 2rem;
     }
     p {
       font-size: 1.1rem;
       line-height: 1.8;
       margin-bottom: 20px;
+      color: #d1d5db;
     }
     .highlight {
       color: #facc15;
       font-weight: bold;
     }
     .btn {
-      background-color: #38bdf8;
+      background: #38bdf8;
       color: #0f172a;
       padding: 12px 24px;
       border: none;
       border-radius: 8px;
       font-weight: bold;
+      font-size: 1rem;
       cursor: pointer;
       text-decoration: none;
       display: inline-block;
       margin-top: 20px;
+      transition: background 0.3s, transform 0.2s;
     }
     .btn:hover {
-      background-color: #0ea5e9;
+      background: #0ea5e9;
+      transform: scale(1.05);
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+        width: 90%;
+      }
+      h1 {
+        font-size: 1.8rem;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Bienvenue dans le Futur de la Location 🚀</h1>
+    <h1 id="welcomeMessage">Bonjour</h1>
     <p>
       Tu viens d’activer ton accès à <span class="highlight">AutoRent</span> — la plateforme conçue pour transformer ta gestion d’agence automobile.
     </p>
@@ -65,5 +102,44 @@
     </p>
     <a href="dashboard-premium.html" class="btn">Accéder à mon dashboard</a>
   </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { firebaseConfig } from './js/firebase.js';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = 'connexion.html';
+        return;
+      }
+
+      try {
+        const userDoc = await getDoc(doc(db, 'utilisateurs', user.uid));
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        if (userDoc.exists()) {
+          const prenom = userDoc.data().prenom || 'Utilisateur';
+          welcomeMessage.textContent = `Bonjour ${prenom}`;
+        } else {
+          welcomeMessage.textContent = 'Bonjour Utilisateur';
+        }
+      } catch (error) {
+        Toastify({ text: `Erreur : ${error.message}`, duration: 3000, backgroundColor: '#ef4444' }).showToast();
+      }
+    });
+
+    // Offline support
+    window.addEventListener('offline', () => {
+      Toastify({ text: 'Vous êtes hors ligne.', duration: -1, backgroundColor: '#ef4444' }).showToast();
+    });
+    window.addEventListener('online', () => {
+      Toastify({ text: 'Connexion rétablie.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
+    });
+  </script>
 </body>
 </html>
