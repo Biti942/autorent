@@ -3,158 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Confirmation - Pack Premium</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <title>Bienvenue sur AutoRent</title>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       color: #fff;
       padding: 50px 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-    }
-    .topbar {
-      width: 100%;
-      max-width: 900px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      font-size: 0.9rem;
-      color: #ccc;
-    }
-    #logout-btn {
-      background-color: #ef4444;
-      color: white;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    #logout-btn:hover {
-      background-color: #dc2626;
+      text-align: center;
     }
     .container {
+      max-width: 600px;
+      margin: auto;
       background-color: #1e293b;
-      padding: 40px 30px;
+      padding: 40px;
       border-radius: 15px;
-      max-width: 500px;
-      width: 100%;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
     h1 {
       color: #4ade80;
-      font-size: 2rem;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
     }
     p {
       font-size: 1.1rem;
-      color: #e0e0e0;
-      margin: 10px 0;
+      line-height: 1.8;
+      margin-bottom: 20px;
     }
-    strong {
+    .highlight {
       color: #facc15;
+      font-weight: bold;
     }
-    .paypal-button-container {
-      margin-top: 30px;
+    .btn {
+      background-color: #38bdf8;
+      color: #0f172a;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 20px;
     }
-    @media (max-width: 480px) {
-      h1 { font-size: 1.6rem; }
-      p { font-size: 1rem; }
+    .btn:hover {
+      background-color: #0ea5e9;
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <p>Connecté en tant que : <span id="user-email"></span></p>
-    <button id="logout-btn">Se déconnecter</button>
-  </div>
   <div class="container">
-    <h1>🎉 Bravo et Bienvenue !</h1>
-    <p>Tu as choisi le <strong>Pack Premium</strong>.</p>
-    <p>Profite d’un accès <strong>illimité</strong> pour publier tes voitures et gérer ton agence comme un pro.</p>
-    <p>Le tout pour seulement <strong>299 MAD / mois</strong>.</p>
-    <p>Procède au paiement sécurisé via PayPal pour activer ton pack :</p>
-    <div class="paypal-button-container">
-      <div id="paypal-button-container"></div>
-    </div>
+    <h1>Bienvenue dans le Futur de la Location 🚀</h1>
+    <p>
+      Tu viens d’activer ton accès à <span class="highlight">AutoRent</span> — la plateforme conçue pour transformer ta gestion d’agence automobile.
+    </p>
+    <p>
+      Pendant la phase de lancement, <span class="highlight">tout est 100% gratuit</span>. Pas besoin de paiement.
+      L’objectif est simple : t’aider à digitaliser ta flotte, attirer plus de clients, et automatiser ta croissance.
+    </p>
+    <p>
+      Publie tes voitures, gère tes réservations, et profite des analyses intelligentes… c’est le moment ou jamais de passer à la vitesse supérieure 🚗💨
+    </p>
+    <a href="dashboard-premium.html" class="btn">Accéder à mon dashboard</a>
   </div>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="js/firebase.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-  <script src="https://www.paypal.com/sdk/js?client-id=Ab2KI4w1DAPtzHWEO-BUXVQMHIQHzxmP6rDZfKT8FNqp8JWwgvYjUTNsbBXYcGKCmnYmd46UW2WHUtRE¤cy=MAD&enable-funding=card"></script>
-  <script>
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        Toastify({ text: '🚫 Vous devez être connecté en tant qu\'agent.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
-        window.location.href = "index.html";
-      } else {
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists && userDoc.data().role !== 'agent') {
-          Toastify({ text: '🚫 Accès réservé aux agents.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
-          window.location.href = "public/marketplace.html";
-        } else {
-          document.getElementById("user-email").textContent = user.email;
-          document.getElementById("logout-btn").addEventListener("click", () => {
-            auth.signOut().then(() => {
-              window.location.href = "indexx.html";
-            }).catch(err => {
-              Toastify({ text: "Erreur lors de la déconnexion : " + err.message, duration: 3000, backgroundColor: '#ef4444' }).showToast();
-            });
-          });
-        }
-      }
-    });
-
-    paypal.Buttons({
-      createOrder: function (data, actions) {
-        return actions.order.create({
-          purchase_units: [{
-            amount: {
-              value: '299', // 299 MAD
-              currency_code: 'MAD'
-            }
-          }],
-          application_context: {
-            shipping_preference: 'NO_SHIPPING' // Pas besoin d'adresse de livraison
-          }
-        });
-      },
-      onApprove: function (data, actions) {
-        return actions.order.capture().then(async function (details) {
-          await db.collection('users').doc(auth.currentUser.uid).update({
-            subscriptionActive: true,
-            subscriptionDate: firebase.firestore.FieldValue.serverTimestamp(),
-            paymentDetails: {
-              payerId: details.payer.payer_id,
-              paymentId: details.id,
-              status: details.status
-            }
-          });
-          Toastify({ text: 'Paiement réussi ! Redirection...', duration: 3000, backgroundColor: '#4ade80' }).showToast();
-          window.location.href = "dashboard-premium.html";
-        });
-      },
-      onError: function (err) {
-        Toastify({ text: 'Erreur lors du paiement : ' + err.message, duration: 3000, backgroundColor: '#ef4444' }).showToast();
-      },
-      style: {
-        layout: 'vertical',
-        color: 'gold',
-        shape: 'rect',
-        label: 'paypal'
-      }
-    }).render('#paypal-button-container');
-  </script>
 </body>
 </html>
-

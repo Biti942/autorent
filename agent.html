@@ -4,10 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Agent AutoRent</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #0f172a;
+      color: #fff;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      color: #4ade80;
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+    }
+    p {
+      max-width: 700px;
+      margin: 0 auto 20px;
+      font-size: 1.1rem;
+      line-height: 1.7;
+    }
+    .highlight {
+      color: #facc15;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-  <h1>Bienvenue, Agent AutoRent</h1>
-  <p>Cette page est protégée 🔐</p>
+  <h1>Bienvenue sur AutoRent 🚗</h1>
+  <p>
+    Vous êtes désormais dans l’espace agent d’AutoRent, la plateforme révolutionnaire de gestion de flotte automobile.
+    Grâce à AutoRent, vous pouvez publier vos voitures, gérer vos réservations, suivre vos revenus et bien plus encore — le tout en ligne et sans effort.
+  </p>
+  <p>
+    💡 <span class="highlight">AutoRent</span> vous permet de devenir une agence 100% digitale avec un site web dédié, une IA qui analyse vos performances,
+    et une interface moderne pour développer votre business comme jamais auparavant.
+  </p>
+  <p>
+    🎁 <span class="highlight">Accès 100% GRATUIT</span> pendant la phase de lancement – Profitez-en pour prendre de l’avance sur vos concurrents.
+  </p>
 
   <script type="module">
     import { auth } from './js/firebase.js';
@@ -17,7 +51,7 @@
       if (!user) {
         window.location.href = "connexion.html";
       } else {
-        console.log("Utilisateur connecté :", user.email);
+        console.log("Bienvenue sur AutoRent :", user.email);
       }
     });
   </script>

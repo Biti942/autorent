@@ -1,51 +1,294 @@
-<!-- ✅ dashboard-premium.html - version finale améliorée -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>AutoRent - Dashboard Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-  <script src="js/firebase.js"></script>
+  <meta name="description" content="Tableau de bord premium AutoRent pour gérer votre flotte automobile, suivre vos réservations et analyser vos performances." />
+  <meta name="robots" content="index, follow" />
+  <title>AutoRent - Dashboard Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js"></script>
+  <script type="module" src="js/firebase.js"></script>
   <style>
-    body { margin: 0; font-family: 'Poppins', sans-serif; background: #0f172a; color: #fff; padding: 20px; }
-    header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 30px; }
-    h1 { font-size: 1.8rem; color: #38bdf8; margin: 0; }
-    .user-info { text-align: right; font-size: 0.9rem; }
-    .user-info span { color: #facc15; }
-    .logout-btn { background-color: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; margin-top: 8px; cursor: pointer; transition: background 0.3s; }
-    .logout-btn:hover { background-color: #dc2626; }
-    .form-section, .list-section { background-color: #1e293b; padding: 25px; border-radius: 12px; max-width: 800px; margin: 20px auto; }
-    .form-section h2, .list-section h2 { margin-bottom: 20px; color: #4ade80; }
-    label { display: block; margin-bottom: 5px; font-weight: 600; }
-    input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: none; font-size: 1rem; background-color: #334155; color: #fff; }
-    .preview-image { max-width: 200px; margin-bottom: 15px; border-radius: 8px; display: none; }
-    .available-switch { display: flex; align-items: center; margin-bottom: 15px; }
-    .available-switch input { margin-right: 10px; }
-    .btn { background-color: #38bdf8; border: none; color: #0f172a; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .btn:hover { background-color: #0ea5e9; }
-    .navigation { text-align: center; margin-top: 40px; }
-    .navigation a { color: #facc15; text-decoration: none; font-weight: bold; }
-    .car-list { margin-top: 20px; }
-    .car-item { background-color: #334155; padding: 15px; border-radius: 10px; margin-bottom: 15px; display: flex; gap: 20px; align-items: center; }
-    .car-item img { width: 100px; border-radius: 10px; }
-    .car-info { flex: 1; }
-    .car-info h3 { margin: 0; color: #facc15; }
-    .car-info p { margin: 5px 0; }
-    .reserve-btn, .edit-btn, .delete-btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-left: 10px; }
-    .reserve-btn { background-color: #4ade80; color: #0f172a; }
-    .reserve-btn:hover { background-color: #22c55e; }
-    .edit-btn { background-color: #facc15; color: #0f172a; }
-    .edit-btn:hover { background-color: #e0ab0d; }
-    .delete-btn { background-color: #ef4444; color: white; }
-    .delete-btn:hover { background-color: #dc2626; }
-    #loading { text-align: center; margin-top: 20px; display: none; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      background: rgba(15, 23, 42, 0.95);
+      padding: 16px 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    h1 {
+      font-size: 1.8rem;
+      color: #38bdf8;
+      margin: 0;
+    }
+    .user-info {
+      text-align: right;
+      font-size: 0.9rem;
+    }
+    .user-info span {
+      color: #facc15;
+      font-weight: 600;
+    }
+    .logout-btn {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      margin-top: 8px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .logout-btn:hover {
+      background-color: #dc2626;
+      transform: scale(1.05);
+    }
+    .free-offer {
+      background: #4ade80;
+      color: #0f172a;
+      text-align: center;
+      padding: 12px;
+      border-radius: 8px;
+      margin: 20px auto;
+      max-width: 800px;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+    .form-section, .list-section, .chart-section, .ia-section {
+      background: #1e293b;
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 900px;
+      margin: 20px auto;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    .form-section h2, .list-section h2, .chart-section h2, .ia-section h2 {
+      margin-bottom: 20px;
+      color: #4ade80;
+      font-size: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #facc15;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+      background: #334155;
+      color: #fff;
+      transition: background 0.3s;
+    }
+    input:focus, textarea:focus {
+      background: #475569;
+      outline: none;
+    }
+    .preview-image {
+      max-width: 200px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      display: none;
+      object-fit: cover;
+    }
+    .available-switch {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .available-switch input {
+      margin-right: 10px;
+    }
+    .btn {
+      background: #38bdf8;
+      color: #0f172a;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn:hover {
+      background: #0ea5e9;
+      transform: scale(1.05);
+    }
+    .navigation {
+      text-align: center;
+      margin: 40px 0;
+    }
+    .navigation a {
+      color: #facc15;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 0 10px;
+      transition: color 0.3s;
+    }
+    .navigation a:hover {
+      color: #38bdf8;
+    }
+    .car-list, .reservation-list {
+      margin-top: 20px;
+    }
+    .car-item, .reservation-item {
+      background: #334155;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      transition: transform 0.3s;
+    }
+    .car-item:hover, .reservation-item:hover {
+      transform: translateY(-5px);
+    }
+    .car-item img {
+      width: 100px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+    .car-info, .reservation-info {
+      flex: 1;
+    }
+    .car-info h3, .reservation-info h3 {
+      margin: 0;
+      color: #facc15;
+      font-size: 1.2rem;
+    }
+    .car-info p, .reservation-info p {
+      margin: 5px 0;
+      font-size: 0.9rem;
+    }
+    .reserve-btn, .edit-btn, .delete-btn, .approve-btn, .reject-btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 10px;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .reserve-btn {
+      background: #4ade80;
+      color: #0f172a;
+    }
+    .reserve-btn:hover {
+      background: #22c55e;
+      transform: scale(1.05);
+    }
+    .edit-btn {
+      background: #facc15;
+      color: #0f172a;
+    }
+    .edit-btn:hover {
+      background: #e0ab0d;
+      transform: scale(1.05);
+    }
+    .delete-btn {
+      background: #ef4444;
+      color: white;
+    }
+    .delete-btn:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+    .approve-btn {
+      background: #4ade80;
+      color: #0f172a;
+    }
+    .approve-btn:hover {
+      background: #22c55e;
+      transform: scale(1.05);
+    }
+    .reject-btn {
+      background: #ef4444;
+      color: white;
+    }
+    .reject-btn:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+    .chart-section canvas {
+      max-height: 400px;
+    }
+    .ia-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .ia-section li {
+      margin: 10px 0;
+      font-size: 0.9rem;
+    }
+    .ia-section strong {
+      color: #facc15;
+    }
+    #loading {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 1rem;
+      color: #facc15;
+      display: none;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .form-section, .list-section, .chart-section, .ia-section {
+      animation: fadeIn 0.5s ease-out;
+    }
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        text-align: center;
+      }
+      .user-info {
+        margin-top: 10px;
+      }
+      .car-item, .reservation-item {
+        flex-direction: column;
+        text-align: center;
+      }
+      .car-item img {
+        width: 100%;
+        max-width: 200px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -53,28 +296,51 @@
     <h1>🎯 Dashboard Premium - AutoRent</h1>
     <div class="user-info">
       <p>Connecté en tant que : <span id="user-email"></span></p>
-      <button class="logout-btn" id="logoutBtn">Se déconnecter</button>
+      <button class="logout-btn" id="logoutBtn" aria-label="Se déconnecter">Se déconnecter</button>
     </div>
   </header>
+
+  <div class="free-offer" id="freeOffer">
+    <p>🎉 Profitez d’AutoRent <strong>100% GRATUIT</strong> jusqu’au : <strong id="countdown"></strong></p>
+  </div>
 
   <div class="form-section">
     <h2>➕ Ajouter une nouvelle voiture</h2>
     <form id="carForm">
       <label for="name">Nom de la voiture</label>
-      <input type="text" id="name" placeholder="ex: Dacia Logan 2022" required>
+      <input type="text" id="name" placeholder="ex: Dacia Logan 2022" required aria-label="Nom de la voiture" />
       <label for="image">Image de la voiture</label>
-      <input type="file" id="image" accept="image/jpeg,image/png,image/webp" required>
+      <input type="file" id="image" accept="image/jpeg,image/png,image/webp" required aria-label="Image de la voiture" />
       <img id="previewImage" class="preview-image" alt="Prévisualisation de l'image" />
       <label for="price">Prix par jour (en MAD)</label>
-      <input type="number" id="price" placeholder="ex: 250" required>
+      <input type="number" id="price" placeholder="ex: 250" required min="0" aria-label="Prix par jour" />
       <label for="desc">Description</label>
-      <textarea id="desc" rows="4" placeholder="Description auto ou générée..."></textarea>
+      <textarea id="desc" rows="4" placeholder="Description auto ou générée..." aria-label="Description de la voiture"></textarea>
+      <label for="type">Type</label>
+      <select id="type" required aria-label="Type de voiture">
+        <option value="berline">Berline</option>
+        <option value="SUV">SUV</option>
+        <option value="citadine">Citadine</option>
+        <option value="utilitaire">Utilitaire</option>
+      </select>
+      <label for="location">Ville</label>
+      <input type="text" id="location" placeholder="ex: Casablanca" required aria-label="Ville de disponibilité" />
+      <label for="transmission">Transmission</label>
+      <select id="transmission" required aria-label="Type de transmission">
+        <option value="manuelle">Manuelle</option>
+        <option value="automatique">Automatique</option>
+      </select>
       <div class="available-switch">
-        <input type="checkbox" id="available" checked>
+        <input type="checkbox" id="available" checked aria-label="Voiture disponible" />
         <label for="available">Disponible</label>
       </div>
-      <button type="submit" class="btn">Ajouter la voiture</button>
+      <button type="submit" class="btn" aria-label="Ajouter la voiture">Ajouter la voiture</button>
     </form>
+  </div>
+
+  <div class="chart-section">
+    <h2>📊 Performances de la flotte</h2>
+    <canvas id="performanceChart"></canvas>
   </div>
 
   <div class="list-section">
@@ -85,13 +351,18 @@
 
   <div class="list-section">
     <h2>📥 Réservations en attente</h2>
-    <div class="car-list" id="reservationList"></div>
+    <div class="reservation-list" id="reservationList"></div>
   </div>
 
-  <div class="list-section" style="background:#172032;">
+  <div class="list-section" style="background: #172032;">
     <h2>💰 Paiement des commissions</h2>
     <p>Solde à payer : <strong id="soldeCommission">Chargement...</strong></p>
-    <button class="btn" onclick="payerCommission()">Payer maintenant</button>
+    <button class="btn" onclick="payerCommission()" aria-label="Payer la commission">Payer maintenant</button>
+  </div>
+
+  <div class="ia-section">
+    <h2>🤖 Analyse IA des performances</h2>
+    <div id="iaAnalysis">Chargement de l’analyse...</div>
   </div>
 
   <div class="navigation">
@@ -100,6 +371,335 @@
     <p style="margin-top: 10px;">🧑‍💻 Voir votre site vitrine : <a href="site-agent.html">Mon site</a></p>
   </div>
 
-  <script src="js/dashboard.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js';
+    import { firebaseConfig } from './js/firebase.js';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    const carForm = document.getElementById("carForm");
+    const carList = document.getElementById("carList");
+    const reservationList = document.getElementById("reservationList");
+    const userEmail = document.getElementById("user-email");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const loading = document.getElementById("loading");
+    const carTotal = document.getElementById("carTotal");
+    const soldeCommission = document.getElementById("soldeCommission");
+    const iaAnalysis = document.getElementById("iaAnalysis");
+    let chartInstance = null;
+
+    // Countdown for free offer
+    function startCountdown() {
+      const endDate = new Date("2025-08-11T23:59:59"); // End of free offer
+      const countdownElement = document.getElementById("countdown");
+
+      function updateCountdown() {
+        const now = new Date();
+        const timeLeft = endDate - now;
+
+        if (timeLeft <= 0) {
+          countdownElement.textContent = "Offre terminée !";
+          document.getElementById("freeOffer").style.background = "#ef4444";
+          return;
+        }
+
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        countdownElement.textContent = `${days} jours, ${hours} heures, ${minutes} minutes`;
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 60000);
+    }
+
+    // Image preview
+    document.getElementById("image").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const previewImage = document.getElementById("previewImage");
+          previewImage.src = e.target.result;
+          previewImage.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Add car
+    carForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      loading.style.display = "block";
+      const file = document.getElementById("image").files[0];
+      const carData = {
+        nom: document.getElementById("name").value,
+        prix: parseFloat(document.getElementById("price").value),
+        description: document.getElementById("desc").value,
+        type: document.getElementById("type").value,
+        location: document.getElementById("location").value,
+        transmission: document.getElementById("transmission").value,
+        disponible: document.getElementById("available").checked,
+        uid: auth.currentUser.uid,
+        createdAt: new Date()
+      };
+
+      try {
+        if (file) {
+          const storageRef = ref(storage, `cars/${auth.currentUser.uid}/${file.name}`);
+          await uploadBytes(storageRef, file);
+          carData.imageUrl = await getDownloadURL(storageRef);
+        }
+        await addDoc(collection(db, "cars"), carData);
+        Toastify({ text: "Voiture ajoutée avec succès 🚗", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+        carForm.reset();
+        document.getElementById("previewImage").style.display = "none";
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      } finally {
+        loading.style.display = "none";
+      }
+    });
+
+    // Edit car
+    window.editCar = async function(carId) {
+      const carDoc = await getDoc(doc(db, "cars", carId));
+      if (!carDoc.exists()) return;
+      const car = carDoc.data();
+      document.getElementById("name").value = car.nom;
+      document.getElementById("price").value = car.prix;
+      document.getElementById("desc").value = car.description;
+      document.getElementById("type").value = car.type;
+      document.getElementById("location").value = car.location;
+      document.getElementById("transmission").value = car.transmission;
+      document.getElementById("available").checked = car.disponible;
+      carForm.onsubmit = async (e) => {
+        e.preventDefault();
+        loading.style.display = "block";
+        const updatedData = {
+          nom: document.getElementById("name").value,
+          prix: parseFloat(document.getElementById("price").value),
+          description: document.getElementById("desc").value,
+          type: document.getElementById("type").value,
+          location: document.getElementById("location").value,
+          transmission: document.getElementById("transmission").value,
+          disponible: document.getElementById("available").checked
+        };
+        try {
+          await updateDoc(doc(db, "cars", carId), updatedData);
+          Toastify({ text: "Voiture mise à jour avec succès 🚗", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+          carForm.reset();
+          carForm.onsubmit = addCar;
+        } catch (err) {
+          Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        } finally {
+          loading.style.display = "none";
+        }
+      };
+    };
+
+    // Delete car
+    window.deleteCar = async function(carId) {
+      if (!confirm("Voulez-vous vraiment supprimer cette voiture ?")) return;
+      loading.style.display = "block";
+      try {
+        await deleteDoc(doc(db, "cars", carId));
+        Toastify({ text: "Voiture supprimée avec succès 🚮", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      } finally {
+        loading.style.display = "none";
+      }
+    };
+
+    // Approve/Reject reservation
+    window.updateReservation = async function(resId, status) {
+      try {
+        await updateDoc(doc(db, "reservations", resId), { status });
+        Toastify({ text: `Réservation ${status === "confirmed" ? "approuvée" : "rejetée"} avec succès.`, duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      }
+    };
+
+    // Load data
+    async function loadData(user) {
+      loading.style.display = "block";
+      try {
+        // Load cars
+        onSnapshot(query(collection(db, "cars"), where("uid", "==", user.uid)), async (snapshot) => {
+          carList.innerHTML = "";
+          const cars = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          carTotal.textContent = cars.length;
+          cars.forEach(car => {
+            carList.insertAdjacentHTML("beforeend", `
+              <div class="car-item">
+                <img src="${car.imageUrl || 'https://via.placeholder.com/100'}" alt="${car.nom}" loading="lazy" />
+                <div class="car-info">
+                  <h3>${car.nom}</h3>
+                  <p>${car.description || "Pas de description"}</p>
+                  <p><strong>${car.prix} DH / jour</strong> | ${car.location}</p>
+                  <p>Statut: ${car.disponible ? "Disponible" : "Non disponible"}</p>
+                </div>
+                <button class="edit-btn" onclick="editCar('${car.id}')" aria-label="Modifier la voiture">Modifier</button>
+                <button class="delete-btn" onclick="deleteCar('${car.id}')" aria-label="Supprimer la voiture">Supprimer</button>
+              </div>
+            `);
+          });
+
+          // Load reservations
+          onSnapshot(query(collection(db, "reservations"), where("agencyId", "==", user.uid)), async (snapshot) => {
+            reservationList.innerHTML = "";
+            const pendingCount = snapshot.docs.filter(doc => doc.data().status === "pending").length;
+            for (const doc of snapshot.docs) {
+              const res = doc.data();
+              const carDoc = await getDoc(doc(db, "cars", res.carId));
+              const userDoc = await getDoc(doc(db, "utilisateurs", res.userId));
+              const carName = carDoc.exists() ? carDoc.data().nom : "Inconnu";
+              const userEmail = userDoc.exists() ? userDoc.data().email : "Inconnu";
+              const start = res.startDate ? new Date(res.startDate.toDate()).toLocaleDateString('fr-FR') : "-";
+              const end = res.endDate ? new Date(res.endDate.toDate()).toLocaleDateString('fr-FR') : "-";
+              reservationList.insertAdjacentHTML("beforeend", `
+                <div class="reservation-item">
+                  <div class="reservation-info">
+                    <h3>${carName}</h3>
+                    <p>Client: ${userEmail}</p>
+                    <p>Début: ${start} | Fin: ${end}</p>
+                    <p>Total: ${res.totalPrice || "-"} DH | Statut: ${res.status}</p>
+                  </div>
+                  ${res.status === "pending" ? `
+                    <button class="approve-btn" onclick="updateReservation('${doc.id}', 'confirmed')" aria-label="Approuver la réservation">Approuver</button>
+                    <button class="reject-btn" onclick="updateReservation('${doc.id}', 'rejected')" aria-label="Rejeter la réservation">Rejeter</button>
+                  ` : ""}
+                </div>
+              `);
+            }
+
+            // Financial chart
+            if (chartInstance) chartInstance.destroy();
+            const ctx = document.getElementById("performanceChart").getContext("2d");
+            const months = Array.from({length: 6}, (_, i) => {
+              const date = new Date(2025, 6 - i, 1);
+              return date.toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
+            }).reverse();
+            const monthlyData = {};
+            snapshot.forEach(doc => {
+              const res = doc.data();
+              if (res.status === "confirmed") {
+                const resMonth = res.startDate.toDate().toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
+                monthlyData[resMonth] = monthlyData[resMonth] || { ca: 0 };
+                monthlyData[resMonth].ca += parseFloat(res.totalPrice || 0);
+              }
+            });
+
+            chartInstance = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: months,
+                datasets: [{
+                  label: 'Chiffre d\'Affaires',
+                  data: months.map(m => monthlyData[m]?.ca || 0),
+                  backgroundColor: '#38bdf8',
+                  borderColor: '#0ea5e9',
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Revenus (MAD)', color: '#fff' },
+                    ticks: { color: '#fff' }
+                  },
+                  x: {
+                    title: { display: true, text: 'Mois', color: '#fff' },
+                    ticks: { color: '#fff' }
+                  }
+                },
+                plugins: {
+                  legend: { labels: { color: '#fff' } }
+                }
+              }
+            });
+
+            // IA Analysis
+            let totalCA = 0;
+            let bestCar = null, maxCA = 0;
+            cars.forEach(car => {
+              const ca = parseFloat(car.prix * (car.reservations || 0));
+              totalCA += ca;
+              if (ca > maxCA) {
+                maxCA = ca;
+                bestCar = car;
+              }
+            });
+            const analysisText = `
+              <p><strong>Total CA:</strong> ${totalCA.toFixed(2)} DH</p>
+              <p><strong>Nombre de réservations en attente:</strong> ${pendingCount}</p>
+              <p><strong>Meilleure voiture:</strong> ${bestCar ? bestCar.nom : "Aucune"} (${maxCA.toFixed(2)} DH)</p>
+              <ul>
+                <li>Optimisez la disponibilité de ${bestCar ? bestCar.nom : "vos meilleures unités"} pour maximiser vos revenus.</li>
+                <li>Traitez les ${pendingCount} réservations en attente pour augmenter votre CA.</li>
+                <li>Ajoutez des véhicules similaires à ${bestCar ? bestCar.nom : "vos modèles performants"}.</li>
+                <li>Consultez la <a href="gerance-premium.html">Gérance Premium</a> pour des analyses détaillées.</li>
+              </ul>
+            `;
+            iaAnalysis.innerHTML = analysisText;
+          });
+
+          // Load commission
+          const aboDoc = await getDoc(doc(db, "abonnements", user.uid));
+          soldeCommission.textContent = aboDoc.exists() && aboDoc.data().solde ? `${aboDoc.data().solde} DH` : "0 DH";
+        });
+      } catch (err) {
+        Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      } finally {
+        loading.style.display = "none";
+      }
+    }
+
+    // Pay commission
+    window.payerCommission = async function() {
+      Toastify({ text: "Paiement en cours... (simulation)", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+    };
+
+    // Authentication
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "connexion.html";
+        return;
+      }
+      userEmail.textContent = user.email;
+      logoutBtn.addEventListener("click", () => {
+        signOut(auth).then(() => {
+          Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+          window.location.href = "index.html";
+        });
+      });
+      const aboDoc = await getDoc(doc(db, "abonnements", user.uid));
+      if (!aboDoc.exists() || !aboDoc.data().pack) {
+        Toastify({ text: "Accès refusé. Abonnement premium requis.", duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        window.location.href = "index.html";
+        return;
+      }
+      loadData(user);
+      startCountdown();
+    });
+
+    // Offline support
+    window.addEventListener("offline", () => {
+      Toastify({ text: "Vous êtes hors ligne.", duration: -1, backgroundColor: "#ef4444" }).showToast();
+    });
+    window.addEventListener("online", () => {
+      Toastify({ text: "Connexion rétablie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      if (auth.currentUser) loadData(auth.currentUser);
+    });
+  </script>
 </body>
 </html>
