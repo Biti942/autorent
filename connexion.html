@@ -2,101 +2,198 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Connexion à AutoRent, la plateforme de gestion de flotte automobile." />
+  <meta name="robots" content="index, follow" />
   <title>Connexion - AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+  <script type="module" src="js/firebase.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
-      font-family: Poppins, sans-serif;
-      background-color: #1e293b;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
     }
-
     .form-container {
-      background-color: #0f172a;
+      background: #1e293b;
       padding: 40px;
       border-radius: 12px;
-      width: 300px;
+      width: 100%;
+      max-width: 400px;
       text-align: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.5s ease-out;
     }
-
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h2 {
+      color: #4ade80;
+      margin-bottom: 20px;
+    }
     input {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin: 10px 0;
-      border-radius: 6px;
+      border-radius: 8px;
       border: none;
+      background: #334155;
+      color: #fff;
+      font-size: 1rem;
     }
-
+    input:focus {
+      background: #475569;
+      outline: none;
+    }
     button {
-      padding: 10px 20px;
-      background-color: #38bdf8;
+      width: 100%;
+      padding: 12px;
+      background: #38bdf8;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       color: #0f172a;
       font-weight: bold;
+      font-size: 1rem;
       cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
     }
-
     button:hover {
-      background-color: #0ea5e9;
+      background: #0ea5e9;
+      transform: scale(1.05);
     }
-
     .link {
       margin-top: 15px;
       display: block;
-      color: #38bdf8;
+      color: #facc15;
       text-decoration: none;
+      font-weight: bold;
     }
-
     .link:hover {
+      color: #38bdf8;
       text-decoration: underline;
+    }
+    .forgot-password-form {
+      display: none;
+      margin-top: 20px;
+    }
+    .forgot-password-form.active {
+      display: block;
+    }
+    @media (max-width: 600px) {
+      .form-container {
+        padding: 20px;
+        width: 90%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="form-container">
     <h2>Connexion AutoRent</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Mot de passe" />
-    <button id="loginBtn">Se connecter</button>
-    <a class="link" href="inscription.html">Créer un compte</a>
+    <div id="loginForm">
+      <input type="email" id="email" placeholder="Email" required aria-label="Adresse email" />
+      <input type="password" id="password" placeholder="Mot de passe" required aria-label="Mot de passe" />
+      <button id="loginBtn" aria-label="Se connecter">Se connecter</button>
+      <a class="link" href="#" id="forgotPasswordLink" aria-label="Mot de passe oublié">Mot de passe oublié ?</a>
+      <a class="link" href="inscription.html">Créer un compte</a>
+    </div>
+    <div class="forgot-password-form" id="forgotPasswordForm">
+      <input type="email" id="resetEmail" placeholder="Entrez votre email" required aria-label="Email pour réinitialisation" />
+      <button id="resetPasswordBtn" aria-label="Envoyer le lien de réinitialisation">Envoyer le lien</button>
+      <a class="link" href="#" id="backToLogin" aria-label="Retour à la connexion">Retour à la connexion</a>
+    </div>
   </div>
 
   <script type="module">
-    import { auth } from './js/firebase.js';
-    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { firebaseConfig } from './js/firebase.js';
 
-    const adminEmail = "biti.hassan@icloud.com";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+    const loginForm = document.getElementById('loginForm');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const backToLogin = document.getElementById('backToLogin');
+    const loginBtn = document.getElementById('loginBtn');
+    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+
+    // Toggle forms
+    forgotPasswordLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginForm.style.display = 'none';
+      forgotPasswordForm.classList.add('active');
+    });
+
+    backToLogin.addEventListener('click', (e) => {
+      e.preventDefault();
+      forgotPasswordForm.classList.remove('active');
+      loginForm.style.display = 'block';
+    });
+
+    // Login
+    loginBtn.addEventListener('click', async () => {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
 
       if (!email || !password) {
-        alert("Veuillez remplir tous les champs.");
+        Toastify({ text: 'Veuillez remplir tous les champs.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
         return;
       }
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          if (user.email === adminEmail) {
-            window.location.href = "admin-dashboard.html";
-          } else {
-            window.location.href = "agent.html";
-          }
-        })
-        .catch((error) => {
-          alert("Erreur : " + error.message);
-        });
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        Toastify({ text: 'Connexion réussie !', duration: 3000, backgroundColor: '#4ade80' }).showToast();
+        window.location.href = 'confirmation-premium.html';
+      } catch (error) {
+        Toastify({ text: `Erreur : ${error.message}`, duration: 3000, backgroundColor: '#ef4444' }).showToast();
+      }
+    });
+
+    // Reset password
+    resetPasswordBtn.addEventListener('click', async () => {
+      const email = document.getElementById('resetEmail').value.trim();
+
+      if (!email) {
+        Toastify({ text: 'Veuillez entrer un email.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(auth, email);
+        Toastify({ text: 'Lien de réinitialisation envoyé à votre email.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
+        forgotPasswordForm.classList.remove('active');
+        loginForm.style.display = 'block';
+        document.getElementById('resetEmail').value = '';
+      } catch (error) {
+        Toastify({ text: `Erreur : ${error.message}`, duration: 3000, backgroundColor: '#ef4444' }).showToast();
+      }
+    });
+
+    // Offline support
+    window.addEventListener('offline', () => {
+      Toastify({ text: 'Vous êtes hors ligne.', duration: -1, backgroundColor: '#ef4444' }).showToast();
+    });
+    window.addEventListener('online', () => {
+      Toastify({ text: 'Connexion rétablie.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
     });
   </script>
 </body>
 </html>
-
 

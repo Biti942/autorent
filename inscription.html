@@ -1,112 +1,248 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Inscription à AutoRent, la plateforme de gestion de flotte automobile, 100% gratuite au début du lancement." />
+  <meta name="robots" content="index, follow" />
   <title>Inscription - AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
+  <script type="module" src="js/firebase.js"></script>
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
-      font-family: Poppins, sans-serif;
-      background-color: #1e293b;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
     }
-
     .form-container {
-      background-color: #0f172a;
+      background: #1e293b;
       padding: 40px;
       border-radius: 12px;
-      width: 320px;
+      width: 100%;
+      max-width: 400px;
       text-align: center;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 0.5s ease-out;
     }
-
-    .form-container h2 {
-      margin-bottom: 20px;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h2 {
       color: #4ade80;
+      margin-bottom: 20px;
     }
-
     input {
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 6px;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
       border: none;
+      background: #334155;
+      color: #fff;
+      font-size: 1rem;
     }
-
+    input:focus {
+      background: #475569;
+      outline: none;
+    }
     button {
       width: 100%;
       padding: 12px;
-      margin-top: 10px;
-      background-color: #38bdf8;
+      background: #facc15;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       color: #0f172a;
       font-weight: bold;
+      font-size: 1rem;
       cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
     }
-
     button:hover {
-      background-color: #0ea5e9;
+      background: #e0ab0d;
+      transform: scale(1.05);
+    }
+    .error-message {
+      color: #ef4444;
+      font-size: 0.9rem;
+      margin-top: 5px;
+      display: none;
+    }
+    @media (max-width: 600px) {
+      .form-container {
+        padding: 20px;
+        width: 90%;
+      }
     }
   </style>
 </head>
 <body>
   <div class="form-container">
     <h2>Créer un compte</h2>
-    <input type="text" id="prenom" placeholder="Prénom" required />
-    <input type="text" id="nom" placeholder="Nom" required />
-    <input type="text" id="ville" placeholder="Ville" required />
-    <input type="text" id="telephone" placeholder="Téléphone" required />
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button id="registerBtn">S’inscrire</button>
+    <input type="text" id="prenom" placeholder="Prénom" required aria-label="Prénom" />
+    <div class="error-message" id="prenomError"></div>
+    <input type="text" id="nom" placeholder="Nom" required aria-label="Nom" />
+    <div class="error-message" id="nomError"></div>
+    <input type="text" id="ville" placeholder="Ville" required aria-label="Ville" />
+    <div class="error-message" id="villeError"></div>
+    <input type="text" id="telephone" placeholder="Téléphone (ex: +212600000000)" required aria-label="Téléphone" />
+    <div class="error-message" id="telephoneError"></div>
+    <input type="email" id="email" placeholder="Email" required aria-label="Adresse email" />
+    <div class="error-message" id="emailError"></div>
+    <input type="password" id="password" placeholder="Mot de passe" required aria-label="Mot de passe" />
+    <div class="error-message" id="passwordError"></div>
+    <button id="registerBtn" aria-label="S’inscrire">S’inscrire</button>
   </div>
 
   <script type="module">
-    import { auth, db } from './js/firebase.js';
-    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { firebaseConfig } from './js/firebase.js';
 
-    document.getElementById('registerBtn').addEventListener('click', async () => {
-      const prenom = document.getElementById('prenom').value.trim();
-      const nom = document.getElementById('nom').value.trim();
-      const ville = document.getElementById('ville').value.trim();
-      const telephone = document.getElementById('telephone').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-      if (!prenom || !nom || !ville || !telephone || !email || !password) {
-        alert('Veuillez remplir tous les champs.');
+    const registerBtn = document.getElementById('registerBtn');
+    const inputs = {
+      prenom: document.getElementById('prenom'),
+      nom: document.getElementById('nom'),
+      ville: document.getElementById('ville'),
+      telephone: document.getElementById('telephone'),
+      email: document.getElementById('email'),
+      password: document.getElementById('password')
+    };
+    const errors = {
+      prenom: document.getElementById('prenomError'),
+      nom: document.getElementById('nomError'),
+      ville: document.getElementById('villeError'),
+      telephone: document.getElementById('telephoneError'),
+      email: document.getElementById('emailError'),
+      password: document.getElementById('passwordError')
+    };
+
+    function showError(field, message) {
+      errors[field].textContent = message;
+      errors[field].style.display = 'block';
+    }
+
+    function clearErrors() {
+      Object.values(errors).forEach(error => {
+        error.textContent = '';
+        error.style.display = 'none';
+      });
+    }
+
+    function validateInputs() {
+      let isValid = true;
+      clearErrors();
+
+      // Prénom: non vide
+      if (!inputs.prenom.value.trim()) {
+        showError('prenom', 'Le prénom est requis.');
+        isValid = false;
+      }
+
+      // Nom: non vide
+      if (!inputs.nom.value.trim()) {
+        showError('nom', 'Le nom est requis.');
+        isValid = false;
+      }
+
+      // Ville: non vide
+      if (!inputs.ville.value.trim()) {
+        showError('ville', 'La ville est requise.');
+        isValid = false;
+      }
+
+      // Téléphone: format +212 ou 06/07 avec 9 chiffres après
+      const phoneRegex = /^(\+212|0[67])[0-9]{8}$/;
+      if (!phoneRegex.test(inputs.telephone.value.trim())) {
+        showError('telephone', 'Format invalide (ex: +212600000000 ou 0600000000).');
+        isValid = false;
+      }
+
+      // Email: format valide
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(inputs.email.value.trim())) {
+        showError('email', 'Veuillez entrer un email valide.');
+        isValid = false;
+      }
+
+      // Mot de passe: 8+ caractères, 1 majuscule, 1 minuscule, 1 chiffre, 1 spécial
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+      if (!passwordRegex.test(inputs.password.value)) {
+        showError('password', 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.');
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    registerBtn.addEventListener('click', async () => {
+      if (!validateInputs()) {
         return;
       }
+
+      const prenom = inputs.prenom.value.trim();
+      const nom = inputs.nom.value.trim();
+      const ville = inputs.ville.value.trim();
+      const telephone = inputs.telephone.value.trim();
+      const email = inputs.email.value.trim();
+      const password = inputs.password.value.trim();
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        await setDoc(doc(db, "utilisateurs", user.uid), {
+        await setDoc(doc(db, 'utilisateurs', user.uid), {
           prenom,
           nom,
           ville,
           telephone,
           email,
           uid: user.uid,
+          pack: 'premium',
+          solde: 0,
           createdAt: serverTimestamp()
         });
 
-        alert("Inscription réussie ! Bienvenue.");
-        window.location.href = "agent.html";
+        await setDoc(doc(db, 'abonnements', user.uid), {
+          pack: 'premium',
+          solde: 0,
+          startDate: serverTimestamp()
+        });
+
+        Toastify({ text: 'Inscription réussie ! Bienvenue.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
+        window.location.href = 'confirmation-premium.html';
       } catch (error) {
-        console.error(error);
-        alert("Erreur : " + error.message);
+        Toastify({ text: `Erreur : ${error.message}`, duration: 3000, backgroundColor: '#ef4444' }).showToast();
       }
+    });
+
+    // Offline support
+    window.addEventListener('offline', () => {
+      Toastify({ text: 'Vous êtes hors ligne.', duration: -1, backgroundColor: '#ef4444' }).showToast();
+    });
+    window.addEventListener('online', () => {
+      Toastify({ text: 'Connexion rétablie.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
     });
   </script>
 </body>
 </html>
-
-
