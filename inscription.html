@@ -5,14 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Inscription à AutoRent, la plateforme de gestion de flotte automobile, 100% gratuite au début du lancement." />
   <meta name="robots" content="index, follow" />
+  <meta property="og:title" content="Inscription - AutoRent" />
+  <meta property="og:description" content="Inscription à AutoRent, la plateforme de gestion de flotte automobile." />
+  <meta property="og:image" content="/images/autorent-logo.png" />
   <title>Inscription - AutoRent</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
-  <script type="module" src="js/firebase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js" defer></script>
+  <script type="module" src="js/firebase.js" defer></script>
   <style>
     * {
       box-sizing: border-box;
@@ -20,7 +24,7 @@
       padding: 0;
     }
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Poppins', Arial, sans-serif;
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #fff;
       display: flex;
@@ -77,11 +81,29 @@
       background: #e0ab0d;
       transform: scale(1.05);
     }
+    button:disabled {
+      background: #6b7280;
+      cursor: not-allowed;
+    }
     .error-message {
       color: #ef4444;
       font-size: 0.9rem;
       margin-top: 5px;
       display: none;
+    }
+    .loader {
+      display: none;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4ade80;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     @media (max-width: 600px) {
       .form-container {
@@ -94,19 +116,20 @@
 <body>
   <div class="form-container">
     <h2>Créer un compte</h2>
-    <input type="text" id="prenom" placeholder="Prénom" required aria-label="Prénom" />
+    <input type="text" id="prenom" placeholder="Prénom" required aria-label="Prénom" aria-describedby="prenomError" />
     <div class="error-message" id="prenomError"></div>
-    <input type="text" id="nom" placeholder="Nom" required aria-label="Nom" />
+    <input type="text" id="nom" placeholder="Nom" required aria-label="Nom" aria-describedby="nomError" />
     <div class="error-message" id="nomError"></div>
-    <input type="text" id="ville" placeholder="Ville" required aria-label="Ville" />
+    <input type="text" id="ville" placeholder="Ville" required aria-label="Ville" aria-describedby="villeError" />
     <div class="error-message" id="villeError"></div>
-    <input type="text" id="telephone" placeholder="Téléphone (ex: +212600000000)" required aria-label="Téléphone" />
+    <input type="text" id="telephone" placeholder="Téléphone (ex: +212600000000)" required aria-label="Téléphone" aria-describedby="telephoneError" />
     <div class="error-message" id="telephoneError"></div>
-    <input type="email" id="email" placeholder="Email" required aria-label="Adresse email" />
+    <input type="email" id="email" placeholder="Email" required aria-label="Adresse email" aria-describedby="emailError" />
     <div class="error-message" id="emailError"></div>
-    <input type="password" id="password" placeholder="Mot de passe" required aria-label="Mot de passe" />
+    <input type="password" id="password" placeholder="Mot de passe" required aria-label="Mot de passe" aria-describedby="passwordError" />
     <div class="error-message" id="passwordError"></div>
     <button id="registerBtn" aria-label="S’inscrire">S’inscrire</button>
+    <div class="loader" id="signupLoader"></div>
   </div>
 
   <script type="module">
@@ -116,10 +139,12 @@
     import { firebaseConfig } from './js/firebase.js';
 
     const app = initializeApp(firebaseConfig);
+    console.log('Firebase initialisé:', app); // Debug: Vérifier l'initialisation
     const auth = getAuth(app);
     const db = getFirestore(app);
 
     const registerBtn = document.getElementById('registerBtn');
+    const signupLoader = document.getElementById('signupLoader');
     const inputs = {
       prenom: document.getElementById('prenom'),
       nom: document.getElementById('nom'),
@@ -206,10 +231,15 @@
       const telephone = inputs.telephone.value.trim();
       const email = inputs.email.value.trim();
       const password = inputs.password.value.trim();
+      console.log('Inscription - Données:', { prenom, nom, ville, telephone, email, password }); // Debug: Vérifier les valeurs
+
+      signupLoader.style.display = 'block';
+      registerBtn.disabled = true;
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
+        console.log('Utilisateur créé:', user.uid); // Debug: Vérifier la création de l'utilisateur
 
         await setDoc(doc(db, 'utilisateurs', user.uid), {
           prenom,
@@ -222,17 +252,37 @@
           solde: 0,
           createdAt: serverTimestamp()
         });
+        console.log('Document utilisateurs écrit'); // Debug: Vérifier l'écriture dans Firestore
 
         await setDoc(doc(db, 'abonnements', user.uid), {
           pack: 'premium',
           solde: 0,
           startDate: serverTimestamp()
         });
+        console.log('Document abonnements écrit'); // Debug: Vérifier l'écriture dans Firestore
 
         Toastify({ text: 'Inscription réussie ! Bienvenue.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
         window.location.href = 'confirmation-premium.html';
       } catch (error) {
-        Toastify({ text: `Erreur : ${error.message}`, duration: 3000, backgroundColor: '#ef4444' }).showToast();
+        console.error('Erreur d’inscription:', error); // Debug: Afficher l'erreur complète
+        let errorMessage = 'Erreur inconnue. Veuillez réessayer.';
+        switch (error.code) {
+          case 'auth/email-already-in-use':
+            errorMessage = 'Cet email est déjà utilisé.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Email invalide.';
+            break;
+          case 'auth/weak-password':
+            errorMessage = 'Le mot de passe est trop faible.';
+            break;
+          default:
+            errorMessage = error.message;
+        }
+        showError('email', errorMessage);
+      } finally {
+        signupLoader.style.display = 'none';
+        registerBtn.disabled = false;
       }
     });
 

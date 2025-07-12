@@ -5,13 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Connexion à AutoRent, la plateforme de gestion de flotte automobile." />
   <meta name="robots" content="index, follow" />
+  <meta property="og:title" content="Connexion - AutoRent" />
+  <meta property="og:description" content="Connexion à AutoRent, la plateforme de gestion de flotte automobile." />
+  <meta property="og:image" content="/images/autorent-logo.png" />
   <title>Connexion - AutoRent</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
-  <script type="module" src="js/firebase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" defer></script>
+  <script type="module" src="js/firebase.js" defer></script>
   <style>
     * {
       box-sizing: border-box;
@@ -19,7 +23,7 @@
       padding: 0;
     }
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Poppins', Arial, sans-serif;
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #fff;
       display: flex;
@@ -76,6 +80,10 @@
       background: #0ea5e9;
       transform: scale(1.05);
     }
+    button:disabled {
+      background: #6b7280;
+      cursor: not-allowed;
+    }
     .link {
       margin-top: 15px;
       display: block;
@@ -86,6 +94,26 @@
     .link:hover {
       color: #38bdf8;
       text-decoration: underline;
+    }
+    .error-message {
+      color: #ef4444;
+      font-size: 0.9rem;
+      margin-top: 5px;
+      display: none;
+    }
+    .loader {
+      display: none;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4ade80;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     .forgot-password-form {
       display: none;
@@ -106,16 +134,21 @@
   <div class="form-container">
     <h2>Connexion AutoRent</h2>
     <div id="loginForm">
-      <input type="email" id="email" placeholder="Email" required aria-label="Adresse email" />
-      <input type="password" id="password" placeholder="Mot de passe" required aria-label="Mot de passe" />
+      <input type="email" id="email" placeholder="Email" required aria-label="Adresse email" aria-describedby="emailError" />
+      <div class="error-message" id="emailError"></div>
+      <input type="password" id="password" placeholder="Mot de passe" required aria-label="Mot de passe" aria-describedby="passwordError" />
+      <div class="error-message" id="passwordError"></div>
       <button id="loginBtn" aria-label="Se connecter">Se connecter</button>
-      <a class="link" href="#" id="forgotPasswordLink" aria-label="Mot de passe oublié">Mot de passe oublié ?</a>
+      <div class="loader" id="loginLoader"></div>
+      <a class="link" href="javascript:void(0)" id="forgotPasswordLink" aria-label="Mot de passe oublié">Mot de passe oublié ?</a>
       <a class="link" href="inscription.html">Créer un compte</a>
     </div>
     <div class="forgot-password-form" id="forgotPasswordForm">
-      <input type="email" id="resetEmail" placeholder="Entrez votre email" required aria-label="Email pour réinitialisation" />
+      <input type="email" id="resetEmail" placeholder="Entrez votre email" required aria-label="Email pour réinitialisation" aria-describedby="resetEmailError" />
+      <div class="error-message" id="resetEmailError"></div>
       <button id="resetPasswordBtn" aria-label="Envoyer le lien de réinitialisation">Envoyer le lien</button>
-      <a class="link" href="#" id="backToLogin" aria-label="Retour à la connexion">Retour à la connexion</a>
+      <div class="loader" id="resetLoader"></div>
+      <a class="link" href="javascript:void(0)" id="backToLogin" aria-label="Retour à la connexion">Retour à la connexion</a>
     </div>
   </div>
 
@@ -125,6 +158,7 @@
     import { firebaseConfig } from './js/firebase.js';
 
     const app = initializeApp(firebaseConfig);
+    console.log('Firebase initialisé:', app); // Debug: Vérifier l'initialisation
     const auth = getAuth(app);
 
     const loginForm = document.getElementById('loginForm');
@@ -133,47 +167,112 @@
     const backToLogin = document.getElementById('backToLogin');
     const loginBtn = document.getElementById('loginBtn');
     const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+    const loginLoader = document.getElementById('loginLoader');
+    const resetLoader = document.getElementById('resetLoader');
+    const errors = {
+      email: document.getElementById('emailError'),
+      password: document.getElementById('passwordError'),
+      resetEmail: document.getElementById('resetEmailError')
+    };
+
+    function showError(field, message) {
+      errors[field].textContent = message;
+      errors[field].style.display = 'block';
+    }
+
+    function clearErrors() {
+      Object.values(errors).forEach(error => {
+        error.textContent = '';
+        error.style.display = 'none';
+      });
+    }
+
+    function validateEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
 
     // Toggle forms
     forgotPasswordLink.addEventListener('click', (e) => {
       e.preventDefault();
       loginForm.style.display = 'none';
       forgotPasswordForm.classList.add('active');
+      clearErrors();
     });
 
     backToLogin.addEventListener('click', (e) => {
       e.preventDefault();
       forgotPasswordForm.classList.remove('active');
       loginForm.style.display = 'block';
+      clearErrors();
     });
 
     // Login
     loginBtn.addEventListener('click', async () => {
+      clearErrors();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
+      console.log('Connexion - Email:', email, 'Password:', password); // Debug: Vérifier les valeurs
 
       if (!email || !password) {
-        Toastify({ text: 'Veuillez remplir tous les champs.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
+        showError('email', 'Veuillez remplir tous les champs.');
         return;
       }
+      if (!validateEmail(email)) {
+        showError('email', 'Veuillez entrer un email valide.');
+        return;
+      }
+
+      loginLoader.style.display = 'block';
+      loginBtn.disabled = true;
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
         Toastify({ text: 'Connexion réussie !', duration: 3000, backgroundColor: '#4ade80' }).showToast();
         window.location.href = 'confirmation-premium.html';
       } catch (error) {
-        Toastify({ text: `Erreur : ${error.message}`, duration: 3000, backgroundColor: '#ef4444' }).showToast();
+        console.error('Erreur de connexion:', error); // Debug: Afficher l'erreur complète
+        let errorMessage = 'Erreur inconnue. Veuillez réessayer.';
+        switch (error.code) {
+          case 'auth/user-not-found':
+            errorMessage = 'Utilisateur non trouvé.';
+            break;
+          case 'auth/wrong-password':
+            errorMessage = 'Mot de passe incorrect.';
+            break;
+          case 'auth/invalid-email':
+            errorMessage = 'Email invalide.';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Trop de tentatives. Réessayez plus tard.';
+            break;
+          default:
+            errorMessage = error.message;
+        }
+        showError('email', errorMessage);
+      } finally {
+        loginLoader.style.display = 'none';
+        loginBtn.disabled = false;
       }
     });
 
     // Reset password
     resetPasswordBtn.addEventListener('click', async () => {
+      clearErrors();
       const email = document.getElementById('resetEmail').value.trim();
+      console.log('Réinitialisation - Email:', email); // Debug: Vérifier l'email
 
       if (!email) {
-        Toastify({ text: 'Veuillez entrer un email.', duration: 3000, backgroundColor: '#ef4444' }).showToast();
+        showError('resetEmail', 'Veuillez entrer un email.');
         return;
       }
+      if (!validateEmail(email)) {
+        showError('resetEmail', 'Veuillez entrer un email valide.');
+        return;
+      }
+
+      resetLoader.style.display = 'block';
+      resetPasswordBtn.disabled = true;
 
       try {
         await sendPasswordResetEmail(auth, email);
@@ -182,7 +281,22 @@
         loginForm.style.display = 'block';
         document.getElementById('resetEmail').value = '';
       } catch (error) {
-        Toastify({ text: `Erreur : ${error.message}`, duration: 3000, backgroundColor: '#ef4444' }).showToast();
+        console.error('Erreur de réinitialisation:', error); // Debug: Afficher l'erreur complète
+        let errorMessage = 'Erreur inconnue. Veuillez réessayer.';
+        switch (error.code) {
+          case 'auth/invalid-email':
+            errorMessage = 'Email invalide.';
+            break;
+          case 'auth/user-not-found':
+            errorMessage = 'Utilisateur non trouvé.';
+            break;
+          default:
+            errorMessage = error.message;
+        }
+        showError('resetEmail', errorMessage);
+      } finally {
+        resetLoader.style.display = 'none';
+        resetPasswordBtn.disabled = false;
       }
     });
 
@@ -196,4 +310,3 @@
   </script>
 </body>
 </html>
-
