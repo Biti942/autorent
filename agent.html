@@ -2,17 +2,21 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Rejoignez AutoRent, la plateforme révolutionnaire de gestion de flotte automobile, 100% gratuite au début du lancement." />
   <meta name="robots" content="index, follow" />
+  <meta property="og:title" content="Agent AutoRent" />
+  <meta property="og:description" content="Rejoignez AutoRent, la plateforme révolutionnaire de gestion de flotte automobile." />
+  <meta property="og:image" content="/images/autorent-logo.png" />
   <title>Agent AutoRent</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
-  <script type="module" src="js/firebase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js" defer></script>
+  <script type="module" src="js/firebase.js" defer></script>
   <style>
     * {
       box-sizing: border-box;
@@ -20,19 +24,19 @@
       padding: 0;
     }
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+      font-family: 'Poppins', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       color: #e5e7eb;
       min-height: 100vh;
       padding: 40px;
-      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      text-align: center;
     }
     h1 {
-      color: #10b981;
+      color: #4ade80;
       font-size: 2.5rem;
       margin-bottom: 20px;
       animation: fadeIn 1s ease-out;
@@ -42,15 +46,14 @@
       margin: 0 auto 20px;
       font-size: 1.1rem;
       line-height: 1.7;
-      color: #e5e7eb;
     }
     .highlight {
-      color: #f59e0b;
+      color: #facc15;
       font-weight: bold;
     }
     .free-offer {
-      background: #10b981;
-      color: #111827;
+      background: #4ade80;
+      color: #0f172a;
       padding: 12px;
       border-radius: 8px;
       margin: 20px auto;
@@ -73,8 +76,8 @@
       margin-top: 30px;
     }
     .btn {
-      background: #3b82f6;
-      color: #111827;
+      background: #38bdf8;
+      color: #0f172a;
       padding: 12px 24px;
       border: none;
       border-radius: 8px;
@@ -84,19 +87,19 @@
       transition: background 0.3s, transform 0.2s;
     }
     .btn:hover {
-      background: #2563eb;
+      background: #0ea5e9;
       transform: scale(1.05);
     }
     .btn-signup {
-      background: #f59e0b;
+      background: #facc15;
     }
     .btn-signup:hover {
-      background: #d97706;
+      background: #e0ab0d;
     }
     .auth-form {
       display: none;
-      background: #1f2937;
-      padding: 20px;
+      background: #1e293b;
+      padding: 40px;
       border-radius: 12px;
       max-width: 400px;
       margin: 20px auto;
@@ -107,7 +110,7 @@
       display: block;
     }
     .auth-form h2 {
-      color: #10b981;
+      color: #4ade80;
       margin-bottom: 20px;
     }
     .auth-form input {
@@ -115,21 +118,20 @@
       padding: 12px;
       margin: 10px 0;
       border-radius: 8px;
-      border: 1px solid #374151;
-      background: #374151;
+      border: none;
+      background: #334155;
       color: #e5e7eb;
       font-size: 1rem;
     }
     .auth-form input:focus {
-      background: #4b5563;
-      border-color: #3b82f6;
+      background: #475569;
       outline: none;
     }
     .auth-form button {
       width: 100%;
     }
     .error-message {
-      color: #e11d48;
+      color: #ef4444;
       font-size: 0.9rem;
       margin-top: 5px;
       display: none;
@@ -137,12 +139,12 @@
     .forgot-password-link {
       margin-top: 15px;
       display: block;
-      color: #f59e0b;
+      color: #facc15;
       text-decoration: none;
       font-weight: bold;
     }
     .forgot-password-link:hover {
-      color: #3b82f6;
+      color: #38bdf8;
       text-decoration: underline;
     }
     .forgot-password-form {
@@ -151,32 +153,33 @@
     .forgot-password-form.active {
       display: block;
     }
+    .loader {
+      display: none;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #4ade80;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 10px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.8rem;
-      }
-      .auth-buttons {
-        flex-direction: column;
-        gap: 10px;
-      }
-      .auth-form {
-        width: 90%;
-      }
+      h1 { font-size: 1.8rem; }
+      .auth-buttons { flex-direction: column; gap: 10px; }
+      .auth-form { width: 90%; padding: 20px; }
     }
   </style>
 </head>
 <body>
   <h1>Bienvenue sur AutoRent 🚗</h1>
-  <p>
-    Vous êtes désormais dans l’espace agent d’AutoRent, la plateforme révolutionnaire de gestion de flotte automobile.
-    Grâce à AutoRent, vous pouvez publier vos voitures, gérer vos réservations, suivre vos revenus et bien plus encore — le tout en ligne et sans effort.
-  </p>
-  <p>
-    💡 <span class="highlight">AutoRent</span> vous permet de devenir une agence 100% digitale avec un site web dédié, une IA qui analyse vos performances,
-    et une interface moderne pour développer votre business comme jamais auparavant.
-  </p>
+  <p>Vous êtes dans l’espace agent d’AutoRent, la plateforme révolutionnaire de gestion de flotte automobile. Publiez vos voitures, gérez vos réservations, suivez vos revenus — le tout en ligne.</p>
+  <p>💡 <span class="highlight">AutoRent</span> vous propose un site dédié, une IA pour vos performances, et une interface moderne pour développer votre business.</p>
   <div class="free-offer">
-    <p>🎁 <span class="highlight">Accès 100% GRATUIT</span> au début du lancement – Profitez-en pour prendre de l’avance sur vos concurrents !</p>
+    🎁 <span class="highlight">Accès 100% GRATUIT</span> au début du lancement – Profitez-en pour prendre de l’avance sur vos concurrents !
   </div>
 
   <div class="auth-buttons">
@@ -186,36 +189,45 @@
 
   <div class="auth-form" id="loginForm">
     <h2>Connexion</h2>
-    <input type="email" id="loginEmail" placeholder="Email" required aria-label="Adresse email" />
+    <input type="email" id="loginEmail" placeholder="Email" required aria-label="Adresse email" aria-describedby="loginEmailError" />
     <div class="error-message" id="loginEmailError"></div>
-    <input type="password" id="loginPassword" placeholder="Mot de passe" required aria-label="Mot de passe" />
+    <input type="password" id="loginPassword" placeholder="Mot de passe" required aria-label="Mot de passe" aria-describedby="loginPasswordError" />
     <div class="error-message" id="loginPasswordError"></div>
     <button class="btn" id="submitLogin" aria-label="Se connecter">Se connecter</button>
-    <a href="#" class="forgot-password-link" id="forgotPasswordLink" aria-label="Mot de passe oublié">Mot de passe oublié ?</a>
+    <div class="loader" id="loginLoader"></div>
+    <a href="javascript:void(0)" class="forgot-password-link" id="forgotPasswordLink" aria-label="Mot de passe oublié">Mot de passe oublié ?</a>
   </div>
 
   <div class="auth-form forgot-password-form" id="forgotPasswordForm">
     <h2>Réinitialiser le mot de passe</h2>
-    <input type="email" id="resetEmail" placeholder="Entrez votre email" required aria-label="Email pour réinitialisation" />
+    <input type="email" id="resetEmail" placeholder="Entrez votre email" required aria-label="Email pour réinitialisation" aria-describedby="resetEmailError" />
     <div class="error-message" id="resetEmailError"></div>
     <button class="btn" id="resetPasswordBtn" aria-label="Envoyer le lien de réinitialisation">Envoyer le lien</button>
-    <a href="#" class="forgot-password-link" id="backToLogin" aria-label="Retour à la connexion">Retour à la connexion</a>
+    <div class="loader" id="resetLoader"></div>
+    <a href="javascript:void(0)" class="forgot-password-link" id="backToLogin" aria-label="Retour à la connexion">Retour à la connexion</a>
   </div>
 
   <div class="auth-form" id="signupForm">
     <h2>Inscription</h2>
-    <input type="text" id="signupPrenom" placeholder="Prénom" required aria-label="Prénom" />
+    <input type="text" id="signupPrenom" placeholder="Prénom" required aria-label="Prénom" aria-describedby="signupPrenomError" />
     <div class="error-message" id="signupPrenomError"></div>
-    <input type="email" id="signupEmail" placeholder="Email" required aria-label="Adresse email" />
+    <input type="text" id="signupNom" placeholder="Nom" required aria-label="Nom" aria-describedby="signupNomError" />
+    <div class="error-message" id="signupNomError"></div>
+    <input type="text" id="signupVille" placeholder="Ville" required aria-label="Ville" aria-describedby="signupVilleError" />
+    <div class="error-message" id="signupVilleError"></div>
+    <input type="text" id="signupTelephone" placeholder="Téléphone (ex: +212600000000)" required aria-label="Téléphone" aria-describedby="signupTelephoneError" />
+    <div class="error-message" id="signupTelephoneError"></div>
+    <input type="email" id="signupEmail" placeholder="Email" required aria-label="Adresse email" aria-describedby="signupEmailError" />
     <div class="error-message" id="signupEmailError"></div>
-    <input type="password" id="signupPassword" placeholder="Mot de passe" required aria-label="Mot de passe" />
+    <input type="password" id="signupPassword" placeholder="Mot de passe" required aria-label="Mot de passe" aria-describedby="signupPasswordError" />
     <div class="error-message" id="signupPasswordError"></div>
     <button class="btn btn-signup" id="submitSignup" aria-label="S’inscrire">S’inscrire</button>
+    <div class="loader" id="signupLoader"></div>
   </div>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
     import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
     import { firebaseConfig } from './js/firebase.js';
 
@@ -223,22 +235,28 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    const loginForm = document.getElementById('loginForm');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    const signupForm = document.getElementById('signupForm');
     const loginBtn = document.getElementById('loginBtn');
     const signupBtn = document.getElementById('signupBtn');
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
-    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
     const submitLogin = document.getElementById('submitLogin');
+    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
     const submitSignup = document.getElementById('submitSignup');
     const forgotPasswordLink = document.getElementById('forgotPasswordLink');
     const backToLogin = document.getElementById('backToLogin');
-    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+    const loginLoader = document.getElementById('loginLoader');
+    const resetLoader = document.getElementById('resetLoader');
+    const signupLoader = document.getElementById('signupLoader');
 
     const inputs = {
       loginEmail: document.getElementById('loginEmail'),
       loginPassword: document.getElementById('loginPassword'),
       resetEmail: document.getElementById('resetEmail'),
       signupPrenom: document.getElementById('signupPrenom'),
+      signupNom: document.getElementById('signupNom'),
+      signupVille: document.getElementById('signupVille'),
+      signupTelephone: document.getElementById('signupTelephone'),
       signupEmail: document.getElementById('signupEmail'),
       signupPassword: document.getElementById('signupPassword')
     };
@@ -247,6 +265,9 @@
       loginPassword: document.getElementById('loginPasswordError'),
       resetEmail: document.getElementById('resetEmailError'),
       signupPrenom: document.getElementById('signupPrenomError'),
+      signupNom: document.getElementById('signupNomError'),
+      signupVille: document.getElementById('signupVilleError'),
+      signupTelephone: document.getElementById('signupTelephoneError'),
       signupEmail: document.getElementById('signupEmailError'),
       signupPassword: document.getElementById('signupPasswordError')
     };
@@ -261,6 +282,21 @@
         error.textContent = '';
         error.style.display = 'none';
       });
+    }
+
+    function validateEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    function validatePassword(password) {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+      return passwordRegex.test(password);
+    }
+
+    function validatePhone(telephone) {
+      const phoneRegex = /^(\+212|0[67])[0-9]{8}$/;
+      return phoneRegex.test(telephone);
     }
 
     // Toggle forms
@@ -280,143 +316,122 @@
 
     forgotPasswordLink.addEventListener('click', (e) => {
       e.preventDefault();
-      loginForm.classList.remove('active');
       forgotPasswordForm.classList.add('active');
+      loginForm.classList.remove('active');
       signupForm.classList.remove('active');
       clearErrors();
     });
 
     backToLogin.addEventListener('click', (e) => {
       e.preventDefault();
-      forgotPasswordForm.classList.remove('active');
       loginForm.classList.add('active');
+      forgotPasswordForm.classList.remove('active');
+      signupForm.classList.remove('active');
       clearErrors();
     });
 
-    // Validate login
-    function validateLoginInputs() {
-      let isValid = true;
-      clearErrors();
-
-      if (!inputs.loginEmail.value.trim()) {
-        showError('loginEmail', 'L’email est requis.');
-        isValid = false;
-      } else {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(inputs.loginEmail.value.trim())) {
-          showError('loginEmail', 'Veuillez entrer un email valide.');
-          isValid = false;
-        }
-      }
-
-      if (!inputs.loginPassword.value.trim()) {
-        showError('loginPassword', 'Le mot de passe est requis.');
-        isValid = false;
-      }
-
-      return isValid;
-    }
-
-    // Validate signup
-    function validateSignupInputs() {
-      let isValid = true;
-      clearErrors();
-
-      if (!inputs.signupPrenom.value.trim()) {
-        showError('signupPrenom', 'Le prénom est requis.');
-        isValid = false;
-      } else if (inputs.signupPrenom.value.trim().length > 50) {
-        showError('signupPrenom', 'Le prénom ne doit pas dépasser 50 caractères.');
-        isValid = false;
-      }
-
-      if (!inputs.signupEmail.value.trim()) {
-        showError('signupEmail', 'L’email est requis.');
-        isValid = false;
-      } else {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(inputs.signupEmail.value.trim())) {
-          showError('signupEmail', 'Veuillez entrer un email valide.');
-          isValid = false;
-        }
-      }
-
-      if (!inputs.signupPassword.value) {
-        showError('signupPassword', 'Le mot de passe est requis.');
-        isValid = false;
-      } else {
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
-        if (!passwordRegex.test(inputs.signupPassword.value)) {
-          showError('signupPassword', 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.');
-          isValid = false;
-        }
-      }
-
-      return isValid;
-    }
-
     // Login
-    submitLogin.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (!validateLoginInputs()) return;
-
+    submitLogin.addEventListener('click', async () => {
+      clearErrors();
       const email = inputs.loginEmail.value.trim();
       const password = inputs.loginPassword.value.trim();
 
+      if (!email || !password) {
+        showError('loginEmail', 'Veuillez remplir tous les champs.');
+        return;
+      }
+      if (!validateEmail(email)) {
+        showError('loginEmail', 'Veuillez entrer un email valide.');
+        return;
+      }
+
+      loginLoader.style.display = 'block';
+      submitLogin.disabled = true;
+
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        Toastify({ text: 'Connexion réussie !', duration: 3000, backgroundColor: '#10b981' }).showToast();
+        Toastify({ text: 'Connexion réussie !', duration: 3000, backgroundColor: '#4ade80' }).showToast();
         window.location.href = 'confirmation-premium.html';
       } catch (error) {
-        console.error('Erreur de connexion:', error.code, error.message);
-        let message = 'Erreur lors de la connexion.';
-        if (error.code === 'auth/user-not-found') message = 'Utilisateur non trouvé.';
-        if (error.code === 'auth/wrong-password') message = 'Mot de passe incorrect.';
-        if (error.code === 'auth/invalid-email') message = 'Email invalide.';
-        Toastify({ text: message, duration: 3000, backgroundColor: '#e11d48' }).showToast();
+        showError('loginEmail', `Erreur : ${error.message}`);
+      } finally {
+        loginLoader.style.display = 'none';
+        submitLogin.disabled = false;
       }
     });
 
     // Reset password
-    resetPasswordBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
+    resetPasswordBtn.addEventListener('click', async () => {
       clearErrors();
       const email = inputs.resetEmail.value.trim();
 
       if (!email) {
         showError('resetEmail', 'Veuillez entrer un email.');
         return;
-      } else {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          showError('resetEmail', 'Veuillez entrer un email valide.');
-          return;
-        }
       }
+      if (!validateEmail(email)) {
+        showError('resetEmail', 'Veuillez entrer un email valide.');
+        return;
+      }
+
+      resetLoader.style.display = 'block';
+      resetPasswordBtn.disabled = true;
 
       try {
         await sendPasswordResetEmail(auth, email);
-        Toastify({ text: 'Lien de réinitialisation envoyé à votre email.', duration: 3000, backgroundColor: '#10b981' }).showToast();
+        Toastify({ text: 'Lien de réinitialisation envoyé à votre email.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
         forgotPasswordForm.classList.remove('active');
         loginForm.classList.add('active');
         inputs.resetEmail.value = '';
       } catch (error) {
-        console.error('Erreur de réinitialisation:', error.code, error.message);
-        let message = 'Erreur lors de l’envoi du lien.';
-        if (error.code === 'auth/user-not-found') message = 'Aucun utilisateur avec cet email.';
-        if (error.code === 'auth/invalid-email') message = 'Email invalide.';
-        Toastify({ text: message, duration: 3000, backgroundColor: '#e11d48' }).showToast();
+        showError('resetEmail', `Erreur : ${error.message}`);
+      } finally {
+        resetLoader.style.display = 'none';
+        resetPasswordBtn.disabled = false;
       }
     });
 
     // Signup
-    submitSignup.addEventListener('click', async (e) => {
-      e.preventDefault();
-      if (!validateSignupInputs()) return;
-
+    submitSignup.addEventListener('click', async () => {
+      clearErrors();
       const prenom = inputs.signupPrenom.value.trim();
+      const nom = inputs.signupNom.value.trim();
+      const ville = inputs.signupVille.value.trim();
+      const telephone = inputs.signupTelephone.value.trim();
       const email = inputs.signupEmail.value.trim();
-      const password = inputs.signupPassword.value;
+      const password = inputs.signupPassword.value.trim();
+
+      let isValid = true;
+
+      if (!prenom) {
+        showError('signupPrenom', 'Le prénom est requis.');
+        isValid = false;
+      }
+      if (!nom) {
+        showError('signupNom', 'Le nom est requis.');
+        isValid = false;
+      }
+      if (!ville) {
+        showError('signupVille', 'La ville est requise.');
+        isValid = false;
+      }
+      if (!validatePhone(telephone)) {
+        showError('signupTelephone', 'Format invalide (ex: +212600000000 ou 0600000000).');
+        isValid = false;
+      }
+      if (!validateEmail(email)) {
+        showError('signupEmail', 'Veuillez entrer un email valide.');
+        isValid = false;
+      }
+      if (!validatePassword(password)) {
+        showError('signupPassword', 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.');
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      signupLoader.style.display = 'block';
+      submitSignup.disabled = true;
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -424,6 +439,9 @@
 
         await setDoc(doc(db, 'utilisateurs', user.uid), {
           prenom,
+          nom,
+          ville,
+          telephone,
           email,
           uid: user.uid,
           pack: 'premium',
@@ -437,34 +455,24 @@
           startDate: serverTimestamp()
         });
 
-        Toastify({ text: 'Inscription réussie ! Bienvenue sur AutoRent 🚗', duration: 3000, backgroundColor: '#10b981' }).showToast();
+        Toastify({ text: 'Inscription réussie ! Bienvenue.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
         window.location.href = 'confirmation-premium.html';
       } catch (error) {
-        console.error('Erreur d’inscription:', error.code, error.message);
-        let message = 'Erreur lors de l’inscription.';
-        if (error.code === 'auth/email-already-in-use') message = 'Cet email est déjà utilisé.';
-        if (error.code === 'auth/invalid-email') message = 'Email invalide.';
-        if (error.code === 'auth/weak-password') message = 'Mot de passe trop faible.';
-        Toastify({ text: message, duration: 3000, backgroundColor: '#e11d48' }).showToast();
-      }
-    });
-
-    // Authentication state
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        window.location.href = 'confirmation-premium.html';
+        showError('signupEmail', `Erreur : ${error.message}`);
+      } finally {
+        signupLoader.style.display = 'none';
+        submitSignup.disabled = false;
       }
     });
 
     // Offline support
     window.addEventListener('offline', () => {
-      Toastify({ text: 'Vous êtes hors ligne.', duration: -1, backgroundColor: '#e11d48' }).showToast();
+      Toastify({ text: 'Vous êtes hors ligne.', duration: -1, backgroundColor: '#ef4444' }).showToast();
     });
     window.addEventListener('online', () => {
-      Toastify({ text: 'Connexion rétablie.', duration: 3000, backgroundColor: '#10b981' }).showToast();
+      Toastify({ text: 'Connexion rétablie.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
     });
   </script>
 </body>
 </html>
-
 
