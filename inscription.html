@@ -2,296 +2,160 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Inscription à AutoRent, la plateforme de gestion de flotte automobile, 100% gratuite au début du lancement." />
-  <meta name="robots" content="index, follow" />
-  <meta property="og:title" content="Inscription - AutoRent" />
-  <meta property="og:description" content="Inscription à AutoRent, la plateforme de gestion de flotte automobile." />
-  <meta property="og:image" content="/images/autorent-logo.png" />
-  <title>Inscription - AutoRent</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js" defer></script>
-  <script type="module" src="js/firebase.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inscription AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
     body {
-      font-family: 'Poppins', Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      background: #0f172a;
+      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
     }
-    .form-container {
+    .form {
       background: #1e293b;
-      padding: 40px;
+      padding: 2rem;
       border-radius: 12px;
-      width: 100%;
       max-width: 400px;
-      text-align: center;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-      animation: fadeIn 0.5s ease-out;
+      width: 100%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.3rem;
     }
-    h2 {
-      color: #4ade80;
-      margin-bottom: 20px;
-    }
-    input {
+    input, button {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
+      margin-top: 6px;
       border-radius: 8px;
       border: none;
-      background: #334155;
-      color: #fff;
       font-size: 1rem;
-    }
-    input:focus {
-      background: #475569;
-      outline: none;
     }
     button {
-      width: 100%;
-      padding: 12px;
-      background: #facc15;
-      border: none;
-      border-radius: 8px;
+      background: #60a5fa;
       color: #0f172a;
       font-weight: bold;
-      font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s, transform 0.2s;
-    }
-    button:hover {
-      background: #e0ab0d;
-      transform: scale(1.05);
+      margin-top: 1rem;
     }
     button:disabled {
-      background: #6b7280;
+      background: #a1a1a1;
       cursor: not-allowed;
     }
-    .error-message {
-      color: #ef4444;
-      font-size: 0.9rem;
-      margin-top: 5px;
-      display: none;
+    #error {
+      color: red;
+      margin-top: 10px;
+      min-height: 1.5em;
     }
-    .loader {
-      display: none;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #4ade80;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      animation: spin 1s linear infinite;
-      margin: 10px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    @media (max-width: 600px) {
-      .form-container {
-        padding: 20px;
-        width: 90%;
+    @media (max-width: 480px) {
+      .form {
+        padding: 1.5rem;
+      }
+      input, button {
+        font-size: 0.9rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="form-container">
+  <form id="registerForm" class="form">
     <h2>Créer un compte</h2>
-    <input type="text" id="prenom" placeholder="Prénom" required aria-label="Prénom" aria-describedby="prenomError" />
-    <div class="error-message" id="prenomError"></div>
-    <input type="text" id="nom" placeholder="Nom" required aria-label="Nom" aria-describedby="nomError" />
-    <div class="error-message" id="nomError"></div>
-    <input type="text" id="ville" placeholder="Ville" required aria-label="Ville" aria-describedby="villeError" />
-    <div class="error-message" id="villeError"></div>
-    <input type="text" id="telephone" placeholder="Téléphone (ex: +212600000000)" required aria-label="Téléphone" aria-describedby="telephoneError" />
-    <div class="error-message" id="telephoneError"></div>
-    <input type="email" id="email" placeholder="Email" required aria-label="Adresse email" aria-describedby="emailError" />
-    <div class="error-message" id="emailError"></div>
-    <input type="password" id="password" placeholder="Mot de passe" required aria-label="Mot de passe" aria-describedby="passwordError" />
-    <div class="error-message" id="passwordError"></div>
-    <button id="registerBtn" aria-label="S’inscrire">S’inscrire</button>
-    <div class="loader" id="signupLoader"></div>
-  </div>
+    <div id="error" role="alert"></div>
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="Email" aria-required="true" required />
+    <label for="password">Mot de passe</label>
+    <input type="password" id="password" placeholder="Mot de passe (min. 6 caractères)" required />
+    <label for="confirm">Confirmer le mot de passe</label>
+    <input type="password" id="confirm" placeholder="Confirmer le mot de passe" required />
+    <button type="submit" id="registerBtn">S'inscrire</button>
+  </form>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
-    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
-    import { firebaseConfig } from './js/firebase.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDcSbsP-ylos5DC-oHUuyB-PFG6rnNhvJk",
+      authDomain: "autorent-7b992.firebaseapp.com",
+      projectId: "autorent-7b992",
+      storageBucket: "autorent-7b992.appspot.com",
+      messagingSenderId: "824292845635",
+      appId: "1:824292845635:web:2eb167bad2c9ac4666ccf6"
+    };
 
     const app = initializeApp(firebaseConfig);
-    console.log('Firebase initialisé:', app); // Debug: Vérifier l'initialisation
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const registerBtn = document.getElementById('registerBtn');
-    const signupLoader = document.getElementById('signupLoader');
-    const inputs = {
-      prenom: document.getElementById('prenom'),
-      nom: document.getElementById('nom'),
-      ville: document.getElementById('ville'),
-      telephone: document.getElementById('telephone'),
-      email: document.getElementById('email'),
-      password: document.getElementById('password')
-    };
-    const errors = {
-      prenom: document.getElementById('prenomError'),
-      nom: document.getElementById('nomError'),
-      ville: document.getElementById('villeError'),
-      telephone: document.getElementById('telephoneError'),
-      email: document.getElementById('emailError'),
-      password: document.getElementById('passwordError')
-    };
+    const registerForm = document.getElementById("registerForm");
+    const registerBtn = document.getElementById("registerBtn");
+    const errorDiv = document.getElementById("error");
 
-    function showError(field, message) {
-      errors[field].textContent = message;
-      errors[field].style.display = 'block';
-    }
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Création en cours...";
+      errorDiv.textContent = "";
 
-    function clearErrors() {
-      Object.values(errors).forEach(error => {
-        error.textContent = '';
-        error.style.display = 'none';
-      });
-    }
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const confirm = document.getElementById("confirm").value.trim();
 
-    function validateInputs() {
-      let isValid = true;
-      clearErrors();
-
-      // Prénom: non vide
-      if (!inputs.prenom.value.trim()) {
-        showError('prenom', 'Le prénom est requis.');
-        isValid = false;
-      }
-
-      // Nom: non vide
-      if (!inputs.nom.value.trim()) {
-        showError('nom', 'Le nom est requis.');
-        isValid = false;
-      }
-
-      // Ville: non vide
-      if (!inputs.ville.value.trim()) {
-        showError('ville', 'La ville est requise.');
-        isValid = false;
-      }
-
-      // Téléphone: format +212 ou 06/07 avec 9 chiffres après
-      const phoneRegex = /^(\+212|0[67])[0-9]{8}$/;
-      if (!phoneRegex.test(inputs.telephone.value.trim())) {
-        showError('telephone', 'Format invalide (ex: +212600000000 ou 0600000000).');
-        isValid = false;
-      }
-
-      // Email: format valide
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(inputs.email.value.trim())) {
-        showError('email', 'Veuillez entrer un email valide.');
-        isValid = false;
-      }
-
-      // Mot de passe: 8+ caractères, 1 majuscule, 1 minuscule, 1 chiffre, 1 spécial
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
-      if (!passwordRegex.test(inputs.password.value)) {
-        showError('password', 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.');
-        isValid = false;
-      }
-
-      return isValid;
-    }
-
-    registerBtn.addEventListener('click', async () => {
-      if (!validateInputs()) {
+      if (!email || !password || !confirm) {
+        errorDiv.textContent = "Tous les champs sont obligatoires.";
+        registerBtn.disabled = false;
+        registerBtn.textContent = "S'inscrire";
         return;
       }
 
-      const prenom = inputs.prenom.value.trim();
-      const nom = inputs.nom.value.trim();
-      const ville = inputs.ville.value.trim();
-      const telephone = inputs.telephone.value.trim();
-      const email = inputs.email.value.trim();
-      const password = inputs.password.value.trim();
-      console.log('Inscription - Données:', { prenom, nom, ville, telephone, email, password }); // Debug: Vérifier les valeurs
+      if (password.length < 6) {
+        errorDiv.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
+        registerBtn.disabled = false;
+        registerBtn.textContent = "S'inscrire";
+        return;
+      }
 
-      signupLoader.style.display = 'block';
-      registerBtn.disabled = true;
+      if (password !== confirm) {
+        errorDiv.textContent = "Les mots de passe ne correspondent pas.";
+        registerBtn.disabled = false;
+        registerBtn.textContent = "S'inscrire";
+        return;
+      }
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        console.log('Utilisateur créé:', user.uid); // Debug: Vérifier la création de l'utilisateur
+        const uid = userCredential.user.uid;
 
-        await setDoc(doc(db, 'utilisateurs', user.uid), {
-          prenom,
-          nom,
-          ville,
-          telephone,
+        await setDoc(doc(db, "users", uid), {
           email,
-          uid: user.uid,
-          pack: 'premium',
-          solde: 0,
-          createdAt: serverTimestamp()
+          role: "user", // ou "premium" si inscription payante
+          createdAt: serverTimestamp(),
+          subscriptionActive: false
         });
-        console.log('Document utilisateurs écrit'); // Debug: Vérifier l'écriture dans Firestore
 
-        await setDoc(doc(db, 'abonnements', user.uid), {
-          pack: 'premium',
-          solde: 0,
-          startDate: serverTimestamp()
-        });
-        console.log('Document abonnements écrit'); // Debug: Vérifier l'écriture dans Firestore
-
-        Toastify({ text: 'Inscription réussie ! Bienvenue.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
-        window.location.href = 'confirmation-premium.html';
-      } catch (error) {
-        console.error('Erreur d’inscription:', error); // Debug: Afficher l'erreur complète
-        let errorMessage = 'Erreur inconnue. Veuillez réessayer.';
-        switch (error.code) {
-          case 'auth/email-already-in-use':
-            errorMessage = 'Cet email est déjà utilisé.';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'Email invalide.';
-            break;
-          case 'auth/weak-password':
-            errorMessage = 'Le mot de passe est trop faible.';
-            break;
-          default:
-            errorMessage = error.message;
+        window.location.href = "confirmation-premium.html";
+      } catch (e) {
+        let message = "Une erreur s'est produite. Veuillez réessayer.";
+        if (e.code === "auth/email-already-in-use") {
+          message = "Cet email est déjà utilisé.";
+        } else if (e.code === "auth/invalid-email") {
+          message = "Adresse email invalide.";
+        } else if (e.code === "auth/weak-password") {
+          message = "Mot de passe trop faible.";
         }
-        showError('email', errorMessage);
+        errorDiv.textContent = message;
       } finally {
-        signupLoader.style.display = 'none';
         registerBtn.disabled = false;
+        registerBtn.textContent = "S'inscrire";
       }
-    });
-
-    // Offline support
-    window.addEventListener('offline', () => {
-      Toastify({ text: 'Vous êtes hors ligne.', duration: -1, backgroundColor: '#ef4444' }).showToast();
-    });
-    window.addEventListener('online', () => {
-      Toastify({ text: 'Connexion rétablie.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
     });
   </script>
 </body>

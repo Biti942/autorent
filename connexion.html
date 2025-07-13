@@ -3,309 +3,167 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Connexion à AutoRent, la plateforme de gestion de flotte automobile." />
-  <meta name="robots" content="index, follow" />
-  <meta property="og:title" content="Connexion - AutoRent" />
-  <meta property="og:description" content="Connexion à AutoRent, la plateforme de gestion de flotte automobile." />
-  <meta property="og:image" content="/images/autorent-logo.png" />
-  <title>Connexion - AutoRent</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/toastify-js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js" defer></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js" defer></script>
-  <script type="module" src="js/firebase.js" defer></script>
+  <title>Connexion AutoRent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
     body {
-      font-family: 'Poppins', Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      background: #0f172a;
+      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
     }
-    .form-container {
+    .form {
       background: #1e293b;
-      padding: 40px;
+      padding: 2rem;
       border-radius: 12px;
-      width: 100%;
       max-width: 400px;
-      text-align: center;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-      animation: fadeIn 0.5s ease-out;
+      width: 100%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    label {
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.3rem;
     }
-    h2 {
-      color: #4ade80;
-      margin-bottom: 20px;
-    }
-    input {
+    input, button {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
+      margin-top: 6px;
       border-radius: 8px;
       border: none;
-      background: #334155;
-      color: #fff;
       font-size: 1rem;
-    }
-    input:focus {
-      background: #475569;
-      outline: none;
     }
     button {
-      width: 100%;
-      padding: 12px;
-      background: #38bdf8;
-      border: none;
-      border-radius: 8px;
+      background: #4ade80;
       color: #0f172a;
       font-weight: bold;
-      font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s, transform 0.2s;
-    }
-    button:hover {
-      background: #0ea5e9;
-      transform: scale(1.05);
+      margin-top: 1rem;
     }
     button:disabled {
-      background: #6b7280;
+      background: #a1a1a1;
       cursor: not-allowed;
     }
-    .link {
-      margin-top: 15px;
-      display: block;
-      color: #facc15;
+    #error {
+      color: red;
+      margin-top: 10px;
+      min-height: 1.5em;
+    }
+    .forgot-password {
+      color: #4ade80;
       text-decoration: none;
-      font-weight: bold;
-    }
-    .link:hover {
-      color: #38bdf8;
-      text-decoration: underline;
-    }
-    .error-message {
-      color: #ef4444;
-      font-size: 0.9rem;
-      margin-top: 5px;
-      display: none;
-    }
-    .loader {
-      display: none;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #4ade80;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      animation: spin 1s linear infinite;
-      margin: 10px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .forgot-password-form {
-      display: none;
-      margin-top: 20px;
-    }
-    .forgot-password-form.active {
       display: block;
+      text-align: right;
+      margin-top: 10px;
     }
-    @media (max-width: 600px) {
-      .form-container {
-        padding: 20px;
-        width: 90%;
+    @media (max-width: 480px) {
+      .form {
+        padding: 1.5rem;
+      }
+      input, button {
+        font-size: 0.9rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <h2>Connexion AutoRent</h2>
-    <div id="loginForm">
-      <input type="email" id="email" placeholder="Email" required aria-label="Adresse email" aria-describedby="emailError" />
-      <div class="error-message" id="emailError"></div>
-      <input type="password" id="password" placeholder="Mot de passe" required aria-label="Mot de passe" aria-describedby="passwordError" />
-      <div class="error-message" id="passwordError"></div>
-      <button id="loginBtn" aria-label="Se connecter">Se connecter</button>
-      <div class="loader" id="loginLoader"></div>
-      <a class="link" href="javascript:void(0)" id="forgotPasswordLink" aria-label="Mot de passe oublié">Mot de passe oublié ?</a>
-      <a class="link" href="inscription.html">Créer un compte</a>
-    </div>
-    <div class="forgot-password-form" id="forgotPasswordForm">
-      <input type="email" id="resetEmail" placeholder="Entrez votre email" required aria-label="Email pour réinitialisation" aria-describedby="resetEmailError" />
-      <div class="error-message" id="resetEmailError"></div>
-      <button id="resetPasswordBtn" aria-label="Envoyer le lien de réinitialisation">Envoyer le lien</button>
-      <div class="loader" id="resetLoader"></div>
-      <a class="link" href="javascript:void(0)" id="backToLogin" aria-label="Retour à la connexion">Retour à la connexion</a>
-    </div>
-  </div>
+  <form id="loginForm" class="form">
+    <h2>Connexion</h2>
+    <div id="error" role="alert"></div>
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="Email" aria-required="true" required />
+    <label for="password">Mot de passe</label>
+    <input type="password" id="password" placeholder="Mot de passe" aria-required="true" required />
+    <button type="submit" id="loginBtn">Se connecter</button>
+    <a href="#" id="forgotPassword" class="forgot-password">Mot de passe oublié ?</a>
+  </form>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
-    import { firebaseConfig } from './js/firebase.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    console.log('Firebase initialisé:', app); // Debug: Vérifier l'initialisation
-    const auth = getAuth(app);
-
-    const loginForm = document.getElementById('loginForm');
-    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-    const backToLogin = document.getElementById('backToLogin');
-    const loginBtn = document.getElementById('loginBtn');
-    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
-    const loginLoader = document.getElementById('loginLoader');
-    const resetLoader = document.getElementById('resetLoader');
-    const errors = {
-      email: document.getElementById('emailError'),
-      password: document.getElementById('passwordError'),
-      resetEmail: document.getElementById('resetEmailError')
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDcSbsP-ylos5DC-oHUuyB-PFG6rnNhvJk",
+      authDomain: "autorent-7b992.firebaseapp.com",
+      projectId: "autorent-7b992",
+      storageBucket: "autorent-7b992.appspot.com",
+      messagingSenderId: "824292845635",
+      appId: "1:824292845635:web:2eb167bad2c9ac4666ccf6"
     };
 
-    function showError(field, message) {
-      errors[field].textContent = message;
-      errors[field].style.display = 'block';
-    }
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    function clearErrors() {
-      Object.values(errors).forEach(error => {
-        error.textContent = '';
-        error.style.display = 'none';
-      });
-    }
+    const loginForm = document.getElementById("loginForm");
+    const loginBtn = document.getElementById("loginBtn");
+    const errorDiv = document.getElementById("error");
 
-    function validateEmail(email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    }
-
-    // Toggle forms
-    forgotPasswordLink.addEventListener('click', (e) => {
+    loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      loginForm.style.display = 'none';
-      forgotPasswordForm.classList.add('active');
-      clearErrors();
-    });
-
-    backToLogin.addEventListener('click', (e) => {
-      e.preventDefault();
-      forgotPasswordForm.classList.remove('active');
-      loginForm.style.display = 'block';
-      clearErrors();
-    });
-
-    // Login
-    loginBtn.addEventListener('click', async () => {
-      clearErrors();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      console.log('Connexion - Email:', email, 'Password:', password); // Debug: Vérifier les valeurs
-
-      if (!email || !password) {
-        showError('email', 'Veuillez remplir tous les champs.');
-        return;
-      }
-      if (!validateEmail(email)) {
-        showError('email', 'Veuillez entrer un email valide.');
-        return;
-      }
-
-      loginLoader.style.display = 'block';
       loginBtn.disabled = true;
+      loginBtn.textContent = "Connexion...";
+      errorDiv.textContent = "";
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
 
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        Toastify({ text: 'Connexion réussie !', duration: 3000, backgroundColor: '#4ade80' }).showToast();
-        window.location.href = 'confirmation-premium.html';
-      } catch (error) {
-        console.error('Erreur de connexion:', error); // Debug: Afficher l'erreur complète
-        let errorMessage = 'Erreur inconnue. Veuillez réessayer.';
-        switch (error.code) {
-          case 'auth/user-not-found':
-            errorMessage = 'Utilisateur non trouvé.';
-            break;
-          case 'auth/wrong-password':
-            errorMessage = 'Mot de passe incorrect.';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'Email invalide.';
-            break;
-          case 'auth/too-many-requests':
-            errorMessage = 'Trop de tentatives. Réessayez plus tard.';
-            break;
-          default:
-            errorMessage = error.message;
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+        const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
+
+        let role = "user";
+        if (docSnap.exists() && docSnap.data().role) {
+          role = docSnap.data().role;
         }
-        showError('email', errorMessage);
+
+        // Redirection selon le rôle
+        if (role === "admin") {
+          window.location.href = "admin-dashboard.html";
+        } else if (role === "premium") {
+          window.location.href = "dashboard-premium.html";
+        } else {
+          window.location.href = "confirmation-premium.html";
+        }
+
+      } catch (e) {
+        let message = "Une erreur s'est produite. Veuillez réessayer.";
+        if (e.code === "auth/user-not-found") {
+          message = "Utilisateur non trouvé.";
+        } else if (e.code === "auth/wrong-password") {
+          message = "Mot de passe incorrect.";
+        } else if (e.code === "auth/invalid-email") {
+          message = "Adresse email invalide.";
+        }
+        errorDiv.textContent = message;
       } finally {
-        loginLoader.style.display = 'none';
         loginBtn.disabled = false;
+        loginBtn.textContent = "Se connecter";
       }
     });
 
-    // Reset password
-    resetPasswordBtn.addEventListener('click', async () => {
-      clearErrors();
-      const email = document.getElementById('resetEmail').value.trim();
-      console.log('Réinitialisation - Email:', email); // Debug: Vérifier l'email
-
+    document.getElementById("forgotPassword").addEventListener("click", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
       if (!email) {
-        showError('resetEmail', 'Veuillez entrer un email.');
+        errorDiv.textContent = "Veuillez entrer votre email.";
         return;
       }
-      if (!validateEmail(email)) {
-        showError('resetEmail', 'Veuillez entrer un email valide.');
-        return;
-      }
-
-      resetLoader.style.display = 'block';
-      resetPasswordBtn.disabled = true;
-
       try {
         await sendPasswordResetEmail(auth, email);
-        Toastify({ text: 'Lien de réinitialisation envoyé à votre email.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
-        forgotPasswordForm.classList.remove('active');
-        loginForm.style.display = 'block';
-        document.getElementById('resetEmail').value = '';
-      } catch (error) {
-        console.error('Erreur de réinitialisation:', error); // Debug: Afficher l'erreur complète
-        let errorMessage = 'Erreur inconnue. Veuillez réessayer.';
-        switch (error.code) {
-          case 'auth/invalid-email':
-            errorMessage = 'Email invalide.';
-            break;
-          case 'auth/user-not-found':
-            errorMessage = 'Utilisateur non trouvé.';
-            break;
-          default:
-            errorMessage = error.message;
-        }
-        showError('resetEmail', errorMessage);
-      } finally {
-        resetLoader.style.display = 'none';
-        resetPasswordBtn.disabled = false;
+        errorDiv.style.color = "lightgreen";
+        errorDiv.textContent = "Email de réinitialisation envoyé !";
+      } catch (e) {
+        errorDiv.textContent = "Erreur : " + e.message;
       }
-    });
-
-    // Offline support
-    window.addEventListener('offline', () => {
-      Toastify({ text: 'Vous êtes hors ligne.', duration: -1, backgroundColor: '#ef4444' }).showToast();
-    });
-    window.addEventListener('online', () => {
-      Toastify({ text: 'Connexion rétablie.', duration: 3000, backgroundColor: '#4ade80' }).showToast();
     });
   </script>
 </body>
