@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Inscription à AutoRent pour louer des voitures facilement.">
   <title>Inscription AutoRent</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -15,19 +17,26 @@
       align-items: center;
       min-height: 100vh;
       margin: 0;
+      transition: background 0.3s ease;
     }
     .form {
       background: #1e293b;
       padding: 2rem;
       border-radius: 12px;
-      max-width: 400px;
+      max-width: 500px;
       width: 100%;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     label {
       display: block;
       margin-top: 1rem;
       margin-bottom: 0.3rem;
+      font-weight: 600;
     }
     input, button {
       width: 100%;
@@ -36,22 +45,92 @@
       border-radius: 8px;
       border: none;
       font-size: 1rem;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: 2px solid #60a5fa;
+      outline-offset: 2px;
     }
     button {
       background: #60a5fa;
       color: #0f172a;
       font-weight: bold;
       cursor: pointer;
-      margin-top: 1rem;
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+      position: relative;
+    }
+    button:hover:not(:disabled) {
+      background: #3b82f6;
     }
     button:disabled {
       background: #a1a1a1;
       cursor: not-allowed;
     }
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0f172a;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     #error {
-      color: red;
       margin-top: 10px;
       min-height: 1.5em;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+      color: red;
+      text-align: center;
+    }
+    .success {
+      color: #10b981;
+      animation: fadeInToast 0.5s ease-in-out;
+    }
+    .success::before {
+      content: "✅ ";
+      font-size: 1.2rem;
+    }
+    @keyframes fadeInToast {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .password-toggle {
+      cursor: pointer;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #60a5fa;
+      transition: color 0.3s ease;
+    }
+    .password-toggle:hover {
+      color: #3b82f6;
+    }
+    .terms-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 1rem;
+    }
+    .terms-label a {
+      color: #60a5fa;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    .terms-label a:hover {
+      color: #3b82f6;
+      text-decoration: underline;
+    }
+    .invalid {
+      border: 2px solid red;
     }
     @media (max-width: 480px) {
       .form {
@@ -64,24 +143,54 @@
   </style>
 </head>
 <body>
-  <form id="registerForm" class="form">
-    <h2>Créer un compte</h2>
-    <div id="error" role="alert"></div>
+  <form id="registerForm" class="form" aria-labelledby="form-title">
+    <h2 id="form-title">Créer un compte AutoRent</h2>
+    <div id="error" role="alert" aria-live="polite"></div>
+
+    <label for="prenom">Prénom</label>
+    <input type="text" id="prenom" placeholder="Votre prénom" required>
+
+    <label for="nom">Nom</label>
+    <input type="text" id="nom" placeholder="Votre nom" required>
+
+    <label for="tel">Téléphone</label>
+    <input type="tel" id="tel" placeholder="Ex: +212612345678" pattern="\+[0-9]{10,12}" required>
+
+    <label for="ville">Ville</label>
+    <input type="text" id="ville" placeholder="Votre ville" required>
+
+    <label for="dateNaissance">Date de naissance</label>
+    <input type="date" id="dateNaissance" max="2025-07-14" required>
+
     <label for="email">Email</label>
-    <input type="email" id="email" placeholder="Email" aria-required="true" required />
+    <input type="email" id="email" placeholder="Email" required>
+
+    <label for="confirmEmail">Confirmer l'email</label>
+    <input type="email" id="confirmEmail" placeholder="Confirmer l'email" required>
+
     <label for="password">Mot de passe</label>
-    <input type="password" id="password" placeholder="Mot de passe (min. 6 caractères)" required />
+    <input type="password" id="password" placeholder="Mot de passe (min. 6 caractères)" required>
+    <span class="password-toggle" role="button" tabindex="0" onclick="togglePassword('password')" onkeydown="if(event.key === 'Enter') togglePassword('password')">Afficher le mot de passe</span>
+
     <label for="confirm">Confirmer le mot de passe</label>
-    <input type="password" id="confirm" placeholder="Confirmer le mot de passe" required />
+    <input type="password" id="confirm" placeholder="Confirmer le mot de passe" required>
+    <span class="password-toggle" role="button" tabindex="0" onclick="togglePassword('confirm')" onkeydown="if(event.key === 'Enter') togglePassword('confirm')">Afficher le mot de passe</span>
+
+    <label class="terms-label">
+      <input type="checkbox" id="terms" required> J'accepte les <a href="/terms" target="_blank">conditions d'utilisation</a>.
+    </label>
+
     <button type="submit" id="registerBtn">S'inscrire</button>
   </form>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, setDoc, serverTimestamp, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getStorage } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+    import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
-    // Firebase config
+    // Move to backend (e.g., Node.js or Cloud Functions) for production
     const firebaseConfig = {
       apiKey: "AIzaSyDcSbsP-ylos5DC-oHUuyB-PFG6rnNhvJk",
       authDomain: "autorent-7b992.firebaseapp.com",
@@ -94,67 +203,185 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
+    const analytics = getAnalytics(app);
+
+    // Redirect logged-in users
+    onAuthStateChanged(auth, (user) => {
+      if (user) window.location.href = "dashboard-premium.html";
+    });
+
+    const messages = {
+      emptyFields: "Veuillez remplir tous les champs.",
+      passwordMismatch: "Les mots de passe ne correspondent pas.",
+      passwordTooShort: "Le mot de passe doit contenir au moins 6 caractères.",
+      termsRequired: "Vous devez accepter les conditions d'utilisation.",
+      invalidPhone: "Veuillez entrer un numéro de téléphone valide (ex : +212612345678).",
+      phoneExists: "Ce numéro de téléphone est déjà utilisé.",
+      invalidDate: "La date de naissance ne peut pas être dans le futur.",
+      emailMismatch: "Les emails ne correspondent pas.",
+      genericError: "Une erreur s'est produite. Veuillez réessayer.",
+      emailInUse: "Cet email est déjà utilisé.",
+      invalidEmail: "Adresse email invalide.",
+      weakPassword: "Mot de passe trop faible.",
+      success: "Compte créé avec succès !"
+    };
 
     const registerForm = document.getElementById("registerForm");
-    const registerBtn = document.getElementById("registerBtn");
     const errorDiv = document.getElementById("error");
+    const registerBtn = document.getElementById("registerBtn");
+
+    function resetButton() {
+      registerBtn.disabled = false;
+      registerBtn.textContent = "S'inscrire";
+      const spinners = registerBtn.querySelectorAll(".spinner");
+      spinners.forEach(s => s.remove());
+    }
+
+    function setError(fieldId, message) {
+      errorDiv.textContent = message;
+      const field = document.getElementById(fieldId);
+      field.classList.add("invalid");
+      field.setAttribute("aria-describedby", "error");
+      field.focus();
+      resetButton();
+      logEvent(analytics, "sign_up_error", { reason: message });
+    }
+
+    function clearErrors() {
+      errorDiv.textContent = "";
+      document.querySelectorAll("input").forEach(input => {
+        input.classList.remove("invalid");
+        input.removeAttribute("aria-describedby");
+      });
+    }
+
+    window.togglePassword = function(id) {
+      const input = document.getElementById(id);
+      const toggle = input.nextElementSibling;
+      input.type = input.type === 'password' ? 'text' : 'password';
+      toggle.textContent = input.type === 'password' ? 'Afficher le mot de passe' : 'Masquer le mot de passe';
+      input.focus();
+    };
+
+    // Auto-fill city based on IP
+    fetch('http://ip-api.com/json')
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          document.getElementById("ville").value = data.city || '';
+        }
+      })
+      .catch(() => console.log("Impossible de récupérer la ville."));
 
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      clearErrors();
       registerBtn.disabled = true;
       registerBtn.textContent = "Création en cours...";
-      errorDiv.textContent = "";
+      const spinner = document.createElement("span");
+      spinner.className = "spinner";
+      registerBtn.appendChild(spinner);
 
+      const prenom = DOMPurify.sanitize(document.getElementById("prenom").value.trim());
+      const nom = DOMPurify.sanitize(document.getElementById("nom").value.trim());
+      const tel = document.getElementById("tel").value.trim();
+      const ville = DOMPurify.sanitize(document.getElementById("ville").value.trim());
+      const dateNaissance = document.getElementById("dateNaissance").value;
       const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const confirm = document.getElementById("confirm").value.trim();
+      const confirmEmail = document.getElementById("confirmEmail").value.trim();
+      const password = document.getElementById("password").value;
+      const confirm = document.getElementById("confirm").value;
+      const terms = document.getElementById("terms").checked;
 
-      if (!email || !password || !confirm) {
-        errorDiv.textContent = "Tous les champs sont obligatoires.";
-        registerBtn.disabled = false;
-        registerBtn.textContent = "S'inscrire";
+      if (!prenom || !nom || !tel || !ville || !dateNaissance || !email || !confirmEmail || !password || !confirm) {
+        setError("prenom", messages.emptyFields);
+        return;
+      }
+
+      if (!terms) {
+        setError("terms", messages.termsRequired);
+        return;
+      }
+
+      if (email !== confirmEmail) {
+        setError("confirmEmail", messages.emailMismatch);
         return;
       }
 
       if (password.length < 6) {
-        errorDiv.textContent = "Le mot de passe doit contenir au moins 6 caractères.";
-        registerBtn.disabled = false;
-        registerBtn.textContent = "S'inscrire";
+        setError("password", messages.passwordTooShort);
         return;
       }
 
       if (password !== confirm) {
-        errorDiv.textContent = "Les mots de passe ne correspondent pas.";
-        registerBtn.disabled = false;
-        registerBtn.textContent = "S'inscrire";
+        setError("confirm", messages.passwordMismatch);
         return;
+      }
+
+      if (!/\+[0-9]{10,12}/.test(tel)) {
+        setError("tel", messages.invalidPhone);
+        return;
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      if (dateNaissance > today) {
+        setError("dateNaissance", messages.invalidDate);
+        return;
+      }
+
+      // Check for existing phone number (move to backend in production)
+      try {
+        const q = query(collection(db, "users"), where("telephone", "==", tel));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          setError("tel", messages.phoneExists);
+          return;
+        }
+      } catch (e) {
+        console.error("Phone check error:", e);
       }
 
       try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const uid = userCredential.user.uid;
 
-        await setDoc(doc(db, "users", uid), {
+        const userData = {
+          prenom,
+          nom,
+          telephone: tel,
+          ville,
+          dateNaissance,
           email,
-          role: "user", // ou "premium" si inscription payante
+          role: "user",
           createdAt: serverTimestamp(),
           subscriptionActive: false
-        });
+        };
 
-        window.location.href = "confirmation-premium.html";
+        await setDoc(doc(db, "users", uid), userData);
+
+        // Placeholder for Firebase Storage (e.g., profile picture)
+        // Enable with: <input type="file" id="profilePic" accept="image/*">
+        // import { ref, uploadBytes } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+        // const profilePic = document.getElementById("profilePic").files[0];
+        // if (profilePic) {
+        //   const storageRef = ref(storage, `users/${uid}/profile.jpg`);
+        //   await uploadBytes(storageRef, profilePic);
+        // }
+
+        logEvent(analytics, "sign_up", { method: "email" });
+        errorDiv.classList.add("success");
+        errorDiv.textContent = messages.success;
+        registerForm.reset();
+        setTimeout(() => {
+          window.location.href = "dashboard-premium.html";
+        }, 2000);
       } catch (e) {
-        let message = "Une erreur s'est produite. Veuillez réessayer.";
-        if (e.code === "auth/email-already-in-use") {
-          message = "Cet email est déjà utilisé.";
-        } else if (e.code === "auth/invalid-email") {
-          message = "Adresse email invalide.";
-        } else if (e.code === "auth/weak-password") {
-          message = "Mot de passe trop faible.";
-        }
-        errorDiv.textContent = message;
-      } finally {
-        registerBtn.disabled = false;
-        registerBtn.textContent = "S'inscrire";
+        let message = messages.genericError;
+        if (e.code === "auth/email-already-in-use") message = messages.emailInUse;
+        else if (e.code === "auth/invalid-email") message = messages.invalidEmail;
+        else if (e.code === "auth/weak-password") message = messages.weakPassword;
+        setError("email", message);
       }
     });
   </script>

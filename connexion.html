@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Connexion à AutoRent pour accéder à votre tableau de bord.">
   <title>Connexion AutoRent</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -15,6 +16,7 @@
       align-items: center;
       min-height: 100vh;
       margin: 0;
+      transition: background 0.3s ease;
     }
     .form {
       background: #1e293b;
@@ -23,11 +25,17 @@
       max-width: 400px;
       width: 100%;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     label {
       display: block;
       margin-top: 1rem;
       margin-bottom: 0.3rem;
+      font-weight: 600;
     }
     input, button {
       width: 100%;
@@ -36,6 +44,11 @@
       border-radius: 8px;
       border: none;
       font-size: 1rem;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: 2px solid #4ade80;
+      outline-offset: 2px;
     }
     button {
       background: #4ade80;
@@ -43,15 +56,52 @@
       font-weight: bold;
       cursor: pointer;
       margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s ease;
+      position: relative;
+    }
+    button:hover:not(:disabled) {
+      background: #22c55e;
     }
     button:disabled {
       background: #a1a1a1;
       cursor: not-allowed;
     }
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #0f172a;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
     #error {
-      color: red;
       margin-top: 10px;
       min-height: 1.5em;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+      color: red;
+      text-align: center;
+    }
+    .success {
+      color: #10b981;
+      animation: fadeInToast 0.5s ease-in-out;
+    }
+    .success::before {
+      content: "✅ ";
+      font-size: 1.2rem;
+    }
+    @keyframes fadeInToast {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .forgot-password {
       color: #4ade80;
@@ -59,6 +109,14 @@
       display: block;
       text-align: right;
       margin-top: 10px;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+    .forgot-password:hover {
+      color: #22c55e;
+    }
+    .invalid {
+      border: 2px solid red;
     }
     @media (max-width: 480px) {
       .form {
@@ -71,25 +129,31 @@
   </style>
 </head>
 <body>
-  <form id="loginForm" class="form">
-    <h2>Connexion</h2>
-    <div id="error" role="alert"></div>
+  <form id="loginForm" class="form" aria-labelledby="form-title">
+    <h2 id="form-title">Connexion AutoRent</h2>
+    <div id="error" role="alert" aria-live="polite"></div>
+
     <label for="email">Email</label>
-    <input type="email" id="email" placeholder="Email" aria-required="true" required />
+    <input type="email" id="email" placeholder="Email" required>
+
     <label for="password">Mot de passe</label>
-    <input type="password" id="password" placeholder="Mot de passe" aria-required="true" required />
+    <input type="password" id="password" placeholder="Mot de passe" required>
+    <span class="password-toggle" role="button" tabindex="0" onclick="togglePassword()" onkeydown="if(event.key === 'Enter') togglePassword()">Afficher le mot de passe</span>
+
     <button type="submit" id="loginBtn">Se connecter</button>
     <a href="#" id="forgotPassword" class="forgot-password">Mot de passe oublié ?</a>
   </form>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getStorage } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+    import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
-    // Configuration Firebase
+    // Move to backend (e.g., Node.js or Cloud Functions) for production
     const firebaseConfig = {
-      apiKey: "AIzaSyDcSbsP-ylos5DC-oHUuyB-PFG6rnNhvJk",
+      apiKey: "AIzaSyDcSbsP-ylos5DC-oHUuyB-PFG6rnNhvJk", 
       authDomain: "autorent-7b992.firebaseapp.com",
       projectId: "autorent-7b992",
       storageBucket: "autorent-7b992.appspot.com",
@@ -100,19 +164,84 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
+    const analytics = getAnalytics(app);
+
+    const messages = {
+      emptyFields: "Veuillez remplir tous les champs.",
+      genericError: "Une erreur s'est produite. Veuillez réessayer.",
+      userNotFound: "Utilisateur non trouvé.",
+      wrongPassword: "Mot de passe incorrect.",
+      invalidEmail: "Adresse email invalide.",
+      resetEmailSent: "Email de réinitialisation envoyé !",
+      resetEmailError: "Erreur lors de l'envoi de l'email de réinitialisation.",
+      success: "Connexion réussie !"
+    };
 
     const loginForm = document.getElementById("loginForm");
-    const loginBtn = document.getElementById("loginBtn");
     const errorDiv = document.getElementById("error");
+    const loginBtn = document.getElementById("loginBtn");
+    const forgotPassword = document.getElementById("forgotPassword");
+
+    // Redirect logged-in users
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+        const role = docSnap.exists() && docSnap.data().role ? docSnap.data().role : "user";
+        window.location.href = role === "admin" ? "admin-dashboard.html" : "dashboard-premium.html";
+      }
+    });
+
+    function resetButton() {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Se connecter";
+      const spinners = loginBtn.querySelectorAll(".spinner");
+      spinners.forEach(s => s.remove());
+    }
+
+    function setError(fieldId, message) {
+      errorDiv.textContent = message;
+      const field = document.getElementById(fieldId);
+      field.classList.add("invalid");
+      field.setAttribute("aria-describedby", "error");
+      field.focus();
+      resetButton();
+      logEvent(analytics, "login_error", { reason: message });
+    }
+
+    function clearErrors() {
+      errorDiv.textContent = "";
+      document.querySelectorAll("input").forEach(input => {
+        input.classList.remove("invalid");
+        input.removeAttribute("aria-describedby");
+      });
+    }
+
+    window.togglePassword = function() {
+      const input = document.getElementById("password");
+      const toggle = input.nextElementSibling;
+      input.type = input.type === 'password' ? 'text' : 'password';
+      toggle.textContent = input.type === 'password' ? 'Afficher le mot de passe' : 'Masquer le mot de passe';
+      input.focus();
+    };
 
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      clearErrors();
       loginBtn.disabled = true;
       loginBtn.textContent = "Connexion...";
-      errorDiv.textContent = "";
+      const spinner = document.createElement("span");
+      spinner.className = "spinner";
+      loginBtn.appendChild(spinner);
 
       const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        setError("email", messages.emptyFields);
+        return;
+      }
 
       try {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -120,49 +249,60 @@
         const docRef = doc(db, "users", uid);
         const docSnap = await getDoc(docRef);
 
-        let role = "user";
-        if (docSnap.exists() && docSnap.data().role) {
-          role = docSnap.data().role;
-        }
+        // Placeholder for Firebase Storage (e.g., fetch profile picture)
+        // Enable with: import { ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+        // const storageRef = ref(storage, `users/${uid}/profile.jpg`);
+        // try {
+        //   const url = await getDownloadURL(storageRef);
+        //   localStorage.setItem("profilePic", url); // Use securely in dashboard
+        // } catch (e) {
+        //   console.log("No profile picture found.");
+        // }
 
-        // Redirection selon le rôle
-        if (role === "admin") {
-          window.location.href = "admin-dashboard.html";
-        } else if (role === "premium") {
-          window.location.href = "dashboard-premium.html";
-        } else {
-          window.location.href = "confirmation-premium.html";
-        }
+        logEvent(analytics, "login", { method: "email" });
+        errorDiv.classList.add("success");
+        errorDiv.textContent = messages.success;
+        loginForm.reset();
 
+        const role = docSnap.exists() && docSnap.data().role ? docSnap.data().role : "user";
+        setTimeout(() => {
+          window.location.href = role === "admin" ? "admin-dashboard.html" : "dashboard-premium.html";
+        }, 2000);
       } catch (e) {
-        let message = "Une erreur s'est produite. Veuillez réessayer.";
-        if (e.code === "auth/user-not-found") {
-          message = "Utilisateur non trouvé.";
-        } else if (e.code === "auth/wrong-password") {
-          message = "Mot de passe incorrect.";
-        } else if (e.code === "auth/invalid-email") {
-          message = "Adresse email invalide.";
-        }
-        errorDiv.textContent = message;
-      } finally {
-        loginBtn.disabled = false;
-        loginBtn.textContent = "Se connecter";
+        let message = messages.genericError;
+        if (e.code === "auth/user-not-found") message = messages.userNotFound;
+        else if (e.code === "auth/wrong-password") message = messages.wrongPassword;
+        else if (e.code === "auth/invalid-email") message = messages.invalidEmail;
+        setError("email", message);
       }
     });
 
-    document.getElementById("forgotPassword").addEventListener("click", async (e) => {
+    forgotPassword.addEventListener("click", async (e) => {
       e.preventDefault();
+      clearErrors();
+      forgotPassword.textContent = "Envoi...";
+      const spinner = document.createElement("span");
+      spinner.className = "spinner";
+      forgotPassword.appendChild(spinner);
+
       const email = document.getElementById("email").value.trim();
       if (!email) {
-        errorDiv.textContent = "Veuillez entrer votre email.";
+        setError("email", messages.emptyFields);
+        forgotPassword.textContent = "Mot de passe oublié ?";
+        forgotPassword.removeChild(spinner);
         return;
       }
+
       try {
         await sendPasswordResetEmail(auth, email);
-        errorDiv.style.color = "lightgreen";
-        errorDiv.textContent = "Email de réinitialisation envoyé !";
+        errorDiv.classList.add("success");
+        errorDiv.textContent = messages.resetEmailSent;
+        logEvent(analytics, "password_reset_request", { method: "email" });
       } catch (e) {
-        errorDiv.textContent = "Erreur : " + e.message;
+        setError("email", messages.resetEmailError);
+      } finally {
+        forgotPassword.textContent = "Mot de passe oublié ?";
+        forgotPassword.removeChild(spinner);
       }
     });
   </script>
