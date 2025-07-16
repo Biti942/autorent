@@ -164,7 +164,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
-    // const analytics = getAnalytics(app); // ❌ Provoque l’erreur eval, désactivé
+    // const analytics = getAnalytics(app);
 
     const messages = {
       emptyFields: "Veuillez remplir tous les champs.",
@@ -184,10 +184,11 @@
 
     onAuthStateChanged(auth, async (user) => {
       if (user) {
+        const email = user.email;
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
-        const role = docSnap.exists() && docSnap.data().role ? docSnap.data().role : "user";
-        window.location.href = role === "admin" ? "admin-dashboard.html" : "dashboard-premium.html";
+        const isAdmin = email === "biti.hassan@icloud.com";
+        window.location.href = isAdmin ? "admin-dashboard.html" : "dashboard-premium.html";
       }
     });
 
@@ -247,14 +248,15 @@
         const docRef = doc(db, "users", uid);
         const docSnap = await getDoc(docRef);
 
-        // logEvent(analytics, "login", { method: "email" });
         errorDiv.classList.add("success");
         errorDiv.textContent = messages.success;
         loginForm.reset();
 
-        const role = docSnap.exists() && docSnap.data().role ? docSnap.data().role : "user";
+        const userEmail = userCredential.user.email;
+        const isAdmin = userEmail === "biti.hassan@icloud.com";
+
         setTimeout(() => {
-          window.location.href = role === "admin" ? "admin-dashboard.html" : "dashboard-premium.html";
+          window.location.href = isAdmin ? "admin-dashboard.html" : "dashboard-premium.html";
         }, 2000);
       } catch (e) {
         let message = messages.genericError;
