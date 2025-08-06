@@ -18,7 +18,526 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js"></script>
   <script type="module" src="js/firebase.js"></script>
-  <script type="module" src="js/dashboard.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit, startAfter, updateDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js';
+
+    const firebaseConfig = {
+      // Replace with your Firebase config
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    let lastVisible = null;
+    let currentUser = null;
+    let agencyName = '';
+    let agencyLogo = '';
+
+    // Firestore Security Rules (Reference for implementation)
+    /*
+    rules_version = '2';
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        match /agencies/{agencyId} {
+          allow read, write: if request.auth != null && request.auth.uid == agencyId;
+        }
+        match /cars/{carId} {
+          allow read, write: if request.auth != null && resource.data.agencyId == request.auth.uid;
+        }
+        match /reviews/{reviewId} {
+          allow read: if true;
+          allow write: if request.auth != null && resource.data.agencyId == request.auth.uid;
+        }
+        match /reservations/{reservationId} {
+          allow read, write: if request.auth != null && resource.data.agencyId == request.auth.uid;
+        }
+        match /payments/{paymentId} {
+          allow read, write: if request.auth != null && resource.data.agencyId == request.auth.uid;
+        }
+      }
+    }
+    */
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('user-name').textContent = user.displayName || user.email;
+        loadAgencyProfile();
+        loadCars();
+        loadReservations();
+        loadRevenueChart();
+        loadCarComparison();
+        loadCalendar();
+        loadIAInsights();
+        loadHistoricalStats();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      signOut(auth).then(() => window.location.href = 'login.html');
+    });
+
+    // Agency Profile
+    async function loadAgencyProfile() {
+      const agencySection = document.getElementById('agencyReviews');
+      agencySection.innerHTML = '<div id="loading">Chargement du profil...</div>';
+      const q = query(collection(db, 'agencies'), where('agencyId', '==', currentUser.uid));
+      const snapshot = await getDocs(q);
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        agencyName = data.name || 'Agence';
+        agencyLogo = data.logo || '';
+        document.getElementById('agencyName').value = agencyName;
+        document.getElementById('rcNumber').value = data.rcNumber || '';
+        if (agencyLogo) {
+          document.getElementById('agencyLogoPreview').src = agencyLogo;
+          document.getElementById('headerAgencyLogo').src = agencyLogo;
+          document.getElementById('headerAgencyLogo').style.display = 'block';
+        }
+        document.getElementById('welcomeMessage').textContent = `Bienvenue, ${agencyName} !`;
+      });
+      loadAgencyReviews();
+    }
+
+    document.getElementById('agencyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('agencyName').value;
+      const rcNumber = document.getElementById('rcNumber').value;
+      const logoFile = document.getElementById('agencyLogo').files[0];
+      let logoUrl = document.getElementById('agencyLogoPreview').src;
+
+      if (logoFile) {
+        const storageRef = ref(storage, `agencies/${currentUser.uid}/logo`);
+        await uploadBytes(storageRef, logoFile);
+        logoUrl = await getDownloadURL(storageRef);
+      }
+
+      await addDoc(collection(db, 'agencies'), {
+        agencyId: currentUser.uid,
+        name,
+        rcNumber,
+        logo: logoUrl,
+        updatedAt: new Date()
+      });
+      agencyName = name;
+      agencyLogo = logoUrl;
+      document.getElementById('headerAgencyLogo').src = logoUrl;
+      document.getElementById('headerAgencyLogo').style.display = 'block';
+      document.getElementById('welcomeMessage').textContent = `Bienvenue, ${agencyName} !`;
+      Toastify({ text: 'Profil mis à jour !', backgroundColor: '#4ade80' }).showToast();
+    });
+
+    // Agency Reviews with Pagination and Filters
+    async function loadAgencyReviews(pageSize = 5) {
+      const reviewList = document.getElementById('agencyReviewList');
+      reviewList.innerHTML = '<div id="loading">Chargement des avis...</div>';
+      let q = query(
+        collection(db, 'reviews'),
+        where('agencyId', '==', currentUser.uid),
+        orderBy(document.getElementById('reviewSort').value || 'createdAt', 'desc'),
+        limit(pageSize)
+      );
+      const ratingFilter = document.getElementById('reviewRatingFilter').value;
+      if (ratingFilter) q = query(q, where('rating', '==', parseInt(ratingFilter)));
+      if (lastVisible) q = query(q, startAfter(lastVisible));
+      const snapshot = await getDocs(q);
+      reviewList.innerHTML = '';
+      snapshot.forEach(doc => {
+        const review = doc.data();
+        const div = document.createElement('div');
+        div.className = 'review-item';
+        div.innerHTML = `<div class="review-info"><h3>${review.userName}</h3><p class="rating">${'★'.repeat(review.rating)}</p><p>${review.comment}</p></div>`;
+        reviewList.appendChild(div);
+      });
+      lastVisible = snapshot.docs[snapshot.docs.length - 1];
+      updateReviewPagination(snapshot.size < pageSize);
+    }
+
+    function updateReviewPagination(isLastPage) {
+      const pagination = document.getElementById('reviewPagination');
+      pagination.innerHTML = '';
+      if (!isLastPage) {
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.textContent = 'Charger plus';
+        loadMoreBtn.addEventListener('click', () => loadAgencyReviews());
+        pagination.appendChild(loadMoreBtn);
+      }
+    }
+
+    document.getElementById('reviewSort').addEventListener('change', () => loadAgencyReviews());
+    document.getElementById('reviewRatingFilter').addEventListener('change', () => loadAgencyReviews());
+
+    // Car Reviews
+    async function loadCarReviews(carId) {
+      const reviewList = document.getElementById('carReviewList');
+      reviewList.innerHTML = '<div id="loading">Chargement des avis...</div>';
+      let q = query(
+        collection(db, 'reviews'),
+        where('carId', '==', carId),
+        where('agencyId', '==', currentUser.uid),
+        orderBy(document.getElementById('carReviewSort').value || 'createdAt', 'desc'),
+        limit(5)
+      );
+      const ratingFilter = document.getElementById('carReviewRatingFilter').value;
+      if (ratingFilter) q = query(q, where('rating', '==', parseInt(ratingFilter)));
+      const snapshot = await getDocs(q);
+      reviewList.innerHTML = '';
+      snapshot.forEach(doc => {
+        const review = doc.data();
+        const div = document.createElement('div');
+        div.className = 'review-item';
+        div.innerHTML = `<div class="review-info"><h3>${review.userName}</h3><p class="rating">${'★'.repeat(review.rating)}</p><p>${review.comment}</p></div>`;
+        reviewList.appendChild(div);
+      });
+    }
+
+    document.getElementById('carReviewSelect').addEventListener('change', (e) => {
+      if (e.target.value) loadCarReviews(e.target.value);
+    });
+    document.getElementById('carReviewSort').addEventListener('change', () => {
+      const carId = document.getElementById('carReviewSelect').value;
+      if (carId) loadCarReviews(carId);
+    });
+    document.getElementById('carReviewRatingFilter').addEventListener('change', () => {
+      const carId = document.getElementById('carReviewSelect').value;
+      if (carId) loadCarReviews(carId);
+    });
+
+    // Car Management with Filters
+    async function loadCars() {
+      const carList = document.getElementById('carList');
+      const carReviewSelect = document.getElementById('carReviewSelect');
+      const comparisonCar1 = document.getElementById('comparisonCar1');
+      const comparisonCar2 = document.getElementById('comparisonCar2');
+      carList.innerHTML = '<div id="loading">Chargement des voitures...</div>';
+      let q = query(
+        collection(db, 'cars'),
+        where('agencyId', '==', currentUser.uid),
+        orderBy(document.getElementById('carSort').value || 'name', 'asc')
+      );
+      const typeFilter = document.getElementById('carTypeFilter').value;
+      if (typeFilter) q = query(q, where('type', '==', typeFilter));
+      const snapshot = await getDocs(q);
+      carList.innerHTML = '';
+      carReviewSelect.innerHTML = '<option value="">Sélectionner une voiture</option>';
+      comparisonCar1.innerHTML = '<option value="">Sélectionner la première voiture</option>';
+      comparisonCar2.innerHTML = '<option value="">Sélectionner la deuxième voiture</option>';
+      snapshot.forEach(doc => {
+        const car = doc.data();
+        const div = document.createElement('div');
+        div.className = 'car-item';
+        div.innerHTML = `
+          <img src="${car.image}" alt="${car.name}" />
+          <div class="car-info">
+            <h3>${car.name}</h3>
+            <p>${car.type} | ${car.location} | ${car.transmission}</p>
+            <p>Prix: ${car.price} MAD/jour</p>
+            <p>${car.available ? 'Disponible' : 'Indisponible'}</p>
+            <button class="edit-btn" data-id="${doc.id}">Modifier</button>
+            <button class="delete-btn" data-id="${doc.id}">Supprimer</button>
+          </div>`;
+        carList.appendChild(div);
+        carReviewSelect.innerHTML += `<option value="${doc.id}">${car.name}</option>`;
+        comparisonCar1.innerHTML += `<option value="${doc.id}">${car.name}</option>`;
+        comparisonCar2.innerHTML += `<option value="${doc.id}">${car.name}</option>`;
+      });
+      document.getElementById('carTotal').textContent = snapshot.size;
+    }
+
+    document.getElementById('carSort').addEventListener('change', loadCars);
+    document.getElementById('carTypeFilter').addEventListener('change', loadCars);
+
+    // AI Description Generation
+    document.getElementById('generateDesc').addEventListener('click', async () => {
+      const name = document.getElementById('name').value;
+      const type = document.getElementById('type').value;
+      const response = await fetch('https://api.x.ai/grok', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Génère une description professionnelle pour une voiture de location : ${name}, type : ${type}.`
+        })
+      });
+      const data = await response.json();
+      document.getElementById('desc').value = data.description || 'Description générée par IA.';
+    });
+
+    // Calendar Configuration
+    async function loadCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        editable: true,
+        events: async (fetchInfo, successCallback) => {
+          const q = query(collection(db, 'reservations'), where('agencyId', '==', currentUser.uid));
+          const snapshot = await getDocs(q);
+          const events = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              title: data.type === 'maintenance' ? 'Maintenance' : `Réservation: ${data.carName}`,
+              start: data.startDate,
+              end: data.endDate,
+              backgroundColor: data.type === 'maintenance' ? '#ef4444' : data.status === 'accepted' ? '#4ade80' : '#facc15',
+              extendedProps: { type: data.type, status: data.status }
+            };
+          });
+          successCallback(events);
+        },
+        eventDrop: async (info) => {
+          await updateDoc(doc(db, 'reservations', info.event.id), {
+            startDate: info.event.start,
+            endDate: info.event.end
+          });
+          Toastify({ text: 'Réservation mise à jour !', backgroundColor: '#4ade80' }).showToast();
+        },
+        eventClick: async (info) => {
+          if (confirm('Voulez-vous supprimer cette réservation ?')) {
+            await deleteDoc(doc(db, 'reservations', info.event.id));
+            info.event.remove();
+            Toastify({ text: 'Réservation supprimée !', backgroundColor: '#4ade80' }).showToast();
+          }
+        }
+      });
+      calendar.render();
+    }
+
+    // Revenue Chart
+    async function loadRevenueChart() {
+      const period = document.getElementById('revenuePeriod').value;
+      const q = query(collection(db, 'reservations'), where('agencyId', '==', currentUser.uid), where('status', '==', 'accepted'));
+      const snapshot = await getDocs(q);
+      const data = {};
+      snapshot.forEach(doc => {
+        const res = doc.data();
+        const date = new Date(res.startDate);
+        const key = period === 'month' ? date.getMonth() : period === 'quarter' ? Math.floor(date.getMonth() / 3) : date.getFullYear();
+        data[key] = (data[key] || 0) + res.totalPrice;
+      });
+
+      const ctx = document.getElementById('performanceChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(data).map(k => period === 'month' ? `Mois ${k}` : period === 'quarter' ? `Trimestre ${k}` : `Année ${k}`),
+          datasets: [{
+            label: 'Revenus (MAD)',
+            data: Object.values(data),
+            backgroundColor: '#38bdf8'
+          }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    document.getElementById('revenuePeriod').addEventListener('change', loadRevenueChart);
+
+    // Historical Statistics
+    async function loadHistoricalStats() {
+      const ctx = document.getElementById('historicalChart').getContext('2d');
+      const q = query(collection(db, 'reservations'), where('agencyId', '==', currentUser.uid), where('status', '==', 'accepted'));
+      const snapshot = await getDocs(q);
+      const revenueData = {};
+      const bookingData = {};
+      snapshot.forEach(doc => {
+        const res = doc.data();
+        const date = new Date(res.startDate);
+        const month = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        revenueData[month] = (revenueData[month] || 0) + res.totalPrice;
+        bookingData[month] = (bookingData[month] || 0) + 1;
+      });
+
+      const labels = Object.keys(revenueData).sort();
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Revenus (MAD)',
+              data: labels.map(month => revenueData[month] || 0),
+              borderColor: '#38bdf8',
+              fill: false
+            },
+            {
+              label: 'Réservations',
+              data: labels.map(month => bookingData[month] || 0),
+              borderColor: '#4ade80',
+              fill: false
+            }
+          ]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    // Payment Status Check for Premium Features
+    async function checkPaymentStatus() {
+      const q = query(collection(db, 'payments'), where('agencyId', '==', currentUser.uid), where('status', '==', 'paid'), where('type', '==', 'premium'));
+      const snapshot = await getDocs(q);
+      const now = new Date();
+      return snapshot.docs.some(doc => {
+        const data = doc.data();
+        const expiry = new Date(data.expiryDate);
+        return expiry > now;
+      });
+    }
+
+    // PDF Export with Premium Check
+    document.getElementById('exportPerformance').addEventListener('click', async () => {
+      if (!await checkPaymentStatus()) {
+        Toastify({ text: 'Abonnement premium requis pour exporter. Visitez https://x.ai/grok pour plus d’infos.', backgroundColor: '#ef4444' }).showToast();
+        return;
+      }
+      const element = document.createElement('div');
+      element.innerHTML = `
+        <h1>AutoRent - Rapport de Performance</h1>
+        <h2>${agencyName}</h2>
+        <p>Période: ${document.getElementById('revenuePeriod').value}</p>
+        <img src="${agencyLogo}" style="max-width: 100px;" />
+        <canvas id="pdfChart" width="400" height="200"></canvas>
+        <p>${document.getElementById('iaAnalysis').innerHTML}</p>
+      `;
+      document.body.appendChild(element);
+      const canvas = document.getElementById('performanceChart');
+      const pdfCanvas = element.querySelector('#pdfChart');
+      pdfCanvas.getContext('2d').drawImage(canvas, 0, 0, 400, 200);
+      await html2pdf().from(element).set({ filename: 'AutoRent_Performance.pdf' }).save();
+      document.body.removeChild(element);
+    });
+
+    // Car Comparison with Premium Check
+    async function loadCarComparison() {
+      if (!await checkPaymentStatus()) {
+        document.getElementById('comparisonTable').style.display = 'none';
+        document.getElementById('noComparison').textContent = 'Abonnement premium requis pour comparer. Visitez https://x.ai/grok pour plus d’infos.';
+        return;
+      }
+      const car1 = document.getElementById('comparisonCar1').value;
+      const car2 = document.getElementById('comparisonCar2').value;
+      if (!car1 || !car2) {
+        document.getElementById('comparisonTable').style.display = 'none';
+        document.getElementById('noComparison').textContent = 'Aucune comparaison disponible. Sélectionnez deux voitures.';
+        return;
+      }
+      document.getElementById('comparisonTable').style.display = 'table';
+      document.getElementById('noComparison').style.display = 'none';
+      const [car1Data, car2Data] = await Promise.all([
+        getDocs(query(collection(db, 'reservations'), where('carId', '==', car1), where('agencyId', '==', currentUser.uid))),
+        getDocs(query(collection(db, 'reservations'), where('carId', '==', car2), where('agencyId', '==', currentUser.uid)))
+      ]);
+
+      const calculateMetrics = (snapshot) => {
+        let revenue = 0, daysRented = 0, accepted = 0, totalRequests = snapshot.size;
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          revenue += data.totalPrice;
+          daysRented += (new Date(data.endDate) - new Date(data.startDate)) / (1000 * 60 * 60 * 24);
+          if (data.status === 'accepted') accepted++;
+        });
+        const totalDays = 30; // Example period
+        return {
+          revenue,
+          availability: (daysRented / totalDays * 100).toFixed(2),
+          acceptance: totalRequests ? (accepted / totalRequests * 100).toFixed(2) : 0
+        };
+      };
+
+      const metrics1 = calculateMetrics(car1Data);
+      const metrics2 = calculateMetrics(car2Data);
+      document.getElementById('compRevenue1').textContent = `${metrics1.revenue} MAD`;
+      document.getElementById('compRevenue2').textContent = `${metrics2.revenue} MAD`;
+      document.getElementById('compAvailability1').textContent = `${metrics1.availability}%`;
+      document.getElementById('compAvailability2').textContent = `${metrics2.availability}%`;
+      document.getElementById('compAcceptance1').textContent = `${metrics1.acceptance}%`;
+      document.getElementById('compAcceptance2').textContent = `${metrics2.acceptance}%`;
+    }
+
+    document.getElementById('comparisonCar1').addEventListener('change', loadCarComparison);
+    document.getElementById('comparisonCar2').addEventListener('change', loadCarComparison);
+
+    // IA Insights
+    async function loadIAInsights() {
+      const iaAnalysis = document.getElementById('iaAnalysis');
+      iaAnalysis.innerHTML = '<div id="loading">Chargement de l’analyse...</div>';
+      const q = query(collection(db, 'reservations'), where('agencyId', '==', currentUser.uid));
+      const snapshot = await getDocs(q);
+      const cars = {};
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (!cars[data.carId]) cars[data.carId] = { revenue: 0, daysRented: 0, name: data.carName };
+        cars[data.carId].revenue += data.totalPrice;
+        cars[data.carId].daysRented += (new Date(data.endDate) - new Date(data.startDate)) / (1000 * 60 * 60 * 24);
+      });
+
+      const mostProfitable = Object.values(cars).reduce((a, b) => a.revenue > b.revenue ? a : b, { revenue: 0 });
+      const leastOccupied = Object.values(cars).reduce((a, b) => a.daysRented < b.daysRented ? a : b, { daysRented: Infinity });
+      iaAnalysis.innerHTML = `
+        <ul>
+          <li><strong>SUV le plus rentable :</strong> ${mostProfitable.name} (${mostProfitable.revenue} MAD)</li>
+          <li><strong>Voiture la moins occupée :</strong> ${leastOccupied.name} (${leastOccupied.daysRented} jours)</li>
+          <li><strong>Suggestion :</strong> Baissez le prix de ${leastOccupied.name} de 10% pour augmenter les réservations de ~15%.</li>
+        </ul>
+      `;
+    }
+
+    // Reservations with Filters
+    async function loadReservations() {
+      const reservationList = document.getElementById('reservationList');
+      reservationList.innerHTML = '<div id="loading">Chargement des réservations...</div>';
+      let q = query(
+        collection(db, 'reservations'),
+        where('agencyId', '==', currentUser.uid),
+        orderBy(document.getElementById('reservationSort').value || 'startDate', 'desc')
+      );
+      const statusFilter = document.getElementById('reservationStatusFilter').value;
+      if (statusFilter) q = query(q, where('status', '==', statusFilter));
+      const snapshot = await getDocs(q);
+      reservationList.innerHTML = '';
+      snapshot.forEach(doc => {
+        const res = doc.data();
+        const div = document.createElement('div');
+        div.className = 'reservation-item';
+        div.innerHTML = `
+          <div class="reservation-info">
+            <h3>${res.carName}</h3>
+            <p>Client: ${res.clientName}</p>
+            <p>Dates: ${res.startDate} à ${res.endDate}</p>
+            <p>Statut: ${res.status}</p>
+            ${res.status === 'pending' ? `
+              <button class="approve-btn" data-id="${doc.id}">Approuver</button>
+              <button class="reject-btn" data-id="${doc.id}">Rejeter</button>
+            ` : ''}
+          </div>`;
+        reservationList.appendChild(div);
+      });
+    }
+
+    document.getElementById('reservationSort').addEventListener('change', loadReservations);
+    document.getElementById('reservationStatusFilter').addEventListener('change', loadReservations);
+
+    // Commission Payment
+    window.payerCommission = async () => {
+      await addDoc(collection(db, 'payments'), {
+        agencyId: currentUser.uid,
+        amount: 1000, // Example
+        status: 'paid',
+        type: 'commission',
+        date: new Date()
+      });
+      Toastify({ text: 'Commission payée !', backgroundColor: '#4ade80' }).showToast();
+    };
+  </script>
   <style>
     * {
       box-sizing: border-box;
@@ -46,10 +565,29 @@
       top: 0;
       z-index: 1000;
     }
+    .header-agency {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .header-agency img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: none;
+    }
     h1 {
       font-size: 1.8rem;
       color: #38bdf8;
       margin: 0;
+    }
+    .welcome-message {
+      font-size: 1.2rem;
+      color: #facc15;
+      margin-top: 10px;
+      text-align: center;
+      width: 100%;
     }
     .user-info {
       text-align: right;
@@ -89,15 +627,16 @@
       50% { transform: scale(1.02); }
       100% { transform: scale(1); }
     }
-    .form-section, .list-section, .chart-section, .ia-section, .agency-section, .calendar-section, .comparison-section {
+    .form-section, .list-section, .chart-section, .ia-section, .agency-section, .calendar-section, .comparison-section, .historical-section {
       background: #1e293b;
       padding: 25px;
       border-radius: 12px;
       max-width: 900px;
       margin: 20px auto;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      position: relative;
     }
-    .form-section h2, .list-section h2, .chart-section h2, .ia-section h2, .agency-section h2, .calendar-section h2, .comparison-section h2 {
+    .form-section h2, .list-section h2, .chart-section h2, .ia-section h2, .agency-section h2, .calendar-section h2, .comparison-section h2, .historical-section h2 {
       margin-bottom: 20px;
       color: #4ade80;
       font-size: 1.5rem;
@@ -123,6 +662,11 @@
       background: #475569;
       outline: 2px solid #38bdf8;
     }
+    .filter-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
     .preview-image {
       max-width: 200px;
       margin-bottom: 15px;
@@ -138,7 +682,7 @@
     .available-switch input {
       margin-right: 10px;
     }
-    .btn {
+    .btn, .generate-btn {
       background: #38bdf8;
       color: #0f172a;
       padding: 12px 20px;
@@ -148,7 +692,7 @@
       font-weight: bold;
       transition: background 0.3s, transform 0.2s;
     }
-    .btn:hover, .btn:focus {
+    .btn:hover, .btn:focus, .generate-btn:hover, .generate-btn:focus {
       background: #0ea5e9;
       transform: scale(1.05);
     }
@@ -248,7 +792,7 @@
       background: #dc2626;
       transform: scale(1.05);
     }
-    .chart-section canvas {
+    .chart-section canvas, .historical-section canvas {
       max-height: 400px;
     }
     .ia-section ul, .comparison-section ul {
@@ -302,6 +846,12 @@
       color: #0f172a !important;
       font-size: 0.8rem !important;
     }
+    .fc-event.maintenance {
+      background: #ef4444 !important;
+    }
+    .fc-event.accepted {
+      background: #4ade80 !important;
+    }
     .rating {
       color: #facc15;
       font-size: 0.9rem;
@@ -310,6 +860,7 @@
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      display: none;
     }
     .comparison-table th, .comparison-table td {
       padding: 10px;
@@ -320,17 +871,25 @@
       background: #38bdf8;
       color: #0f172a;
     }
+    .no-comparison {
+      text-align: center;
+      color: #facc15;
+      font-size: 1rem;
+    }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .form-section, .list-section, .chart-section, .ia-section, .agency-section, .calendar-section, .comparison-section {
+    .form-section, .list-section, .chart-section, .ia-section, .agency-section, .calendar-section, .comparison-section, .historical-section {
       animation: fadeIn 0.5s ease-out;
     }
     @media (max-width: 768px) {
       header {
         flex-direction: column;
         text-align: center;
+      }
+      .header-agency {
+        justify-content: center;
       }
       .user-info {
         margin-top: 10px;
@@ -346,17 +905,24 @@
       .comparison-table {
         font-size: 0.8rem;
       }
+      .filter-group {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>🎯 Dashboard - AutoRent</h1>
+    <div class="header-agency">
+      <img id="headerAgencyLogo" class="agency-logo" alt="Logo de l'agence" />
+      <h1>🎯 Dashboard - AutoRent</h1>
+    </div>
     <div class="user-info">
       <p>Connecté en tant que : <span id="user-name"></span></p>
       <button class="logout-btn" id="logoutBtn" aria-label="Se déconnecter">Se déconnecter</button>
     </div>
   </header>
+  <div class="welcome-message" id="welcomeMessage">Bienvenue !</div>
 
   <div class="free-offer">
     <p>🎉 AutoRent est <strong>100% GRATUIT</strong> pour le lancement !</p>
@@ -364,6 +930,7 @@
 
   <div class="agency-section">
     <h2>🏢 Profil de l'Agence</h2>
+    <div id="loading">Chargement...</div>
     <form id="agencyForm">
       <label for="agencyName">Nom de l'Agence</label>
       <input type="text" id="agencyName" placeholder="ex: AutoRent Casablanca" required aria-label="Nom de l'agence" />
@@ -376,12 +943,29 @@
     </form>
     <div class="review-list" id="agencyReviews">
       <h3>Avis Clients</h3>
+      <div id="loading">Chargement...</div>
+      <div class="filter-group">
+        <select id="reviewSort" aria-label="Trier les avis">
+          <option value="createdAt">Trier par date</option>
+          <option value="rating">Trier par note</option>
+        </select>
+        <select id="reviewRatingFilter" aria-label="Filtrer par note">
+          <option value="">Toutes les notes</option>
+          <option value="5">5 étoiles</option>
+          <option value="4">4 étoiles</option>
+          <option value="3">3 étoiles</option>
+          <option value="2">2 étoiles</option>
+          <option value="1">1 étoile</option>
+        </select>
+      </div>
       <div id="agencyReviewList"></div>
+      <div class="pagination" id="reviewPagination"></div>
     </div>
   </div>
 
   <div class="form-section">
     <h2>➕ Ajouter une nouvelle voiture</h2>
+    <div id="loading">Chargement...</div>
     <form id="carForm">
       <label for="name">Nom de la voiture</label>
       <input type="text" id="name" placeholder="ex: Dacia Logan 2022" required aria-label="Nom de la voiture" />
@@ -392,6 +976,7 @@
       <input type="number" id="price" placeholder="ex: 250" required min="0" step="0.01" aria-label="Prix par jour" />
       <label for="desc">Description</label>
       <textarea id="desc" rows="4" placeholder="Description auto ou générée..." aria-label="Description de la voiture"></textarea>
+      <button type="button" class="generate-btn" id="generateDesc" aria-label="Générer description IA">Générer description IA</button>
       <label for="type">Type</label>
       <select id="type" required aria-label="Type de voiture">
         <option value="berline">Berline</option>
@@ -416,25 +1001,56 @@
 
   <div class="list-section">
     <h2>🚗 Mes voitures publiées</h2>
-    <div id="loading">Chargement des voitures...</div>
+    <div id="loading">Chargement...</div>
+    <div class="filter-group">
+      <select id="carSort" aria-label="Trier les voitures">
+        <option value="name">Trier par nom</option>
+        <option value="price">Trier par prix</option>
+        <option value="type">Trier par type</option>
+      </select>
+      <select id="carTypeFilter" aria-label="Filtrer par type">
+        <option value="">Tous les types</option>
+        <option value="berline">Berline</option>
+        <option value="SUV">SUV</option>
+        <option value="citadine">Citadine</option>
+        <option value="utilitaire">Utilitaire</option>
+      </select>
+    </div>
     <div class="car-list" id="carList"></div>
     <div class="pagination" id="carPagination"></div>
     <div class="review-list" id="carReviews">
       <h3>Avis par voiture</h3>
-      <select id="carReviewSelect" aria-label="Sélectionner une voiture pour les avis">
-        <option value="">Sélectionner une voiture</option>
-      </select>
+      <div id="loading">Chargement...</div>
+      <div class="filter-group">
+        <select id="carReviewSelect" aria-label="Sélectionner une voiture pour les avis">
+          <option value="">Sélectionner une voiture</option>
+        </select>
+        <select id="carReviewSort" aria-label="Trier les avis">
+          <option value="createdAt">Trier par date</option>
+          <option value="rating">Trier par note</option>
+        </select>
+        <select id="carReviewRatingFilter" aria-label="Filtrer par note">
+          <option value="">Toutes les notes</option>
+          <option value="5">5 étoiles</option>
+          <option value="4">4 étoiles</option>
+          <option value="3">3 étoiles</option>
+          <option value="2">2 étoiles</option>
+          <option value="1">1 étoile</option>
+        </select>
+      </div>
       <div id="carReviewList"></div>
     </div>
   </div>
 
   <div class="calendar-section">
     <h2>📅 Planning de disponibilité</h2>
+    <div id="loading">Chargement...</div>
     <div id="calendar"></div>
   </div>
 
   <div class="chart-section">
     <h2>📊 Performances de la flotte</h2>
+    <div id="loading">Chargement...</div>
     <select id="revenuePeriod" aria-label="Période d'analyse des revenus">
       <option value="month">Mois</option>
       <option value="quarter">Trimestre</option>
@@ -444,19 +1060,41 @@
     <button class="export-btn" id="exportPerformance" aria-label="Exporter en PDF">Exporter en PDF</button>
   </div>
 
+  <div class="historical-section">
+    <h2>📈 Historique des performances</h2>
+    <div id="loading">Chargement...</div>
+    <canvas id="historicalChart"></canvas>
+  </div>
+
   <div class="list-section">
-    <h2>📥 Réservations en attente</h2>
+    <h2>📥 Réservations</h2>
+    <div id="loading">Chargement...</div>
+    <div class="filter-group">
+      <select id="reservationSort" aria-label="Trier les réservations">
+        <option value="startDate">Trier par date de début</option>
+        <option value="carName">Trier par nom de voiture</option>
+        <option value="status">Trier par statut</option>
+      </select>
+      <select id="reservationStatusFilter" aria-label="Filtrer par statut">
+        <option value="">Tous les statuts</option>
+        <option value="pending">En attente</option>
+        <option value="accepted">Acceptée</option>
+        <option value="rejected">Rejetée</option>
+      </select>
+    </div>
     <div class="reservation-list" id="reservationList"></div>
   </div>
 
   <div class="comparison-section">
     <h2>⚖️ Comparaison des voitures</h2>
+    <div id="loading">Chargement...</div>
     <select id="comparisonCar1" aria-label="Sélectionner la première voiture">
       <option value="">Sélectionner la première voiture</option>
     </select>
     <select id="comparisonCar2" aria-label="Sélectionner la deuxième voiture">
       <option value="">Sélectionner la deuxième voiture</option>
     </select>
+    <p class="no-comparison" id="noComparison">Aucune comparaison disponible. Sélectionnez deux voitures.</p>
     <table class="comparison-table" id="comparisonTable">
       <thead>
         <tr>
@@ -487,12 +1125,14 @@
 
   <div class="list-section" style="background: #172032;">
     <h2>💰 Paiement des commissions</h2>
+    <div id="loading">Chargement...</div>
     <p>Solde à payer : <strong id="soldeCommission">Chargement...</strong></p>
     <button class="btn" onclick="payerCommission()" aria-label="Payer la commission">Payer maintenant</button>
   </div>
 
   <div class="ia-section">
     <h2>🤖 Analyse IA des performances</h2>
+    <div id="loading">Chargement...</div>
     <div id="iaAnalysis">Chargement de l’analyse...</div>
   </div>
 
