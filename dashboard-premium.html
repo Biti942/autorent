@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Tableau de bord AutoRent pour gérer votre flotte automobile, suivre vos réservations et analyser vos performances." />
+  <meta name="description" content="Tableau de bord AutoRent pour gérer votre flotte automobile, suivre vos réservations, analyser vos performances et gérer votre profil d'agence." />
   <meta name="robots" content="index, follow" />
   <title>AutoRent - Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.9.3/dist/html2pdf.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js"></script>
@@ -86,7 +89,7 @@
       50% { transform: scale(1.02); }
       100% { transform: scale(1); }
     }
-    .form-section, .list-section, .chart-section, .ia-section {
+    .form-section, .list-section, .chart-section, .ia-section, .agency-section, .calendar-section, .comparison-section {
       background: #1e293b;
       padding: 25px;
       border-radius: 12px;
@@ -94,7 +97,7 @@
       margin: 20px auto;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     }
-    .form-section h2, .list-section h2, .chart-section h2, .ia-section h2 {
+    .form-section h2, .list-section h2, .chart-section h2, .ia-section h2, .agency-section h2, .calendar-section h2, .comparison-section h2 {
       margin-bottom: 20px;
       color: #4ade80;
       font-size: 1.5rem;
@@ -163,10 +166,10 @@
     .navigation a:hover, .navigation a:focus {
       color: #38bdf8;
     }
-    .car-list, .reservation-list {
+    .car-list, .reservation-list, .review-list {
       margin-top: 20px;
     }
-    .car-item, .reservation-item {
+    .car-item, .reservation-item, .review-item {
       background: #334155;
       padding: 15px;
       border-radius: 10px;
@@ -176,27 +179,27 @@
       align-items: center;
       transition: transform 0.3s;
     }
-    .car-item:hover, .reservation-item:hover {
+    .car-item:hover, .reservation-item:hover, .review-item:hover {
       transform: translateY(-5px);
     }
-    .car-item img {
+    .car-item img, .agency-logo {
       width: 100px;
       border-radius: 10px;
       object-fit: cover;
     }
-    .car-info, .reservation-info {
+    .car-info, .reservation-info, .review-info, .agency-info {
       flex: 1;
     }
-    .car-info h3, .reservation-info h3 {
+    .car-info h3, .reservation-info h3, .review-info h3, .agency-info h3 {
       margin: 0;
       color: #facc15;
       font-size: 1.2rem;
     }
-    .car-info p, .reservation-info p {
+    .car-info p, .reservation-info p, .review-info p, .agency-info p {
       margin: 5px 0;
       font-size: 0.9rem;
     }
-    .reserve-btn, .edit-btn, .delete-btn, .approve-btn, .reject-btn {
+    .reserve-btn, .edit-btn, .delete-btn, .approve-btn, .reject-btn, .export-btn {
       padding: 8px 14px;
       border: none;
       border-radius: 6px;
@@ -205,11 +208,11 @@
       margin-left: 10px;
       transition: background 0.3s, transform 0.2s;
     }
-    .reserve-btn {
+    .reserve-btn, .export-btn {
       background: #4ade80;
       color: #0f172a;
     }
-    .reserve-btn:hover, .reserve-btn:focus {
+    .reserve-btn:hover, .reserve-btn:focus, .export-btn:hover, .export-btn:focus {
       background: #22c55e;
       transform: scale(1.05);
     }
@@ -248,15 +251,15 @@
     .chart-section canvas {
       max-height: 400px;
     }
-    .ia-section ul {
+    .ia-section ul, .comparison-section ul {
       list-style: none;
       padding: 0;
     }
-    .ia-section li {
+    .ia-section li, .comparison-section li {
       margin: 10px 0;
       font-size: 0.9rem;
     }
-    .ia-section strong {
+    .ia-section strong, .comparison-section strong {
       color: #facc15;
     }
     #loading {
@@ -284,11 +287,44 @@
       background: #475569;
       cursor: not-allowed;
     }
+    .fc-daygrid-day-number {
+      color: #fff !important;
+    }
+    .fc-daygrid-day {
+      background: #334155 !important;
+    }
+    .fc-daygrid-day:hover {
+      background: #475569 !important;
+    }
+    .fc-event {
+      background: #facc15 !important;
+      border: none !important;
+      color: #0f172a !important;
+      font-size: 0.8rem !important;
+    }
+    .rating {
+      color: #facc15;
+      font-size: 0.9rem;
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #475569;
+    }
+    .comparison-table th {
+      background: #38bdf8;
+      color: #0f172a;
+    }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    .form-section, .list-section, .chart-section, .ia-section {
+    .form-section, .list-section, .chart-section, .ia-section, .agency-section, .calendar-section, .comparison-section {
       animation: fadeIn 0.5s ease-out;
     }
     @media (max-width: 768px) {
@@ -299,13 +335,16 @@
       .user-info {
         margin-top: 10px;
       }
-      .car-item, .reservation-item {
+      .car-item, .reservation-item, .review-item {
         flex-direction: column;
         text-align: center;
       }
-      .car-item img {
+      .car-item img, .agency-logo {
         width: 100%;
         max-width: 200px;
+      }
+      .comparison-table {
+        font-size: 0.8rem;
       }
     }
   </style>
@@ -321,6 +360,24 @@
 
   <div class="free-offer">
     <p>🎉 AutoRent est <strong>100% GRATUIT</strong> pour le lancement !</p>
+  </div>
+
+  <div class="agency-section">
+    <h2>🏢 Profil de l'Agence</h2>
+    <form id="agencyForm">
+      <label for="agencyName">Nom de l'Agence</label>
+      <input type="text" id="agencyName" placeholder="ex: AutoRent Casablanca" required aria-label="Nom de l'agence" />
+      <label for="agencyLogo">Logo de l'Agence</label>
+      <input type="file" id="agencyLogo" accept="image/jpeg,image/png,image/webp" aria-label="Logo de l'agence" />
+      <img id="agencyLogoPreview" class="agency-logo preview-image" alt="Prévisualisation du logo" />
+      <label for="rcNumber">Numéro RC</label>
+      <input type="text" id="rcNumber" placeholder="ex: RC123456" required aria-label="Numéro RC" />
+      <button type="submit" class="btn" aria-label="Mettre à jour le profil">Mettre à jour le profil</button>
+    </form>
+    <div class="review-list" id="agencyReviews">
+      <h3>Avis Clients</h3>
+      <div id="agencyReviewList"></div>
+    </div>
   </div>
 
   <div class="form-section">
@@ -357,21 +414,75 @@
     </form>
   </div>
 
-  <div class="chart-section">
-    <h2>📊 Performances de la flotte</h2>
-    <canvas id="performanceChart"></canvas>
-  </div>
-
   <div class="list-section">
     <h2>🚗 Mes voitures publiées</h2>
     <div id="loading">Chargement des voitures...</div>
     <div class="car-list" id="carList"></div>
     <div class="pagination" id="carPagination"></div>
+    <div class="review-list" id="carReviews">
+      <h3>Avis par voiture</h3>
+      <select id="carReviewSelect" aria-label="Sélectionner une voiture pour les avis">
+        <option value="">Sélectionner une voiture</option>
+      </select>
+      <div id="carReviewList"></div>
+    </div>
+  </div>
+
+  <div class="calendar-section">
+    <h2>📅 Planning de disponibilité</h2>
+    <div id="calendar"></div>
+  </div>
+
+  <div class="chart-section">
+    <h2>📊 Performances de la flotte</h2>
+    <select id="revenuePeriod" aria-label="Période d'analyse des revenus">
+      <option value="month">Mois</option>
+      <option value="quarter">Trimestre</option>
+      <option value="year">Année</option>
+    </select>
+    <canvas id="performanceChart"></canvas>
+    <button class="export-btn" id="exportPerformance" aria-label="Exporter en PDF">Exporter en PDF</button>
   </div>
 
   <div class="list-section">
     <h2>📥 Réservations en attente</h2>
     <div class="reservation-list" id="reservationList"></div>
+  </div>
+
+  <div class="comparison-section">
+    <h2>⚖️ Comparaison des voitures</h2>
+    <select id="comparisonCar1" aria-label="Sélectionner la première voiture">
+      <option value="">Sélectionner la première voiture</option>
+    </select>
+    <select id="comparisonCar2" aria-label="Sélectionner la deuxième voiture">
+      <option value="">Sélectionner la deuxième voiture</option>
+    </select>
+    <table class="comparison-table" id="comparisonTable">
+      <thead>
+        <tr>
+          <th>Métrique</th>
+          <th>Voiture 1</th>
+          <th>Voiture 2</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Rentabilité (MAD)</td>
+          <td id="compRevenue1">-</td>
+          <td id="compRevenue2">-</td>
+        </tr>
+        <tr>
+          <td>Disponibilité (%)</td>
+          <td id="compAvailability1">-</td>
+          <td id="compAvailability2">-</td>
+        </tr>
+        <tr>
+          <td>Taux d'acceptation (%)</td>
+          <td id="compAcceptance1">-</td>
+          <td id="compAcceptance2">-</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="list-section" style="background: #172032;">
