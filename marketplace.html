@@ -1,18 +1,17 @@
-<!-- ✅ marketplace.html - version PRO complète -->
+<!-- ✅ marketplace.html - version PRO améliorée avec fonctionnalités prioritaires -->
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>M<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AutoRent Marketplace - Location de voitures par modèle, ville et catégorie. Trouvez des berlines, SUVs, citadines à Casablanca, Rabat et plus.">
+  <meta name="keywords" content="location voiture, marketplace auto, berline Casablanca, SUV Rabat, citadine Marrakech, utilitaire Tanger">
   <title>AutoRent - Marketplace</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/i18next@21.6.16/i18next.min.js"></script> <!-- Pour multilingue -->
+  <script src="https://cdn.jsdelivr.net/npm/i18next-http-backend@1.4.0/i18nextHttpBackend.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -173,6 +172,25 @@
       font-weight: 600;
       text-transform: uppercase;
     }
+    .verified-badge {
+      background: #22c55e;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.9rem;
+      color: #eab308;
+    }
+    .history {
+      font-size: 0.8rem;
+      color: #475569;
+    }
     .reserve-btn {
       background: #22c55e;
       color: #fff;
@@ -186,12 +204,35 @@
     .reserve-btn:hover {
       background: #16a34a;
     }
+    .favorite-btn {
+      background: #f59e0b;
+      color: #fff;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 8px;
+    }
     #loader {
       text-align: center;
       padding: 24px;
       color: #475569;
       font-weight: 600;
       display: none;
+    }
+    .referral-section {
+      max-width: 1000px;
+      margin: 24px auto;
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .language-currency {
+      display: flex;
+      gap: 16px;
+      align-items: center;
     }
     @media (max-width: 768px) {
       .filters {
@@ -214,11 +255,29 @@
     <div class="logo" tabindex="0" role="heading" aria-level="1" aria-label="Accueil AutoRent" onclick="window.location.href='index.html'">AutoRent</div>
     <nav aria-label="Navigation principale">
       <a href="mes-reservations.html" class="btn-auth" id="reservations-link" style="display: none;">Mes Réservations</a>
+      <a href="dashboard.html" class="btn-auth" id="dashboard-link" style="display: none;">Dashboard Analytics</a>
     </nav>
     <div class="auth-section" id="auth-section">
       <button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>
     </div>
+    <div class="language-currency">
+      <select id="language-select" aria-label="Choisir la langue">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+      </select>
+      <select id="currency-select" aria-label="Choisir la devise">
+        <option value="MAD">MAD</option>
+        <option value="EUR">EUR</option>
+        <option value="USD">USD</option>
+      </select>
+    </div>
   </header>
+
+  <section class="referral-section" aria-label="Programme de parrainage">
+    <h3>Programme de Parrainage</h3>
+    <p>Invitez vos amis et gagnez des bonus ! Partagez votre lien : <span id="referral-link"></span></p>
+    <button id="copy-referral" class="btn-auth">Copier le lien</button>
+  </section>
 
   <section class="filters" aria-label="Filtres de recherche pour les voitures">
     <div>
@@ -276,13 +335,15 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
-    import { getFirestore, collection, query, where, orderBy, limit, startAfter, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { getFirestore, collection, query, where, orderBy, limit, startAfter, onSnapshot, doc, updateDoc, arrayUnion, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+    import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging.js'; // Pour notifications push
     import { firebaseConfig } from './js/firebase.js';
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const messaging = getMessaging(app); // Initialisation pour push notifications
 
     const carList = document.getElementById("car-list");
     const loader = document.getElementById("loader");
@@ -290,8 +351,37 @@
     let filters = {};
     let lastVisible = null;
     let isLoading = false;
+    let currentCurrency = 'MAD';
+    let exchangeRates = { EUR: 0.09, USD: 0.1 }; // Exemples de taux ; à charger dynamiquement si possible
+    let currentUser = null;
 
-    // Debounce function for input handling
+    // Initialisation i18next pour multilingue
+    i18next.use(i18nextHttpBackend).init({
+      lng: 'fr',
+      fallbackLng: 'fr',
+      backend: { loadPath: '/locales/{{lng}}/translation.json' } // Suppose des fichiers JSON pour traductions
+    }, () => {
+      updateUIWithLanguage();
+    });
+
+    function updateUIWithLanguage() {
+      // Mettre à jour les textes avec i18next.t('key')
+      document.querySelector('.logo').textContent = i18next.t('appName');
+      // Ajouter d'autres éléments...
+    }
+
+    // Changement de langue
+    document.getElementById('language-select').addEventListener('change', (e) => {
+      i18next.changeLanguage(e.target.value, updateUIWithLanguage);
+    });
+
+    // Changement de devise
+    document.getElementById('currency-select').addEventListener('change', (e) => {
+      currentCurrency = e.target.value;
+      loadCars(true); // Recharger pour convertir prix
+    });
+
+    // Debounce function
     function debounce(func, wait) {
       let timeout;
       return function executedFunction(...args) {
@@ -304,15 +394,18 @@
       };
     }
 
-    // Update auth UI and show/hide reservations link
+    // Update auth UI
     function updateAuthUI(user) {
+      currentUser = user;
       const reservationsLink = document.getElementById("reservations-link");
+      const dashboardLink = document.getElementById("dashboard-link");
       if (user) {
         authSection.innerHTML = `
           <span title="Connecté en tant que ${DOMPurify.sanitize(user.email)}">${DOMPurify.sanitize(user.email)}</span>
           <button class="btn-auth" id="btn-logout" aria-label="Se déconnecter">Déconnexion</button>
         `;
         reservationsLink.style.display = "inline-block";
+        dashboardLink.style.display = "inline-block"; // Lien vers dashboard analytics
         document.getElementById("btn-logout").addEventListener("click", () => {
           signOut(auth).then(() => {
             Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
@@ -321,25 +414,51 @@
             Toastify({ text: `Erreur déconnexion: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
           });
         });
+        setupPushNotifications(user);
+        setupReferral(user);
       } else {
         authSection.innerHTML = `<button class="btn-auth" id="btn-auth" aria-label="Se connecter">Connexion</button>`;
         reservationsLink.style.display = "none";
+        dashboardLink.style.display = "none";
         document.getElementById("btn-auth").addEventListener("click", () => {
           window.location.href = "connexion.html";
         });
       }
     }
 
-    // Check reservation conflicts for date filters
+    // Setup push notifications
+    function setupPushNotifications(user) {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          getToken(messaging, { vapidKey: 'VOTRE_VAPID_KEY' }).then(token => {
+            updateDoc(doc(db, 'users', user.uid), { fcmToken: token });
+          });
+        }
+      });
+      onMessage(messaging, payload => {
+        Toastify({ text: payload.notification.body, duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      });
+    }
+
+    // Programme de parrainage
+    async function setupReferral(user) {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      let referralCode = userDoc.data()?.referralCode;
+      if (!referralCode) {
+        referralCode = Math.random().toString(36).substring(2, 10);
+        await updateDoc(doc(db, 'users', user.uid), { referralCode });
+      }
+      document.getElementById('referral-link').textContent = `${window.location.origin}?ref=${referralCode}`;
+      document.getElementById('copy-referral').addEventListener('click', () => {
+        navigator.clipboard.writeText(document.getElementById('referral-link').textContent);
+        Toastify({ text: "Lien copié !", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+      });
+      // Bonus : Sur inscription avec ref, ajouter bonus à Firestore (implémenter dans connexion.js)
+    }
+
+    // Vérifier disponibilité
     async function isCarAvailable(carId, start, end) {
-      const snapshot = await onSnapshot(
-        query(
-          collection(db, "reservations"),
-          where("carId", "==", carId),
-          where("status", "==", "confirmed")
-        ),
-        snapshot => snapshot
-      );
+      const snapshot = await getDocs(query(collection(db, "reservations"), where("carId", "==", carId), where("status", "==", "confirmed")));
       return !snapshot.docs.some(doc => {
         const r = doc.data();
         const rs = r.startDate.toDate();
@@ -348,7 +467,7 @@
       });
     }
 
-    // Load cars with real-time updates
+    // Charger voitures avec améliorations
     async function loadCars(isNewSearch = false) {
       if (isLoading) return;
       isLoading = true;
@@ -379,7 +498,7 @@
         if (lastVisible && !isNewSearch) constraints.push(startAfter(lastVisible));
 
         const q = query(collection(db, "cars"), ...constraints, limit(8));
-        onSnapshot(q, async snapshot => {
+        const unsubscribe = onSnapshot(q, async snapshot => {
           if (snapshot.empty) {
             carList.innerHTML = `<p style="text-align:center; color:#475569; font-weight:600;" aria-live="polite">Aucune voiture trouvée.</p>`;
             loader.style.display = "none";
@@ -388,13 +507,36 @@
           }
           if (isNewSearch) carList.innerHTML = "";
 
-          for (const doc of snapshot.docs) {
-            const car = doc.data();
+          for (const docSnap of snapshot.docs) {
+            const car = docSnap.data();
             let isAvailable = true;
             if (startDate && endDate) {
-              isAvailable = await isCarAvailable(doc.id, startDate, endDate);
+              isAvailable = await isCarAvailable(docSnap.id, startDate, endDate);
             }
             if (!isAvailable) continue;
+
+            // Fetch reviews, history, verified from owner
+            const ownerDoc = await getDoc(doc(db, 'users', car.ownerId));
+            const owner = ownerDoc.data() || {};
+            const verified = owner.verified ? '<span class="verified-badge">Vérifié</span>' : '';
+            const rentalsCount = owner.rentalsCount || 0;
+            const satisfaction = owner.satisfactionRate || 'N/A';
+            const reviewsSnap = await getDocs(query(collection(db, 'reviews'), where('carId', '==', docSnap.id)));
+            let rating = 0;
+            if (!reviewsSnap.empty) {
+              rating = reviewsSnap.docs.reduce((acc, d) => acc + d.data().rating, 0) / reviewsSnap.docs.length;
+            }
+
+            // Conversion devise
+            let price = car.prix;
+            if (currentCurrency !== 'MAD') {
+              price = Math.round(price * exchangeRates[currentCurrency]);
+            }
+            const currencySymbol = currentCurrency === 'EUR' ? '€' : currentCurrency === 'USD' ? '$' : 'MAD';
+
+            // Calcul frais auto (ex: 10% commission)
+            const commission = 0.1;
+            const netPrice = price * (1 - commission);
 
             const safeName = DOMPurify.sanitize(car.nom || "Voiture");
             const safeDesc = DOMPurify.sanitize(car.description || "");
@@ -405,12 +547,16 @@
                 <div class="car-info">
                   <h3>${safeName}</h3>
                   <p class="description">${safeDesc}</p>
-                  <p class="price-location">${car.prix} MAD - ${safeLoc}</p>
+                  <p class="price-location">${price} ${currencySymbol} (Net loueur: ${netPrice} ${currencySymbol}) - ${safeLoc}</p>
                   <div class="tags" aria-label="Informations complémentaires">
                     <span class="badge">${DOMPurify.sanitize(car.type || 'N/A')}</span>
                     <span class="badge">${DOMPurify.sanitize(car.transmission || 'N/A')}</span>
+                    ${verified}
                   </div>
-                  <button class="reserve-btn" aria-label="Réserver ${safeName}" onclick="reserveCar('${doc.id}')">Réserver</button>
+                  <div class="rating">★ ${rating.toFixed(1)} / 5</div>
+                  <div class="history">Locations: ${rentalsCount} | Satisfaction: ${satisfaction}%</div>
+                  <button class="reserve-btn" aria-label="Réserver ${safeName}" onclick="reserveCar('${docSnap.id}')">Réserver</button>
+                  <button class="favorite-btn" aria-label="Ajouter aux favoris" onclick="addToFavorites('${docSnap.id}')">❤️ Favoris</button>
                 </div>
               </article>
             `);
@@ -430,6 +576,18 @@
       }
     }
 
+    // Ajouter aux favoris
+    window.addToFavorites = async function(carId) {
+      if (!currentUser) {
+        Toastify({ text: "Veuillez vous connecter.", duration: 3000, backgroundColor: "#ef4444" }).showToast();
+        return;
+      }
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        favorites: arrayUnion(carId)
+      });
+      Toastify({ text: "Ajouté aux favoris !", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+    };
+
     window.reserveCar = function(carId) {
       const startDate = document.getElementById("startDate").value;
       const endDate = document.getElementById("endDate").value;
@@ -440,7 +598,6 @@
       window.location.href = url.toString();
     };
 
-    // Debounced filter application
     const applyFilters = debounce(() => {
       filters = {
         location: document.getElementById("location").value.trim(),
@@ -468,12 +625,10 @@
     document.getElementById("transmission").addEventListener("change", applyFilters);
     document.getElementById("sortOrder").addEventListener("change", applyFilters);
 
-    // Authentication state
     onAuthStateChanged(auth, user => {
       updateAuthUI(user);
     });
 
-    // Offline support
     window.addEventListener("offline", () => {
       Toastify({ text: "Vous êtes hors ligne.", duration: -1, backgroundColor: "#ef4444" }).showToast();
     });
@@ -482,10 +637,8 @@
       loadCars(true);
     });
 
-    // Initial load
     loadCars(true);
 
-    // Infinite scroll
     const observer = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && !isLoading) loadCars();
     }, { rootMargin: "100px" });
