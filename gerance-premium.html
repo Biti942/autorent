@@ -111,20 +111,23 @@
     .add-car-btn:hover {
       background: #16a34a;
     }
-    table {
+    .table-container {
       max-width: 1000px;
-      width: 100%;
       margin: 0 auto 40px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
       border-collapse: collapse;
       background: #fff;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      overflow: hidden;
     }
     th, td {
       padding: 12px;
       text-align: left;
       border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
     }
     th {
       background: #0f172a;
@@ -153,6 +156,18 @@
     }
     .action-btn.reject:hover {
       background: #dc2626;
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #e5e7eb 25%, #f1f5f9 50%, #e5e7eb 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      height: 20px;
+      border-radius: 4px;
+      margin: 4px 0;
+    }
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
     .chart-container {
       max-width: 1000px;
@@ -262,8 +277,8 @@
       .filter-container {
         flex-direction: column;
       }
-      table {
-        font-size: 0.9rem;
+      .table-container {
+        overflow-x: auto;
       }
       .action-btn {
         padding: 6px 12px;
@@ -299,20 +314,26 @@
       <option value="rejected">Rejeté</option>
     </select>
   </div>
-  <table id="reservations-table" aria-live="polite">
-    <thead>
-      <tr>
-        <th>Client</th>
-        <th>Voiture</th>
-        <th>Début</th>
-        <th>Fin</th>
-        <th>Total</th>
-        <th>Statut</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="reservations-body"></tbody>
-  </table>
+  <div class="table-container">
+    <table id="reservations-table" aria-live="polite">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Voiture</th>
+          <th>Début</th>
+          <th>Fin</th>
+          <th>Total</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="reservations-table-body">
+        <tr><td colspan="7"><div class="skeleton"></div></td></tr>
+        <tr><td colspan="7"><div class="skeleton"></div></td></tr>
+        <tr><td colspan="7"><div class="skeleton"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <div class="section-title">🚗 Gestion de la Flotte</div>
   <div class="filter-container">
@@ -324,23 +345,29 @@
     </select>
     <button class="add-car-btn" id="addCarBtn" aria-label="Ajouter une voiture">Ajouter Voiture</button>
   </div>
-  <table id="fleet-table" aria-live="polite">
-    <thead>
-      <tr>
-        <th>Voiture</th>
-        <th>Type</th>
-        <th>Location</th>
-        <th>Vidange</th>
-        <th>Kilométrage</th>
-        <th>Crédit/Mois</th>
-        <th>Dépenses</th>
-        <th>CA</th>
-        <th>Réservations Actives</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="fleet-body"></tbody>
-  </table>
+  <div class="table-container">
+    <table id="fleet-table" aria-live="polite">
+      <thead>
+        <tr>
+          <th>Voiture</th>
+          <th>Type</th>
+          <th>Location</th>
+          <th>Vidange</th>
+          <th>Kilométrage</th>
+          <th>Crédit/Mois</th>
+          <th>Dépenses</th>
+          <th>CA</th>
+          <th>Réservations Actives</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="fleet-table-body">
+        <tr><td colspan="10"><div class="skeleton"></div></td></tr>
+        <tr><td colspan="10"><div class="skeleton"></div></td></tr>
+        <tr><td colspan="10"><div class="skeleton"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <div class="chart-container">
     <h2>📊 Résumé Financier Mensuel</h2>
@@ -349,7 +376,9 @@
 
   <div id="ia-analysis" aria-live="polite">
     <h2>🤖 Analyse IA des Performances</h2>
-    <p>Chargement de l’analyse...</p>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
+    <div class="skeleton"></div>
   </div>
 
   <div id="addCarModal" class="modal">
@@ -393,20 +422,22 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
-    import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, addDoc } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+    import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, addDoc, getDocs } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
     import { firebaseConfig } from './js/firebase.js';
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const fleetBody = document.getElementById("fleet-body");
-    const reservationsBody = document.getElementById("reservations-body");
+    const reservationsTableBody = document.getElementById("reservations-table-body");
+    const fleetTableBody = document.getElementById("fleet-table-body");
     const iaAnalysis = document.getElementById("ia-analysis");
     const userEmail = document.getElementById("user-email");
     const loader = document.getElementById("loader");
     const authSection = document.getElementById("auth-section");
     let chartInstance = null;
+    let unsubscribeReservations = null;
+    let unsubscribeFleet = null;
 
     // Debounce function for filter inputs
     function debounce(func, wait) {
@@ -425,15 +456,9 @@
     function updateAuthUI(user) {
       if (user) {
         userEmail.textContent = DOMPurify.sanitize(user.email);
-        authSection.querySelector("#btn-logout").addEventListener("click", () => {
-          signOut(auth).then(() => {
-            Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
-            window.location.href = "index.html";
-          }).catch(err => {
-            Toastify({ text: `Erreur déconnexion: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
-          });
-        });
       } else {
+        if (unsubscribeReservations) unsubscribeReservations();
+        if (unsubscribeFleet) unsubscribeFleet();
         window.location.href = "connexion.html";
       }
     }
@@ -444,20 +469,32 @@
       return adminDoc.exists();
     }
 
-    // Toggle car availability
+    // Toggle car availability with confirmation
     window.toggleAvailability = async function(carId, disponible) {
+      if (!confirm(`Voulez-vous vraiment ${disponible ? "désactiver" : "activer"} cette voiture ?`)) return;
       try {
-        await updateDoc(doc(db, "cars", carId), { disponible: !disponible });
+        const carRef = doc(db, "cars", carId);
+        const carDoc = await getDoc(carRef);
+        if (carDoc.exists() && carDoc.data().uid !== auth.currentUser.uid) {
+          throw new Error("Vous n'êtes pas autorisé à modifier cette voiture.");
+        }
+        await updateDoc(carRef, { disponible: !disponible });
         Toastify({ text: `Voiture ${!disponible ? "activée" : "désactivée"} avec succès.`, duration: 3000, backgroundColor: "#4ade80" }).showToast();
       } catch (err) {
         Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
       }
     };
 
-    // Update reservation status
+    // Update reservation status with confirmation
     window.updateReservation = async function(resId, status) {
+      if (!confirm(`Voulez-vous vraiment ${status === "confirmed" ? "approuver" : "rejeter"} cette réservation ?`)) return;
       try {
-        await updateDoc(doc(db, "reservations", resId), { status });
+        const resRef = doc(db, "reservations", resId);
+        const resDoc = await getDoc(resRef);
+        if (resDoc.exists() && resDoc.data().agencyId !== auth.currentUser.uid) {
+          throw new Error("Vous n'êtes pas autorisé à modifier cette réservation.");
+        }
+        await updateDoc(resRef, { status });
         Toastify({ text: `Réservation ${status === "confirmed" ? "approuvée" : "rejetée"} avec succès.`, duration: 3000, backgroundColor: "#4ade80" }).showToast();
       } catch (err) {
         Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
@@ -492,96 +529,137 @@
       }
     }
 
-    // Load agency data
-    async function loadAgencyData(user) {
-      loader.style.display = "block";
-      try {
-        // Load reservations
-        onSnapshot(query(collection(db, "reservations"), where("agencyId", "==", user.uid)), async snapshot => {
-          reservationsBody.innerHTML = "";
-          const pendingCount = snapshot.docs.filter(doc => doc.data().status === "pending").length;
+    // Filter reservations
+    const filterReservations = debounce(() => {
+      const filter = document.getElementById("resFilter").value.toLowerCase();
+      const status = document.getElementById("resStatusFilter").value;
+      const rows = reservationsTableBody.getElementsByTagName("tr");
+      for (let row of rows) {
+        const client = row.cells[0].textContent.toLowerCase();
+        const car = row.cells[1].textContent.toLowerCase();
+        const resStatus = row.cells[5].textContent.toLowerCase();
+        const textMatch = client.includes(filter) || car.includes(filter);
+        const statusMatch = !status || resStatus === status;
+        row.style.display = textMatch && statusMatch ? "" : "none";
+      }
+    }, 300);
 
-          for (const doc of snapshot.docs) {
-            const res = doc.data();
-            const carDoc = await getDoc(doc(db, "cars", res.carId));
-            const userDoc = await getDoc(doc(db, "utilisateurs", res.userId));
-            const carName = carDoc.exists() ? DOMPurify.sanitize(carDoc.data().nom) : "Inconnu";
-            const userEmail = userDoc.exists() ? DOMPurify.sanitize(userDoc.data().email) : "Inconnu";
-            const start = res.startDate ? new Date(res.startDate.toDate()).toLocaleDateString('fr-FR') : "-";
-            const end = res.endDate ? new Date(res.endDate.toDate()).toLocaleDateString('fr-FR') : "-";
-            reservationsBody.insertAdjacentHTML("beforeend", `
-              <tr>
-                <td>${userEmail}</td>
-                <td>${carName}</td>
-                <td>${start}</td>
-                <td>${end}</td>
-                <td>${res.totalPrice || "-"} DH</td>
-                <td>${DOMPurify.sanitize(res.status)}</td>
-                <td>
-                  ${res.status === "pending" ? `
-                    <button class="action-btn" onclick="updateReservation('${doc.id}', 'confirmed')" aria-label="Approuver la réservation">Approuver</button>
-                    <button class="action-btn reject" onclick="updateReservation('${doc.id}', 'rejected')" aria-label="Rejeter la réservation">Rejeter</button>
-                  ` : "-"}
-                </td>
-              </tr>
-            `);
-          }
+    // Filter fleet
+    const filterFleet = debounce(() => {
+      const filter = document.getElementById("fleetFilter").value.toLowerCase();
+      const status = document.getElementById("statusFilter").value;
+      const rows = fleetTableBody.getElementsByTagName("tr");
+      for (let row of rows) {
+        const name = row.cells[0].textContent.toLowerCase();
+        const disponible = row.cells[9].querySelector("button").textContent === "Désactiver" ? "true" : "false";
+        const nameMatch = name.includes(filter);
+        const statusMatch = !status || disponible === status;
+        row.style.display = nameMatch && statusMatch ? "" : "none";
+      }
+    }, 300);
 
-          // Filter reservations table
-          const filterReservations = debounce(() => {
-            const filter = document.getElementById("resFilter").value.toLowerCase();
-            const status = document.getElementById("resStatusFilter").value;
-            const rows = reservationsBody.getElementsByTagName("tr");
-            for (let row of rows) {
-              const client = row.cells[0].textContent.toLowerCase();
-              const car = row.cells[1].textContent.toLowerCase();
-              const resStatus = row.cells[5].textContent.toLowerCase();
-              const textMatch = client.includes(filter) || car.includes(filter);
-              const statusMatch = !status || resStatus === status;
-              row.style.display = textMatch && statusMatch ? "" : "none";
+    // Load reservations
+    function loadReservations(user) {
+      return new Promise((resolve, reject) => {
+        reservationsTableBody.innerHTML = `
+          <tr><td colspan="7"><div class="skeleton"></div></td></tr>
+          <tr><td colspan="7"><div class="skeleton"></div></td></tr>
+          <tr><td colspan="7"><div class="skeleton"></div></td></tr>
+        `;
+        const q = query(collection(db, "reservations"), where("agencyId", "==", user.uid));
+        unsubscribeReservations = onSnapshot(q, async snapshot => {
+          const resDocs = snapshot.docs;
+          const carPromises = resDocs.map(d => getDoc(doc(db, "cars", d.data().carId)));
+          const userPromises = resDocs.map(d => getDoc(doc(db, "utilisateurs", d.data().userId)));
+          try {
+            const [carDocs, userDocs] = await Promise.all([Promise.all(carPromises), Promise.all(userPromises)]);
+            reservationsTableBody.innerHTML = "";
+            for (let i = 0; i < resDocs.length; i++) {
+              const res = resDocs[i].data();
+              const carName = carDocs[i].exists() ? DOMPurify.sanitize(carDocs[i].data().nom) : "Inconnu";
+              const userEmail = userDocs[i].exists() ? DOMPurify.sanitize(userDocs[i].data().email) : "Inconnu";
+              const start = res.startDate ? new Date(res.startDate.toDate()).toLocaleDateString('fr-FR') : "-";
+              const end = res.endDate ? new Date(res.endDate.toDate()).toLocaleDateString('fr-FR') : "-";
+              reservationsTableBody.insertAdjacentHTML("beforeend", `
+                <tr>
+                  <td>${userEmail}</td>
+                  <td>${carName}</td>
+                  <td>${start}</td>
+                  <td>${end}</td>
+                  <td>${res.totalPrice || "-"} DH</td>
+                  <td>${DOMPurify.sanitize(res.status)}</td>
+                  <td>
+                    ${res.status === "pending" ? `
+                      <button class="action-btn" onclick="updateReservation('${resDocs[i].id}', 'confirmed')" aria-label="Approuver la réservation">Approuver</button>
+                      <button class="action-btn reject" onclick="updateReservation('${resDocs[i].id}', 'rejected')" aria-label="Rejeter la réservation">Rejeter</button>
+                    ` : "-"}
+                  </td>
+                </tr>
+              `);
             }
-          }, 300);
-          document.getElementById("resFilter").addEventListener("input", filterReservations);
-          document.getElementById("resStatusFilter").addEventListener("change", filterReservations);
+            filterReservations();
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        }, err => reject(err));
+      });
+    }
 
-          // Load cars
-          onSnapshot(query(collection(db, "cars"), where("uid", "==", user.uid)), async snapshot => {
-            fleetBody.innerHTML = "";
+    // Load fleet
+    function loadFleet(user, reservationsSnapshot) {
+      return new Promise((resolve, reject) => {
+        fleetTableBody.innerHTML = `
+          <tr><td colspan="10"><div class="skeleton"></div></td></tr>
+          <tr><td colspan="10"><div class="skeleton"></div></td></tr>
+          <tr><td colspan="10"><div class="skeleton"></div></td></tr>
+        `;
+        const q = query(collection(db, "cars"), where("uid", "==", user.uid));
+        unsubscribeFleet = onSnapshot(q, async snapshot => {
+          try {
             const fleetData = [];
             const monthlyData = {};
-            const today = new Date("2025-07-11");
+            const today = new Date();
             const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+            let totalDepenses = 0;
+            let totalCredit = 0;
 
-            for (const doc of snapshot.docs) {
-              const car = doc.data();
-              car.id = doc.id;
+            // Aggregate reservations by carId
+            const carReservations = {};
+            reservationsSnapshot.forEach(resDoc => {
+              const res = resDoc.data();
+              if (res.status === "confirmed" && res.endDate.toDate() >= sixMonthsAgo) {
+                const carId = res.carId;
+                carReservations[carId] = carReservations[carId] || [];
+                carReservations[carId].push(res);
+              }
+            });
+
+            const updates = [];
+            for (const carDoc of snapshot.docs) {
+              const car = carDoc.data();
+              car.id = carDoc.id;
               fleetData.push(car);
 
-              // Count active reservations and revenue
-              const resQuery = query(
-                collection(db, "reservations"),
-                where("carId", "==", car.id),
-                where("status", "==", "confirmed"),
-                where("endDate", ">=", sixMonthsAgo)
-              );
-              const resSnapshot = await getDocs(resQuery);
+              totalDepenses += parseFloat(car.depenses || 0);
+              totalCredit += parseFloat(car.credit || 0);
+
               let activeReservations = 0;
               let carCA = 0;
-              resSnapshot.forEach(resDoc => {
-                const res = resDoc.data();
+              const resList = carReservations[car.id] || [];
+              resList.forEach(res => {
                 if (res.endDate.toDate() >= today && res.startDate.toDate() <= today) activeReservations++;
                 const resMonth = res.startDate.toDate().toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
-                monthlyData[resMonth] = monthlyData[resMonth] || { ca: 0, depenses: parseFloat(car.depenses || 0), credit: parseFloat(car.credit || 0) };
+                monthlyData[resMonth] = monthlyData[resMonth] || { ca: 0, depenses: totalDepenses, credit: totalCredit };
                 monthlyData[resMonth].ca += parseFloat(res.totalPrice || 0);
                 carCA += parseFloat(res.totalPrice || 0);
               });
 
-              // Update car CA
               if (carCA !== parseFloat(car.ca || 0)) {
-                await updateDoc(doc(db, "cars", car.id), { ca: carCA });
+                updates.push(updateDoc(doc(db, "cars", car.id), { ca: carCA }));
               }
 
-              fleetBody.insertAdjacentHTML("beforeend", `
+              fleetTableBody.insertAdjacentHTML("beforeend", `
                 <tr>
                   <td>${DOMPurify.sanitize(car.nom || "N/A")}</td>
                   <td>${DOMPurify.sanitize(car.type || "N/A")}</td>
@@ -601,116 +679,131 @@
               `);
             }
 
-            // Filter fleet table
-            const filterFleet = debounce(() => {
-              const filter = document.getElementById("fleetFilter").value.toLowerCase();
-              const status = document.getElementById("statusFilter").value;
-              const rows = fleetBody.getElementsByTagName("tr");
-              for (let row of rows) {
-                const name = row.cells[0].textContent.toLowerCase();
-                const disponible = row.cells[9].querySelector("button").textContent === "Désactiver" ? "true" : "false";
-                const nameMatch = name.includes(filter);
-                const statusMatch = !status || disponible === status;
-                row.style.display = nameMatch && statusMatch ? "" : "none";
-              }
-            }, 300);
-            document.getElementById("fleetFilter").addEventListener("input", filterFleet);
-            document.getElementById("statusFilter").addEventListener("change", filterFleet);
+            await Promise.all(updates);
 
-            // Financial chart
-            if (chartInstance) chartInstance.destroy();
-            const ctx = document.getElementById("financeChart").getContext("2d");
-            const months = Array.from({length: 6}, (_, i) => {
-              const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
-              return date.toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
-            }).reverse();
+            filterFleet();
+            updateChart(monthlyData, today, totalDepenses, totalCredit);
+            const pendingCount = reservationsSnapshot.docs.filter(d => d.data().status === "pending").length;
+            updateAIAnalysis(fleetData, reservationsSnapshot.size, pendingCount);
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        }, err => reject(err));
+      });
+    }
 
-            chartInstance = new Chart(ctx, {
-              type: 'line',
-              data: {
-                labels: months,
-                datasets: [
-                  {
-                    label: 'Chiffre d\'Affaires',
-                    data: months.map(m => monthlyData[m]?.ca || 0),
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    tension: 0.4
-                  },
-                  {
-                    label: 'Dépenses',
-                    data: months.map(m => monthlyData[m]?.depenses || 0),
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                    tension: 0.4
-                  },
-                  {
-                    label: 'Crédit Mensuel',
-                    data: months.map(m => monthlyData[m]?.credit || 0),
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    tension: 0.4
-                  }
-                ]
-              },
-              options: {
-                scales: {
-                  y: { beginAtZero: true, ticks: { color: '#1e293b' } },
-                  x: { ticks: { color: '#1e293b' } }
-                },
-                plugins: {
-                  legend: { labels: { color: '#1e293b' } }
-                }
-              }
-            });
+    // Update financial chart
+    function updateChart(monthlyData, today, totalDepenses, totalCredit) {
+      if (chartInstance) chartInstance.destroy();
+      const ctx = document.getElementById("financeChart").getContext("2d");
+      const months = Array.from({length: 6}, (_, i) => {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        return date.toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
+      }).reverse();
 
-            // AI Analysis
-            let totalCA = 0, totalDepenses = 0, totalCredit = 0;
-            let bestCar = null, maxCA = 0;
-            let minCreditCar = null, minCredit = Number.MAX_VALUE;
-            let totalReservations = snapshot.size;
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [
+            {
+              label: 'Chiffre d\'Affaires',
+              data: months.map(m => monthlyData[m]?.ca || 0),
+              borderColor: '#22c55e',
+              backgroundColor: 'rgba(34, 197, 94, 0.2)',
+              tension: 0.4
+            },
+            {
+              label: 'Dépenses',
+              data: months.map(() => totalDepenses),
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.2)',
+              tension: 0.4
+            },
+            {
+              label: 'Crédit Mensuel',
+              data: months.map(() => totalCredit),
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.2)',
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, ticks: { color: '#1e293b' } },
+            x: { ticks: { color: '#1e293b' } }
+          },
+          plugins: {
+            legend: { labels: { color: '#1e293b' } }
+          }
+        }
+      });
+    }
 
-            fleetData.forEach(car => {
-              const ca = parseFloat(car.ca || 0);
-              const depenses = parseFloat(car.depenses || 0);
-              const credit = parseFloat(car.credit || 0);
-              totalCA += ca;
-              totalDepenses += depenses;
-              totalCredit += credit;
-              if (ca > maxCA) {
-                maxCA = ca;
-                bestCar = car;
-              }
-              if (credit && credit < minCredit) {
-                minCredit = credit;
-                minCreditCar = car;
-              }
-            });
+    // Update AI analysis
+    function updateAIAnalysis(fleetData, totalReservations, pendingCount) {
+      let totalCA = 0, totalDepenses = 0, totalCredit = 0;
+      let bestCar = null, maxCA = 0;
+      let minCreditCar = null, minCredit = Number.MAX_VALUE;
+      let highMileageCars = 0;
 
-            const benefice = totalCA - totalDepenses - totalCredit;
-            const analysisText = `
-              <p><strong>Total CA:</strong> ${totalCA.toFixed(2)} DH</p>
-              <p><strong>Dépenses totales:</strong> ${totalDepenses.toFixed(2)} DH</p>
-              <p><strong>Crédit mensuel cumulé:</strong> ${totalCredit.toFixed(2)} DH</p>
-              <p><strong>Bénéfice estimé:</strong> <span style="color:${benefice > 0 ? '#22c55e' : '#ef4444'}">${benefice.toFixed(2)} DH</span></p>
-              <p><strong>Total réservations:</strong> ${totalReservations}</p>
-              <p><strong>Réservations en attente:</strong> ${pendingCount}</p>
-              <p><strong>Meilleure voiture:</strong> ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "Aucune"} (${maxCA.toFixed(2)} DH CA)</p>
-              <p><strong>Voiture la plus économique:</strong> ${minCreditCar ? DOMPurify.sanitize(minCreditCar.nom) : "Aucune"} (${minCredit.toFixed(2)} DH crédit)</p>
-              <p><strong>Conseils:</strong></p>
-              <ul>
-                <li>${benefice > 0 ? `Continuez à maximiser la disponibilité de ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "vos meilleures unités"}.` : "Réduisez les dépenses ou augmentez les prix des véhicules peu rentables."}</li>
-                <li>Priorisez le traitement des ${pendingCount} demandes de réservation en attente.</li>
-                <li>Envisagez d’ajouter des modèles similaires à ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "vos unités performantes"}.</li>
-                <li>Vérifiez les vidanges pour maintenir la qualité de votre flotte.</li>
-              </ul>
-            `;
-            iaAnalysis.innerHTML = analysisText;
+      fleetData.forEach(car => {
+        const ca = parseFloat(car.ca || 0);
+        const depenses = parseFloat(car.depenses || 0);
+        const credit = parseFloat(car.credit || 0);
+        totalCA += ca;
+        totalDepenses += depenses;
+        totalCredit += credit;
+        if (ca > maxCA) {
+          maxCA = ca;
+          bestCar = car;
+        }
+        if (credit && credit < minCredit) {
+          minCredit = credit;
+          minCreditCar = car;
+        }
+        if (car.kilometrage > 100000) highMileageCars++;
+      });
 
-            loader.style.display = "none";
-            Toastify({ text: "Données chargées avec succès 📊", duration: 3000, backgroundColor: "#4ade80" }).showToast();
-          });
-        });
+      const benefice = totalCA - totalDepenses - totalCredit;
+      const reservationsPerCar = fleetData.length ? totalReservations / fleetData.length : 0;
+      const analysisText = `
+        <p><strong>Total CA:</strong> ${totalCA.toFixed(2)} DH</p>
+        <p><strong>Dépenses totales:</strong> ${totalDepenses.toFixed(2)} DH</p>
+        <p><strong>Crédit mensuel cumulé:</strong> ${totalCredit.toFixed(2)} DH</p>
+        <p><strong>Bénéfice estimé:</strong> <span style="color:${benefice > 0 ? '#22c55e' : '#ef4444'}">${benefice.toFixed(2)} DH</span></p>
+        <p><strong>Total réservations:</strong> ${totalReservations}</p>
+        <p><strong>Réservations en attente:</strong> ${pendingCount}</p>
+        <p><strong>Meilleure voiture:</strong> ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "Aucune"} (${maxCA.toFixed(2)} DH CA)</p>
+        <p><strong>Voiture la plus économique:</strong> ${minCreditCar ? DOMPurify.sanitize(minCreditCar.nom) : "Aucune"} (${minCredit.toFixed(2)} DH crédit)</p>
+        <p><strong>Voitures à fort kilométrage (>100k km):</strong> ${highMileageCars}</p>
+        <p><strong>Prévisions (basé sur les 6 derniers mois):</strong></p>
+        <ul>
+          <li>CA mensuel moyen: ${(totalCA / 6).toFixed(2)} DH</li>
+          <li>Taux de réservation: ${reservationsPerCar.toFixed(2)} réservations/voiture</li>
+        </ul>
+        <p><strong>Recommandations:</strong></p>
+        <ul>
+          <li>${benefice > 0 ? `Continuez à maximiser la disponibilité de ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "vos meilleures unités"}.` : "Réduisez les dépenses ou augmentez les prix des véhicules peu rentables."}</li>
+          <li>Priorisez le traitement des ${pendingCount} demandes de réservation en attente.</li>
+          <li>Envisagez d’ajouter des modèles similaires à ${bestCar ? DOMPurify.sanitize(bestCar.nom) : "vos unités performantes"}.</li>
+          <li>Vérifiez les vidanges pour ${highMileageCars} voitures à fort kilométrage.</li>
+        </ul>
+      `;
+      iaAnalysis.innerHTML = analysisText;
+    }
+
+    // Load agency data
+    async function loadAgencyData(user) {
+      loader.style.display = "block";
+      try {
+        const resQuery = query(collection(db, "reservations"), where("agencyId", "==", user.uid));
+        const resSnapshot = await getDocs(resQuery);
+        await Promise.all([loadReservations(user), loadFleet(user, resSnapshot)]);
+        loader.style.display = "none";
+        Toastify({ text: "Données chargées avec succès 📊", duration: 3000, backgroundColor: "#4ade80" }).showToast();
       } catch (err) {
         Toastify({ text: `Erreur: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
         loader.style.display = "none";
@@ -726,21 +819,46 @@
     });
     document.getElementById("addCarForm").addEventListener("submit", addCar);
 
+    // Attach filter listeners once
+    document.getElementById("resFilter").addEventListener("input", filterReservations);
+    document.getElementById("resStatusFilter").addEventListener("change", filterReservations);
+    document.getElementById("fleetFilter").addEventListener("input", filterFleet);
+    document.getElementById("statusFilter").addEventListener("change", filterFleet);
+
+    // Attach logout listener once
+    const logoutBtn = authSection.querySelector("#btn-logout");
+    logoutBtn.addEventListener("click", () => {
+      if (unsubscribeReservations) unsubscribeReservations();
+      if (unsubscribeFleet) unsubscribeFleet();
+      signOut(auth).then(() => {
+        Toastify({ text: "Déconnexion réussie.", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+        window.location.href = "index.html";
+      }).catch(err => {
+        Toastify({ text: `Erreur déconnexion: ${err.message}`, duration: 3000, backgroundColor: "#ef4444" }).showToast();
+      });
+    });
+
     // Authentication state
     onAuthStateChanged(auth, async user => {
       if (!user) {
+        if (unsubscribeReservations) unsubscribeReservations();
+        if (unsubscribeFleet) unsubscribeFleet();
         window.location.href = "connexion.html";
         return;
       }
       updateAuthUI(user);
       const isAdminUser = await isAdmin(user);
       if (isAdminUser) {
+        if (unsubscribeReservations) unsubscribeReservations();
+        if (unsubscribeFleet) unsubscribeFleet();
         Toastify({ text: "Redirection vers le tableau de bord admin.", duration: 3000, backgroundColor: "#3b82f6" }).showToast();
         window.location.href = "admin-dashboard.html";
         return;
       }
       const aboDoc = await getDoc(doc(db, "abonnements", user.uid));
       if (!aboDoc.exists() || !aboDoc.data().pack) {
+        if (unsubscribeReservations) unsubscribeReservations();
+        if (unsubscribeFleet) unsubscribeFleet();
         Toastify({ text: "Accès refusé. Abonnement premium requis.", duration: 3000, backgroundColor: "#ef4444" }).showToast();
         window.location.href = "index.html";
         return;
@@ -760,4 +878,3 @@
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
-
