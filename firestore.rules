@@ -2,49 +2,66 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 🔐 Admins : lecture uniquement par eux-mêmes
+    // 🔐 Admins : lecture uniquement par eux-mêmes, pas d’écriture directe
     match /admins/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false; // interdiction d'écriture directe
+      allow write: if false;
     }
 
-    // 📄 Abonnements : accessible par l'utilisateur concerné ou un admin
+    // 📄 Abonnements : accès par utilisateur concerné ou admin
     match /abonnements/{userId} {
-      allow read: if request.auth != null &&
-                   (request.auth.uid == userId ||
-                    exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+      allow read: if request.auth != null && (
+                    request.auth.uid == userId ||
+                    exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+                  );
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // 🚗 Voitures : lecture si voiture publique ou propriétaire/admin, écriture uniquement par le propriétaire
+    // 🚗 Voitures publiques (base cars) : lecture publique si disponible, écriture par propriétaire ou admin
     match /cars/{carId} {
-      allow read: if resource.data.disponible == true || // publique
-                   request.auth.uid == resource.data.uid || // propriétaire
-                   exists(/databases/$(database)/documents/admins/$(request.auth.uid)); // admin
+      allow read: if resource.data.disponible == true ||
+                   request.auth != null && (
+                     request.auth.uid == resource.data.uid ||  // propriétaire
+                     exists(/databases/$(database)/documents/admins/$(request.auth.uid)) // admin
+                   );
       allow write, update: if request.auth != null && request.auth.uid == resource.data.uid;
     }
 
-    // 📆 Réservations : lecture par l'utilisateur, l'agence ou admin
-    match /reservations/{resId} {
-      allow read: if request.auth != null &&
-                   (request.auth.uid == resource.data.userId ||
-                    request.auth.uid == resource.data.agencyId ||
-                    exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow update: if request.auth != null &&
-                     (request.auth.uid == resource.data.agencyId ||
-                      exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    // 🚙 Flotte d’agence (fleet) : lecture et écriture réservées à l’agence propriétaire
+    match /fleet/{carId} {
+      allow read, write, update: if request.auth != null &&
+                                 request.auth.uid == resource.data.agencyId;
     }
 
-    // 👤 Utilisateurs (compte personnel - version FR)
+    // 📆 Réservations : lecture par utilisateur, agence ou admin ; écriture par utilisateur ; update par agence/admin
+    match /reservations/{resId} {
+      allow read: if request.auth != null && (
+                    request.auth.uid == resource.data.userId ||
+                    request.auth.uid == resource.data.agencyId ||
+                    exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+                  );
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update: if request.auth != null && (
+                      request.auth.uid == resource.data.agencyId ||
+                      exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+                    );
+    }
+
+    // 👤 Utilisateurs FR : accès total au propriétaire
     match /utilisateurs/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // 👤 Users (compte personnel - version EN)
+    // 👤 Utilisateurs EN : accès total au propriétaire
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // 📊 (Optionnel) Stats internes (à créer plus tard) - accès limité à l’agence
+    // match /stats/{agencyId} {
+    //   allow read, write: if request.auth != null && request.auth.uid == agencyId;
+    // }
+
   }
 }
+
