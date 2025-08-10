@@ -2,66 +2,103 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 🔐 Admins : lecture uniquement par eux-mêmes, pas d’écriture directe
+    // ---------- Admins ----------
+    // ⚠️ Ces données peuvent être publiques pour info, mais l'autorisation admin
+    // vient des custom claims et NON de cette collection
     match /admins/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false;
     }
 
-    // 📄 Abonnements : accès par utilisateur concerné ou admin
+    // ---------- Abonnements ----------
     match /abonnements/{userId} {
-      allow read: if request.auth != null && (
-                    request.auth.uid == userId ||
-                    exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-                  );
+      allow read: if request.auth != null &&
+                   (request.auth.uid == userId ||
+                    request.auth.token.admin == true);
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // 🚗 Voitures publiques (base cars) : lecture publique si disponible, écriture par propriétaire ou admin
-    match /cars/{carId} {
-      allow read: if resource.data.disponible == true ||
-                   request.auth != null && (
-                     request.auth.uid == resource.data.uid ||  // propriétaire
-                     exists(/databases/$(database)/documents/admins/$(request.auth.uid)) // admin
-                   );
-      allow write, update: if request.auth != null && request.auth.uid == resource.data.uid;
-    }
-
-    // 🚙 Flotte d’agence (fleet) : lecture et écriture réservées à l’agence propriétaire
-    match /fleet/{carId} {
-      allow read, write, update: if request.auth != null &&
-                                 request.auth.uid == resource.data.agencyId;
-    }
-
-    // 📆 Réservations : lecture par utilisateur, agence ou admin ; écriture par utilisateur ; update par agence/admin
-    match /reservations/{resId} {
-      allow read: if request.auth != null && (
-                    request.auth.uid == resource.data.userId ||
-                    request.auth.uid == resource.data.agencyId ||
-                    exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-                  );
-      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow update: if request.auth != null && (
-                      request.auth.uid == resource.data.agencyId ||
-                      exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-                    );
-    }
-
-    // 👤 Utilisateurs FR : accès total au propriétaire
+    // ---------- Utilisateurs ----------
     match /utilisateurs/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-
-    // 👤 Utilisateurs EN : accès total au propriétaire
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // 📊 (Optionnel) Stats internes (à créer plus tard) - accès limité à l’agence
-    // match /stats/{agencyId} {
-    //   allow read, write: if request.auth != null && request.auth.uid == agencyId;
-    // }
+    // ---------- Voitures ----------
+    match /cars/{carId} {
+      // Lecture : publique, propriétaire ou admin
+      allow read: if request.auth != null &&
+                  ("disponible" in resource.data && resource.data.disponible == true ||
+                   request.auth.uid == resource.data.uid ||
+                   request.auth.token.admin == true);
 
+      // Création : champs obligatoires + cohérence UID
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.nom is string
+                    && request.resource.data.prix is number
+                    && request.resource.data.prix >= 0
+                    && request.resource.data.ca is number
+                    && request.resource.data.depenses is number
+                    && "disponible" in request.resource.data
+                    && request.resource.data.disponible is bool;
+
+      // Mise à jour : propriétaire ou admin + validation champs
+      allow update: if request.auth != null &&
+                    (request.auth.uid == resource.data.uid ||
+                     request.auth.token.admin == true) &&
+                    request.resource.data.uid == resource.data.uid
+                    && request.resource.data.nom is string
+                    && request.resource.data.prix is number
+                    && request.resource.data.prix >= 0
+                    && request.resource.data.ca is number
+                    && request.resource.data.depenses is number
+                    && "disponible" in request.resource.data
+                    && request.resource.data.disponible is bool;
+
+      // Suppression : propriétaire ou admin
+      allow delete: if request.auth != null &&
+                    (request.auth.uid == resource.data.uid ||
+                     request.auth.token.admin == true);
+    }
+
+    // ---------- Réservations ----------
+    match /reservations/{resId} {
+      // Lecture : utilisateur, agence ou admin
+      allow read: if request.auth != null &&
+                  (request.auth.uid == resource.data.userId ||
+                   request.auth.uid == resource.data.agencyId ||
+                   request.auth.token.admin == true);
+
+      // Création : user + champs obligatoires
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.carId is string
+                    && request.resource.data.agencyId is string
+                    && request.resource.data.startDate is timestamp
+                    && request.resource.data.endDate is timestamp
+                    && request.resource.data.totalPrice is number
+                    && request.resource.data.totalPrice >= 0
+                    && request.resource.data.status == "pending";
+
+      // Mise à jour : agence, admin ou user pour annulation
+      allow update: if request.auth != null &&
+                    (
+                      request.auth.uid == resource.data.agencyId ||
+                      request.auth.token.admin == true ||
+                      (request.auth.uid == resource.data.userId &&
+                       request.resource.data.status == "cancelled")
+                    );
+
+      allow delete: if false; // pas de suppression brute
+    }
+
+    // ---------- Sécurité par défaut ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
 

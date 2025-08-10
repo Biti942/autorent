@@ -5,6 +5,7 @@
   <title>Analyse Intelligente - AutoRent</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -54,28 +55,49 @@
       width: 100% !important;
       height: 400px !important;
     }
+    #loader {
+      text-align: center;
+      padding: 24px;
+      color: #38bdf8;
+      font-weight: 600;
+      display: none;
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #1e293b 25%, #2d3748 50%, #1e293b 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      height: 20px;
+      border-radius: 4px;
+      margin: 4px 0;
+    }
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
   </style>
 </head>
 <body>
 
 <h1>📊 Analyse Intelligente des Performances</h1>
 
+<div id="loader" aria-hidden="true">Chargement...</div>
+
 <div class="stat-boxes">
   <div class="box">
     <h3>Chiffre d'affaires Total</h3>
-    <p id="caTotal">0 DH</p>
+    <p id="caTotal"><div class="skeleton"></div></p>
   </div>
   <div class="box">
     <h3>Total Réservations</h3>
-    <p id="totalRes">0</p>
+    <p id="totalRes"><div class="skeleton"></div></p>
   </div>
   <div class="box">
     <h3>Voiture la + rentable</h3>
-    <p id="bestCar">-</p>
+    <p id="bestCar"><div class="skeleton"></div></p>
   </div>
   <div class="box">
     <h3>Disponibilité Moyenne</h3>
-    <p id="dispo">0%</p>
+    <p id="dispo"><div class="skeleton"></div></p>
   </div>
 </div>
 
@@ -89,124 +111,197 @@
   <canvas id="chartVoitures"></canvas>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="firebase.js"></script>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js';
+  import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+  import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    onSnapshot,
+    getDocs,
+    Timestamp
+  } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js';
+  import { firebaseConfig } from './js/firebase.js';
 
-<script>
-  const db = firebase.firestore();
-  const auth = firebase.auth();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-  auth.onAuthStateChanged(user => {
-    if (!user) return location.href = "connexion.html";
+  const loader = document.getElementById("loader");
+  let chartFinanceInstance = null;
+  let chartVoituresInstance = null;
+  let unsubscribeCars = null;
 
-    const uid = user.uid;
-    let totalCA = 0;
-    let totalRes = 0;
-    let voituresData = [];
-    let meilleureVoiture = { nom: '', ca: 0 };
-    let voituresDisponibles = 0;
-    let totalVoitures = 0;
+  function safeNumber(v) {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
 
-    db.collection("cars").where("uid", "==", uid).get().then(snapshot => {
-      snapshot.forEach(doc => {
-        const v = doc.data();
-        const ca = parseFloat(v.ca) || 0;
-        const dep = parseFloat(v.depenses) || 0;
-        const res = parseInt(v.reservations || "0");
-        const dispo = v.disponible ? 1 : 0;
-
-        totalCA += ca;
-        totalRes += res;
-        totalVoitures++;
-        voituresDisponibles += dispo;
-
-        voituresData.push({
-          nom: v.nom,
-          ca: ca,
-          dep: dep
-        });
-
-        if (ca > meilleureVoiture.ca) {
-          meilleureVoiture = { nom: v.nom, ca };
-        }
-      });
-
-      // Stats textuelles
-      document.getElementById("caTotal").textContent = `${totalCA.toFixed(2)} DH`;
-      document.getElementById("totalRes").textContent = totalRes;
-      document.getElementById("bestCar").textContent = meilleureVoiture.nom || "-";
-      document.getElementById("dispo").textContent = `${Math.round((voituresDisponibles / totalVoitures) * 100)}%`;
-
-      // Graphique 1
-      const mois = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'];
-      const revenusFictifs = [15000, 16000, 20000, 21000, 18000, totalCA]; // Simulation
-      const depensesFictives = [8000, 8500, 9500, 9700, 9200, voituresData.reduce((a, v) => a + v.dep, 0)];
-
-      new Chart(document.getElementById('chartFinance'), {
-        type: 'bar',
-        data: {
-          labels: mois,
-          datasets: [
-            {
-              label: 'Chiffre d\'Affaire',
-              data: revenusFictifs,
-              backgroundColor: '#4ade80'
-            },
-            {
-              label: 'Dépenses',
-              data: depensesFictives,
-              backgroundColor: '#f87171'
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { labels: { color: '#fff' } }
-          },
-          scales: {
-            x: { ticks: { color: '#fff' } },
-            y: { ticks: { color: '#fff' }, beginAtZero: true }
-          }
-        }
-      });
-
-      // Graphique 2
-      new Chart(document.getElementById('chartVoitures'), {
-        type: 'bar',
-        data: {
-          labels: voituresData.map(v => v.nom),
-          datasets: [
-            {
-              label: 'CA',
-              data: voituresData.map(v => v.ca),
-              backgroundColor: '#22d3ee'
-            },
-            {
-              label: 'Dépenses',
-              data: voituresData.map(v => v.dep),
-              backgroundColor: '#eab308'
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { labels: { color: '#fff' } }
-          },
-          scales: {
-            x: { ticks: { color: '#fff' } },
-            y: { ticks: { color: '#fff' }, beginAtZero: true }
-          }
-        }
-      });
-
+  // retourne tableau mois (6 derniers mois format "janv. 2025" selon locale)
+  function buildLast6Months(today = new Date()) {
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(today.getFullYear(), today.getMonth() - (5 - i), 1);
+      return d.toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
     });
+  }
+
+  async function loadData(user) {
+    loader.style.display = "block";
+
+    const today = new Date();
+    const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+
+    // 1) Récupérer toutes les réservations de l'agence (snapshot one-shot)
+    const monthlyData = {}; // { "mai 2025": { ca: 0, depenses: 0 } }
+    let totalReservations = 0;
+    try {
+      const resQuery = query(
+        collection(db, "reservations"),
+        where("agencyId", "==", user.uid)
+      );
+      const resSnapshot = await getDocs(resQuery);
+
+      resSnapshot.forEach(doc => {
+        const r = doc.data();
+        // protéger contre valeurs manquantes / types invalides
+        if (!r || !r.startDate || !r.totalPrice || !r.status) return;
+        // n'agrège que les réservations confirmées dans les 6 derniers mois
+        try {
+          const start = (r.startDate instanceof Timestamp) ? r.startDate.toDate() : new Date(r.startDate);
+          if (r.status === "confirmed" && start >= sixMonthsAgo) {
+            const monthKey = start.toLocaleString('fr-FR', { month: 'short', year: 'numeric' });
+            monthlyData[monthKey] = monthlyData[monthKey] || { ca: 0, depenses: 0 };
+            monthlyData[monthKey].ca += safeNumber(r.totalPrice);
+            totalReservations += 1;
+          }
+        } catch (e) {
+          console.warn("Réservation ignorée pour format de date inconnu:", e);
+        }
+      });
+    } catch (err) {
+      console.error("Erreur getDocs(reservations):", err);
+      Toastify({ text: `Erreur: ${err.message}`, duration: 4000, backgroundColor: "#ef4444" }).showToast();
+      loader.style.display = "none";
+      return;
+    }
+
+    // 2) Écoute temps réel des voitures (pour réactivité)
+    try {
+      if (unsubscribeCars) unsubscribeCars(); // detach si exists
+
+      const carsQuery = query(
+        collection(db, "cars"),
+        where("uid", "==", user.uid)
+      );
+
+      unsubscribeCars = onSnapshot(carsQuery, snapshot => {
+        try {
+          const voituresData = [];
+          let totalCA = 0;
+          let voituresDisponibles = 0;
+          let totalVoitures = 0;
+          let meilleureVoiture = { nom: '-', ca: 0 };
+
+          snapshot.forEach(doc => {
+            const v = doc.data();
+            // sécuriser le modèle attendu
+            const nom = v.nom || 'Inconnu';
+            const ca = safeNumber(v.ca);
+            const dep = safeNumber(v.depenses);
+            const dispo = !!v.disponible;
+
+            voituresData.push({ nom, ca, dep });
+            totalCA += ca;
+            totalVoitures++;
+            if (dispo) voituresDisponibles++;
+            if (ca > meilleureVoiture.ca) meilleureVoiture = { nom, ca };
+          });
+
+          // Mettre à jour l'UI
+          document.getElementById("caTotal").textContent = `${totalCA.toFixed(2)} DH`;
+          document.getElementById("totalRes").textContent = `${totalReservations}`;
+          document.getElementById("bestCar").textContent = `${meilleureVoiture.nom}`;
+          document.getElementById("dispo").textContent = totalVoitures > 0
+            ? `${Math.round((voituresDisponibles / totalVoitures) * 100)}%`
+            : "0%";
+
+          // Préparer mois
+          const mois = buildLast6Months(today);
+
+          // Préparer données dépenses par mois : on répartit (si tu veux) les dépenses totales uniformément, ici on met totalDepenses identique par mois (simple)
+          const totalDepenses = voituresData.reduce((a, v) => a + v.dep, 0);
+
+          // Chart Revenus vs Dépenses
+          const caParMois = mois.map(m => safeNumber(monthlyData[m]?.ca));
+          if (chartFinanceInstance) chartFinanceInstance.destroy();
+          chartFinanceInstance = new Chart(document.getElementById('chartFinance'), {
+            type: 'bar',
+            data: {
+              labels: mois,
+              datasets: [
+                { label: "Chiffre d'Affaire", data: caParMois, backgroundColor: '#4ade80' },
+                { label: "Dépenses", data: mois.map(() => totalDepenses / 6), backgroundColor: '#f87171' } // ici on répartit uniformément
+              ]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { labels: { color: '#fff' } } },
+              scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' }, beginAtZero: true } }
+            }
+          });
+
+          // Chart Performance par voiture
+          if (chartVoituresInstance) chartVoituresInstance.destroy();
+          chartVoituresInstance = new Chart(document.getElementById('chartVoitures'), {
+            type: 'bar',
+            data: {
+              labels: voituresData.map(v => v.nom),
+              datasets: [
+                { label: 'CA', data: voituresData.map(v => v.ca), backgroundColor: '#22d3ee' },
+                { label: 'Dépenses', data: voituresData.map(v => v.dep), backgroundColor: '#eab308' }
+              ]
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { labels: { color: '#fff' } } },
+              scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' }, beginAtZero: true } }
+            }
+          });
+
+          loader.style.display = "none";
+          Toastify({ text: "Données chargées avec succès 📊", duration: 3000, backgroundColor: "#4ade80" }).showToast();
+
+        } catch (err) {
+          console.error("Erreur onSnapshot(cars):", err);
+          Toastify({ text: `Erreur: ${err.message}`, duration: 4000, backgroundColor: "#ef4444" }).showToast();
+          loader.style.display = "none";
+        }
+      }, err => {
+        console.error("Listener cars failed:", err);
+        Toastify({ text: `Erreur listener voitures: ${err.message}`, duration: 4000, backgroundColor: "#ef4444" }).showToast();
+        loader.style.display = "none";
+      });
+
+    } catch (err) {
+      console.error("Erreur initialisation snapshot voitures:", err);
+      Toastify({ text: `Erreur: ${err.message}`, duration: 4000, backgroundColor: "#ef4444" }).showToast();
+      loader.style.display = "none";
+    }
+  }
+
+  // Auth state
+  onAuthStateChanged(auth, user => {
+    if (!user) {
+      if (unsubscribeCars) unsubscribeCars();
+      window.location.href = "connexion.html";
+      return;
+    }
+    loadData(user);
+    // Note: règles Firestore côté serveur (security rules) obligatoires (voir plus bas).
   });
 </script>
-
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
